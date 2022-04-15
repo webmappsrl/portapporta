@@ -3,8 +3,11 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
 class Company extends Resource
@@ -42,7 +45,38 @@ class Company extends Resource
     {
         return [
             ID::make(__('ID'), 'id')->sortable(),
-            Text::make('name')
+            Text::make('name'),
+            File::make(__('Config .TS'),'configTs')
+                ->acceptedTypes('.ts')
+                ->disk('public')
+                ->store(function (Request $request, $model) {
+                    $file = $request->file('configTs');
+                    return $model->get_file_name_extension($file);
+                }),
+            File::make(__('Config .JSON'),'configJson')
+                ->acceptedTypes('.json')
+                ->disk('public')
+                ->store(function (Request $request, $model) {
+                    $file = $request->file('configJson');
+                    return $model->get_file_name_extension($file);
+                }),
+            Text::make(__('configXML ID'),'configXMLID'),
+            Textarea::make(__('configXML description'),'description'),
+            Text::make(__('configXML Version'),'version'),
+            File::make(__('ICON'),'icon')
+                ->acceptedTypes('image/*')
+                ->disk('public')
+                ->store(function (Request $request, $model) {
+                    $file = $request->file('icon');
+                    return $model->get_file_name_extension($file);
+                }),
+            File::make(__('SPLASH'),'splash')
+                ->acceptedTypes('image/*')
+                ->disk('public')
+                ->store(function (Request $request, $model) {
+                    $file = $request->file('splash');
+                    return $model->get_file_name_extension($file);
+                })
         ];
     }
 
