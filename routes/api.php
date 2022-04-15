@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CompaniesController;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +19,14 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+    
+Route::get("/c/{id}/info.json", function($id, array $headers = []){
+    $company = Company::find($id);
+
+    if (is_null($company))
+        return response()->json(['code' => 404, 'error' => "Not Found"], 404);
+
+    return response()->json($company, 200, $headers);
+});
+   
