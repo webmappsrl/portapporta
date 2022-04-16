@@ -20,13 +20,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-    
-Route::get("/c/{id}/info.json", function($id, array $headers = []){
-    $company = Company::find($id);
-
-    if (is_null($company))
-        return response()->json(['code' => 404, 'error' => "Not Found"], 404);
-
-    return response()->json($company, 200, $headers);
+Route::prefix('c')->name('company')->group(function () {
+    Route::get("/{id}/info.json", [CompaniesController::class, 'infoJson']);
 });
+
    
