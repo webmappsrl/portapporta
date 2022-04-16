@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class CompaniesController extends Controller
 {
     /**
-     * Return Company's JSON.
+     * Return Company's info.json.
      *
      * @param Request $request
      * @param int     $id
@@ -17,12 +17,12 @@ class CompaniesController extends Controller
      *
      * @return JsonResponse
      */
-    public function getGeojson(Request $request, int $id, array $headers = []): JsonResponse {
+    public function infoJson(Request $request, int $id, array $headers = []): JsonResponse {
         $company = Company::find($id);
-
+        
         if (is_null($company))
-            return response()->json(['code' => 404, 'error' => "Not Found"], 404);
-
-        return response()->json($company->getGeojson(), 200, $headers);
+        return response()->json(['code' => 404, 'error' => "Not Found"], 404);
+        
+        return response()->json($company->createInfoJson($company), 200, $headers);
     }
 }
