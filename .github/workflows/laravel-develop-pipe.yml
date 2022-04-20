@@ -24,15 +24,11 @@ jobs:
       # You may pin to the exact commit or the version.
       # uses: hdev14/laravel-test-action@7dab92e8d7ae9f2c45c86f9061a4e8d0e80bb064
       uses: hdev14/laravel-test-action@v1
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.SSHKEY }}
-          script: "cd /var/www/html/portapporta && ./scripts/deploy.sh"
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.SSHKEY }}
+        script: "cd /var/www/html/portapporta && ./scripts/deploy.sh"
