@@ -10,6 +10,9 @@ echo "Deployment started ..."
 # Pull the latest version of the app
 git pull origin develop
 
+omposer update mirrors
+composer update
+php artisan nova:install
 # Install composer dependencies
 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
