@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CompaniesController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +23,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('c')->name('company')->group(function () {
-    Route::get("/{id}/info.json", [CompaniesController::class, 'infoJson']);
+    Route::get('/{id}/info.json', function ($id) {
+        return new CompanyResource(Company::findOrFail($id));
+    })->name('info.json');
 });
 
-   
+
