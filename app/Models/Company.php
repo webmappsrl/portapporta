@@ -35,4 +35,8 @@ class Company extends Model
     public function userTypes(){
         return $this->hasMany(UserType::class);
     }
+    
+    public function zones(){
+        return $this->hasMany(Zone::class);
+    }
 }
