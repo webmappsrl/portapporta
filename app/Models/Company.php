@@ -31,4 +31,8 @@ class Company extends Model
     public function wasteCollectionCenters(){
         return $this->hasMany(WasteCollectionCenter::class);
     }
+    
+    public function userTypes(){
+        return $this->hasMany(UserType::class);
+    }
 }

@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
             TrashTypeSeeder::class,
             WasteSeeder::class,
-            WasteCollectionCenterSeeder::class
+            WasteCollectionCenterSeeder::class,
+            UserTypeSeeder::class,
         ]);
     }
 }
