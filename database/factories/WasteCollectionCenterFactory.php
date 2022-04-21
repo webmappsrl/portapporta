@@ -7,9 +7,9 @@ use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TrashType>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\WasteCollectionCenter>
  */
-class TrashTypeFactory extends Factory
+class WasteCollectionCenterFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -23,8 +23,9 @@ class TrashTypeFactory extends Factory
         } catch (Exception $e) {
             $company = Company::factory()->create();
         }
+
         return [
-            'company_id' => $company->id
+            'company_id' => $company->id,
         ];
     }
 }

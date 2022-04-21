@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Company;
 use App\Models\TrashType;
+use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,9 +19,21 @@ class WasteFactory extends Factory
      */
     public function definition()
     {
+        try {
+            $company = Company::all()->random();
+        } catch (Exception $e) {
+            $company = Company::factory()->create();
+        }
+
+        try {
+            $trashtype = TrashType::all()->random();
+        } catch (Exception $e) {
+            $trashtype = TrashType::factory()->create();
+        }
+
         return [
-            'company_id' => Company::factory()->create(),
-            'trash_type_id' => TrashType::factory()->create(),
+            'company_id' => $company->id,
+            'trash_type_id' => $trashtype->id,
         ];
     }
 }

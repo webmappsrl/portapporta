@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CompanySeeder::class,
             TrashTypeSeeder::class,
-            WasteSeeder::class
+            WasteSeeder::class,
+            WasteCollectionCenterSeeder::class
         ]);
     }
 }
