@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\TrashType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,7 +17,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
-            CompanySeeder::class
+            CompanySeeder::class,
+            TrashTypeSeeder::class
         ]);
     }
 }

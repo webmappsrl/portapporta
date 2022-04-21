@@ -19,4 +19,8 @@ class Company extends Model
     public function get_file_name_extension($file) {
         return sha1($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
     }
+
+    public function trashTypes(){
+        return $this->hasMany(TrashType::class);
+    }
 }
