@@ -12,4 +12,12 @@ class WasteCollectionCenter extends Model
     public function company(){
         return $this->belongsTo(Company::class);
     }
+
+    public function userTypes(){
+        return $this->belongsToMany(UserType::class);
+    }
+    
+    public function trashTypes(){
+        return $this->belongsToMany(TrashType::class);
+    }
 }

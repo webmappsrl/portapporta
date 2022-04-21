@@ -16,4 +16,8 @@ class TrashType extends Model
     public function wastes(){
         return $this->hasMany(Waste::class);
     }
+
+    public function wasteCollectionCenters(){
+        return $this->belongsToMany(WasteCollectionCenter::class);
+    }
 }
