@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TrashType extends Model
+class Waste extends Model
 {
     use HasFactory;
 
@@ -13,7 +13,7 @@ class TrashType extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function wastes(){
-        return $this->hasMany(Waste::class);
+    public function trashType(){
+        return $this->belongsTo(TrashType::class);
     }
 }

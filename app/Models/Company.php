@@ -23,4 +23,8 @@ class Company extends Model
     public function trashTypes(){
         return $this->hasMany(TrashType::class);
     }
+    
+    public function wastes(){
+        return $this->hasMany(Waste::class);
+    }
 }

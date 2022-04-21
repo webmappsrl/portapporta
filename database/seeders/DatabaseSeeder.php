@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\TrashType;
+use App\Models\Waste;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -18,7 +19,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             CompanySeeder::class,
-            TrashTypeSeeder::class
+            TrashTypeSeeder::class,
+            WasteSeeder::class
         ]);
     }
 }
