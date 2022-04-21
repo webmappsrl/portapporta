@@ -26,6 +26,9 @@ Route::prefix('c')->name('company')->group(function () {
     Route::get('/{id}/info.json', function ($id) {
         return new CompanyResource(Company::findOrFail($id));
     })->name('info.json');
+    Route::get('/{id}/data/utenze_meta.json', function ($id) {
+        return new CompanyResource(Company::findOrFail($id));
+    })->name('utenze_meta.json');
 });
 
 
