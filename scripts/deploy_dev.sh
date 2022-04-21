@@ -8,14 +8,12 @@ echo "Deployment started ..."
 (php artisan down) || true
 
 # Pull the latest version of the app
-git pull origin develop
+git reset --hard origin/develop
 
-omposer update mirrors
-composer update
-php artisan nova:install
+
 # Install composer dependencies
 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
+php artisan nova:install
 # Clear the old cache
 php artisan clear-compiled
 php artisan config:cache
