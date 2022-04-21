@@ -1625,17 +1625,17 @@
         },
         {
             "name": "laravel/nova",
-            "version": "4.2.3",
+            "version": "4.2.4",
             "source": {
                 "type": "git",
                 "url": "git@github.com:laravel/nova.git",
-                "reference": "32efda77ecfbf3a9473ca0bbe39af5af71e14a92"
+                "reference": "94fe6a2fbfc0514e41e858eef756c2ebe5a282d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://nova.laravel.com/dist/laravel/nova/laravel-nova-32efda77ecfbf3a9473ca0bbe39af5af71e14a92-zip-1ba88a.zip",
-                "reference": "32efda77ecfbf3a9473ca0bbe39af5af71e14a92",
-                "shasum": "cbd35cf96963d337ddccb412f42d374be32c87d8"
+                "url": "https://nova.laravel.com/dist/laravel/nova/laravel-nova-94fe6a2fbfc0514e41e858eef756c2ebe5a282d6-zip-e9741a.zip",
+                "reference": "94fe6a2fbfc0514e41e858eef756c2ebe5a282d6",
+                "shasum": "77522890af42796c59d5a0b12b386e5bb90e3474"
             },
             "require": {
                 "brick/money": "^0.5.0",
@@ -1725,9 +1725,9 @@
                 "laravel"
             ],
             "support": {
-                "source": "https://github.com/laravel/nova/tree/v4.2.3"
+                "source": "https://github.com/laravel/nova/tree/v4.2.4"
             },
-            "time": "2022-04-19T18:44:02+00:00"
+            "time": "2022-04-21T01:11:36+00:00"
         },
         {
             "name": "laravel/sanctum",
@@ -3558,23 +3558,23 @@
         },
         {
             "name": "spatie/once",
-            "version": "3.0.2",
+            "version": "3.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/once.git",
-                "reference": "90d5b02f1fdf31edd5a5919ff94aab456a1143e0"
+                "reference": "aab3fc8694e7caec98b2d330c4a8420391c7559d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/once/zipball/90d5b02f1fdf31edd5a5919ff94aab456a1143e0",
-                "reference": "90d5b02f1fdf31edd5a5919ff94aab456a1143e0",
+                "url": "https://api.github.com/repos/spatie/once/zipball/aab3fc8694e7caec98b2d330c4a8420391c7559d",
+                "reference": "aab3fc8694e7caec98b2d330c4a8420391c7559d",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.3",
+                "pestphp/pest": "^1.21",
                 "symfony/var-dumper": "^5.1"
             },
             "type": "library",
@@ -3608,7 +3608,7 @@
                 "spatie"
             ],
             "support": {
-                "source": "https://github.com/spatie/once/tree/3.0.2"
+                "source": "https://github.com/spatie/once/tree/3.1.0"
             },
             "funding": [
                 {
@@ -3616,7 +3616,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2022-02-04T09:04:33+00:00"
+            "time": "2022-04-21T12:23:20+00:00"
         },
         {
             "name": "symfony/console",
@@ -8713,5 +8713,5 @@
         "php": "^8.0.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }
