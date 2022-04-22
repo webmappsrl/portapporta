@@ -1,9 +1,8 @@
 <?php
 
-use App\Http\Controllers\CompaniesController;
-use App\Http\Controllers\CompanyController;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\UtenzeMetaResource;
+use App\Http\Resources\ZoneConfiniResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,9 +26,14 @@ Route::prefix('c')->name('company')->group(function () {
     Route::get('/{id}/info.json', function ($id) {
         return new CompanyResource(Company::findOrFail($id));
     })->name('info.json');
+
     Route::get('/{id}/data/utenze_meta.json', function ($id) {
         return new UtenzeMetaResource(Company::findOrFail($id));
     })->name('utenze_meta.json');
+
+    Route::get('/{id}/data/zone_confini.geojson', function ($id) {
+        return new ZoneConfiniResource(Company::findOrFail($id));
+    })->name('zone_confini.geojson');
 });
 
 
