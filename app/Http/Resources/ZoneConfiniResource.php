@@ -18,7 +18,13 @@ class ZoneConfiniResource extends JsonResource
      */
     public function toArray($request)
     {
-        $json = [];
+        $features = [];
+
+        $json = [
+            'type' => 'FeatureCollection',
+            'name' => 'zone_confini',
+            'features' => $features
+        ];
         return $json;
     }
 }

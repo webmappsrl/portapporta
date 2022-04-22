@@ -22,4 +22,21 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
         $response->assertStatus(200);
     }
 
+    /** @test     */
+    public function api_data_confini_is_geojson()
+    {
+        $z = Zone::factory()->create();
+        $response = $this->get('/api/c/'.$z->company->id.'/data/zone_confini.geojson');
+
+        $response->assertStatus(200);
+        $geojson = $response->json();
+
+        $this->assertArrayHasKey('type',$geojson);
+        $this->assertArrayHasKey('name',$geojson);
+        $this->assertArrayHasKey('features',$geojson);
+
+        $this->assertEquals('FeatureCollection',$geojson['type']);
+        $this->assertEquals('zone_confini',$geojson['name']);
+    }
+
 }
