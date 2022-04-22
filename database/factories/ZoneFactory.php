@@ -26,6 +26,7 @@ class ZoneFactory extends Factory
 
         return [
             'company_id' => $company->id,
+            'comune' => $this->faker->city()
         ];
     }
 }

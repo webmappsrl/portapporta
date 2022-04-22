@@ -26,6 +26,7 @@ class ZoneConfiniResource extends JsonResource
                     'type' => 'Feature',
                     'properties' => [
                         'id' => $z->id,
+                        'COMUNE' => $z->comune
                     ],
                     'geometry' => []
                     ];
