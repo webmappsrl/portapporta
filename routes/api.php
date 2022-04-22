@@ -3,6 +3,7 @@
 use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\UtenzeMetaResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,7 +28,7 @@ Route::prefix('c')->name('company')->group(function () {
         return new CompanyResource(Company::findOrFail($id));
     })->name('info.json');
     Route::get('/{id}/data/utenze_meta.json', function ($id) {
-        return new CompanyResource(Company::findOrFail($id));
+        return new UtenzeMetaResource(Company::findOrFail($id));
     })->name('utenze_meta.json');
 });
 

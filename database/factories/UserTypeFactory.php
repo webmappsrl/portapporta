@@ -26,6 +26,11 @@ class UserTypeFactory extends Factory
 
         return [
             'company_id' => $company->id,
+            'slug' => $this->faker->slug(),
+            'label' => [
+                'it' => $this->faker->text(20),
+                'en' => $this->faker->text(20),
+            ],
         ];
     }
 }

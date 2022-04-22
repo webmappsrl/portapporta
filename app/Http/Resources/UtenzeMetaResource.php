@@ -19,6 +19,15 @@ class UtenzeMetaResource extends JsonResource
     public function toArray($request)
     {
         $json = [];
+        if(count($this->userTypes)>0) {
+            foreach($this->userTypes as $ut) {
+                $json[$ut->slug]=[
+                    'locale' => 'it',
+                    'label' => $ut->getTranslation('label','it'),
+                    'translations' => [ 'en' => ['label'=>$ut->getTranslation('label','en')]],
+                ];
+            }
+        }
         return $json;
     }
 }

@@ -1,0 +1,38 @@
+{
+    "private": {
+      "label": "Domestico",
+      "locale": "it",
+      "translations": {
+        "en": {
+          "label": "Private"
+        }
+      }
+    },
+    "company": {
+      "label": "Commerciale",
+      "locale": "it",
+      "translations": {
+        "en": {
+          "label": "Commercial"
+        }
+      }
+    },
+    "artigianal": {
+      "label": "Artigianale/industriale",
+      "locale": "it",
+      "translations": {
+        "en": {
+          "label": "Artisan/industrial"
+        }
+      }
+    },
+    "seaside": {
+      "label": "Balneare",
+      "locale": "it",
+      "translations": {
+        "en": {
+          "label": "Seaside"
+        }
+      }
+    }
+  }
