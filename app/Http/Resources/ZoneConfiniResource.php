@@ -20,6 +20,20 @@ class ZoneConfiniResource extends JsonResource
     {
         $features = [];
 
+        if(count($this->zones)>0) {
+            foreach($this->zones as $z) {
+                $item = [
+                    'type' => 'Feature',
+                    'properties' => [
+                        'id' => $z->id,
+                    ],
+                    'geometry' => []
+                    ];
+                $features[]=$item;
+
+            }
+        }
+
         $json = [
             'type' => 'FeatureCollection',
             'name' => 'zone_confini',
