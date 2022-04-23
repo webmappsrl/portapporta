@@ -20,20 +20,19 @@ class CentriRaccoltaResource extends JsonResource
     {
 
         $features = [];
-        // if(count($this->zones)>0) {
-        //     foreach($this->zones as $z) {
-        //         $item = [
-        //             'type' => 'Feature',
-        //             'properties' => [
-        //                 'id' => $z->id,
-        //                 'COMUNE' => $z->comune
-        //             ],
-        //             'geometry' => json_decode($z->getGeojsonGeometry(),true),
-        //             ];
-        //         $features[]=$item;
-
-        //     }
-        // }
+        if(count($this->wasteCollectionCenters)>0) {
+            foreach($this->wasteCollectionCenters as $wcc) {
+                $item = [
+                    'type' => 'Feature',
+                    'properties' => [
+                        'id' => $wcc->id,
+                    ],
+//                    'geometry' => json_decode($z->getGeojsonGeometry(),true),
+                    'geometry' => '{}'
+                    ];
+                $features[]=$item;
+            }
+        }
 
         $json = [
             'type' => 'FeatureCollection',
