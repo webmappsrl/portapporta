@@ -28,6 +28,7 @@ return new class extends Migration
     {
         Schema::table('zones', function (Blueprint $table) {
             $table->dropColumn('comune');
+            $table->dropColumn('geometry');
         });
     }
 };

@@ -24,7 +24,22 @@ class TrashTypeFactory extends Factory
             $company = Company::factory()->create();
         }
         return [
-            'company_id' => $company->id
+            'company_id' => $company->id,
+            'slug' => $this->faker->slug(),
+            'color' => $this->faker->rgbColor(),
+            'name' => [
+                'it' => $this->faker->sentence(3),
+                'en' => $this->faker->sentence(3),
+            ],
+            'where' => [
+                'it' => $this->faker->sentence(6),
+                'en' => $this->faker->sentence(6),
+            ],
+            'howto' => [
+                'it' => $this->faker->sentence(30),
+                'en' => $this->faker->sentence(30),
+            ]
+
         ];
     }
 }

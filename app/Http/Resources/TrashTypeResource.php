@@ -19,6 +19,11 @@ class TrashTypeResource extends JsonResource
     public function toArray($request)
     {
         $json = [];
+        if(count($this->trashTypes)>0) {
+            foreach($this->trashTypes as $tt) {
+                $json[$tt->slug] = [];
+            }
+        }
         return $json;
     }
 }
