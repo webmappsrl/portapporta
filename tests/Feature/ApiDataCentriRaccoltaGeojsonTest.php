@@ -22,5 +22,23 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
         $response->assertStatus(200);
     }
 
+        /** @test     */
+        public function api_data_centri_raccolta_is_geojson()
+        {
+            $z = WasteCollectionCenter::factory()->create();
+            $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+    
+            $response->assertStatus(200);
+            $geojson = $response->json();
+    
+            $this->assertArrayHasKey('type',$geojson);
+            $this->assertArrayHasKey('features',$geojson);
+    
+            $this->assertEquals('FeatureCollection',$geojson['type']);
+
+        }
+    
+    
+
 
 }
