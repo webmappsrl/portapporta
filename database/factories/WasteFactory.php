@@ -34,6 +34,21 @@ class WasteFactory extends Factory
         return [
             'company_id' => $company->id,
             'trash_type_id' => $trashtype->id,
+            'name' => [
+                'it' => $this->faker->sentence(3),
+                'en' => $this->faker->sentence(3),
+            ],
+            'where' => [
+                'it' => $this->faker->sentence(6),
+                'en' => $this->faker->sentence(6),
+            ],
+            'notes' => [
+                'it' => $this->faker->sentence(30),
+                'en' => $this->faker->sentence(30),
+            ],
+            'pap' => $this->faker->boolean(),
+            'delivery' => $this->faker->boolean(),
+            'collection_center' => $this->faker->boolean(),
         ];
     }
 }
