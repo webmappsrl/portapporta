@@ -32,9 +32,6 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
         $response = $this->get('/api/c/'.$c->id.'/data/utenze_meta.json');      
         $json = $response->json();
-
-        var_dump($json);
-
         $this->assertEquals(2,count($json));
     }
 
