@@ -25,10 +25,20 @@ class CentriRaccoltaResource extends JsonResource
                 $item = [
                     'type' => 'Feature',
                     'properties' => [
-                        'id' => $wcc->id,
-                    ],
-//                    'geometry' => json_decode($z->getGeojsonGeometry(),true),
-                    'geometry' => '{}'
+                        'marker-color' => $wcc->marker_color,
+                        'marker-size' => $wcc->marker_size,
+                        'website' => $wcc->website,
+                        'picture_url' => $wcc->picture_url,
+                        'name' => $wcc->getTranslation('name','it'),
+                        'orario' => $wcc->getTranslation('orario','it'),
+                        'description' => $wcc->getTranslation('description','it'),
+                        'translations' => [ 'en' => [
+                            'name' => $wcc->getTranslation('name','en'),
+                            'orario' => $wcc->getTranslation('orario','en'),
+                            'description' => $wcc->getTranslation('description','en'),    
+                        ]]
+                     ],
+                    'geometry' => json_decode($wcc->getGeojsonGeometry(),true),
                     ];
                 $features[]=$item;
             }

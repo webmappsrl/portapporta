@@ -43,8 +43,8 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
     public function api_data_centri_raccolta_has_proper_feature_section()
     {
         $c = Company::factory()->create();
-        $z = WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
-        $z = WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
+        WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
+        WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
         $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
 
         $response->assertStatus(200);
@@ -63,6 +63,42 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
         $this->assertArrayHasKey('geometry',$geojson['features'][1]);
 
     }
+
+    /** @test     */
+    public function api_data_centri_raccolta_has_proper_properties_feature_section()
+    {
+        $z = WasteCollectionCenter::factory()->create();
+        $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+
+        $response->assertStatus(200);
+        $geojson = $response->json();
+
+        $properties = $geojson['features'][0]['properties'];
+
+        // Not translatable
+        $fields = ['website','picture_url'];
+        foreach($fields as $field) {
+            $this->assertArrayHasKey($field,$properties);
+            $this->assertEquals($z->$field,$properties[$field]);    
+        }
+        $this->assertArrayHasKey('marker-color',$properties);
+        $this->assertEquals($z->marker_color,$properties['marker-color']); 
+        $this->assertArrayHasKey('marker-size',$properties);
+        $this->assertEquals($z->marker_size,$properties['marker-size']); 
+
+        // Translatable
+        $fields = ['name','orario','description'];
+        foreach($fields as $field) {
+            // IT
+            $this->assertArrayHasKey($field,$properties);
+            $this->assertEquals($z->getTranslation($field,'it'),$properties[$field]);
+            // EN    
+            $this->assertArrayHasKey($field,$properties['translations']['en']);
+            $this->assertEquals($z->getTranslation($field,'en'),$properties['translations']['en'][$field]);
+        }
+
+    }
+
 
 
 }
