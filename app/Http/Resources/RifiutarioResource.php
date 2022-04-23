@@ -36,6 +36,9 @@ class RifiutarioResource extends JsonResource
                         ],
                     ],
                 ];
+                if(isset($w->trash_type_id)) {
+                    $item['category']=$w->trashType->slug;
+                }
                 $json[]=$item;
             }
         }

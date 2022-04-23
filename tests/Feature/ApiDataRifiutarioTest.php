@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Company;
+use App\Models\TrashType;
 use App\Models\Waste;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -54,6 +55,7 @@ class ApiDataRifiutarioTest extends TestCase
         $this->assertArrayHasKey('delivery',$item);
         $this->assertArrayHasKey('translations',$item);
     }
+
     /** @test     */
     public function rifiutario_has_proper_item_content()
     {
@@ -74,5 +76,22 @@ class ApiDataRifiutarioTest extends TestCase
         $this->assertEquals($w->pap,$item['pap']);
         $this->assertEquals($w->delivery,$item['delivery']);
         $this->assertEquals($w->collection_center,$item['collection_center']);
+    }
+    /** @test     */
+    public function rifiutario_has_proper_item_category_section()
+    {
+        $c = Company::factory()->create();
+        $tt = TrashType::factory()->create(['company_id'=>$c->id]);
+        $w = Waste::factory()->create(['company_id'=>$c->id,'trash_type_id'=>$tt->id]);
+
+        $response = $this->get('/api/c/'.$c->id.'/data/rifiutario.json');
+
+        $response->assertStatus(200);
+        $json = $response->json();
+        $item = $json[0];
+
+        $this->assertArrayHasKey('category',$item);
+        $this->assertEquals($tt->slug,$item['category']);
+
     }
 }
