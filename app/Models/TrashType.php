@@ -13,6 +13,7 @@ class TrashType extends Model
 
     public $translatable = [
         'name',
+        'description',
         'where',
         'howto',
         'allowed',

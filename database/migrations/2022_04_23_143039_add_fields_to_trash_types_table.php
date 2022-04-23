@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::table('trash_types', function (Blueprint $table) {
             $table->string('slug');
             $table->string('name');
+            $table->text('description')->nullable();
             $table->string('where')->nullable();
             $table->text('howto')->nullable();
             $table->string('color')->nullable();
@@ -34,6 +35,7 @@ return new class extends Migration
         Schema::table('trash_types', function (Blueprint $table) {
             $table->dropColumn('slug');
             $table->dropColumn('name');
+            $table->dropColumn('description');
             $table->dropColumn('where');
             $table->dropColumn('howto');
             $table->dropColumn('color');

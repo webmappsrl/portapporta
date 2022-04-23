@@ -31,6 +31,10 @@ class TrashTypeFactory extends Factory
                 'it' => $this->faker->sentence(3),
                 'en' => $this->faker->sentence(3),
             ],
+            'description' => [
+                'it' => $this->faker->sentence(30),
+                'en' => $this->faker->sentence(30),
+            ],
             'where' => [
                 'it' => $this->faker->sentence(6),
                 'en' => $this->faker->sentence(6),

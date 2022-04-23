@@ -37,5 +37,29 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $this->assertArrayHasKey($tt1->slug,$json);
             $this->assertArrayHasKey($tt2->slug,$json);
         }
+
+        /** @test     */
+        public function tipi_rifiuto_item_has_proper_keys()
+        {
+            $company = Company::factory()->create();
+            $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+    
+            $response->assertStatus(200);
+            $json = $response->json();
+
+            $json1 = $json[$tt1->slug];
+
+            $this->assertArrayHasKey('name',$json1);
+            $this->assertArrayHasKey('description',$json1);
+            $this->assertArrayHasKey('where',$json1);
+            $this->assertArrayHasKey('color',$json1);
+            $this->assertArrayHasKey('howto',$json1);
+            $this->assertArrayHasKey('allowed',$json1);
+            $this->assertArrayHasKey('notallowed',$json1);
+            $this->assertArrayHasKey('translations',$json1);
+
+        }
     
 }
