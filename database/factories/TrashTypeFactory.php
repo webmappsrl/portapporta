@@ -42,7 +42,35 @@ class TrashTypeFactory extends Factory
             'howto' => [
                 'it' => $this->faker->sentence(30),
                 'en' => $this->faker->sentence(30),
-            ]
+            ],
+            'allowed' => [
+                'it' => [
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                ],
+                'en' => [
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                ],
+            ],
+            'notallowed' => [
+                'it' => [
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                ],
+                'en' => [
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                    $this->faker->sentence(3),
+                ],
+            ],
 
         ];
     }

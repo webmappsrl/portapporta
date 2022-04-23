@@ -27,16 +27,16 @@ class TrashTypeResource extends JsonResource
                     'howto' => $tt->getTranslation('howto','it'),
                     'where' => $tt->getTranslation('where','it'),
                     'color' => $tt->color,
-                    'allowed' => [],
-                    'notallowed' => [],
+                    'allowed' => $tt->getTranslation('allowed','it'),
+                    'notallowed' => $tt->getTranslation('notallowed','it'),
                     'translations' => [ 'en' => [
                         'name' => $tt->getTranslation('name','en'),
                         'description' => $tt->getTranslation('description','en'),
                         'howto' => $tt->getTranslation('howto','en'),
                         'where' => $tt->getTranslation('where','en'),
-                        'allowed' => [],
-                        'notallowed' => [],    
-                    ]],
+                        'allowed' => $tt->getTranslation('allowed','en'),
+                        'notallowed' => $tt->getTranslation('notallowed','en'),
+                        ]],
                 ];
             }
         }

@@ -82,5 +82,42 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $this->assertArrayHasKey('notallowed',$json1);
 
         }
+        /** @test     */
+        public function tipi_rifiuto_item_has_proper_allowed_field()
+        {
+            $company = Company::factory()->create();
+            $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+    
+            $response->assertStatus(200);
+            $json = $response->json();
+
+            $json1 = $json[$tt1->slug];
+
+            $this->assertIsArray($json1['allowed']);
+            $this->assertEquals(4,count($json1['allowed']));
+            $this->assertIsArray($json1['translations']['en']['allowed']);
+            $this->assertEquals(4,count($json1['translations']['en']['allowed']));
+        }
+    
+        /** @test     */
+        public function tipi_rifiuto_item_has_proper_notallowed_field()
+        {
+            $company = Company::factory()->create();
+            $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+    
+            $response->assertStatus(200);
+            $json = $response->json();
+
+            $json1 = $json[$tt1->slug];
+
+            $this->assertIsArray($json1['notallowed']);
+            $this->assertEquals(4,count($json1['notallowed']));
+            $this->assertIsArray($json1['translations']['en']['notallowed']);
+            $this->assertEquals(4,count($json1['translations']['en']['notallowed']));
+        }
     
 }
