@@ -43,6 +43,9 @@ class CentriRaccoltaResource extends JsonResource
                 if(count($wcc->userTypes)>0) {
                     $item['properties']['userTypes']=$wcc->userTypes->pluck('slug')->toArray();
                 }
+                if(count($wcc->trashTypes)>0) {
+                    $item['properties']['trashTypes']=$wcc->trashTypes->pluck('slug')->toArray();
+                }
                 $features[]=$item;
             }
         }

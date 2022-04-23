@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Company;
+use App\Models\TrashType;
 use App\Models\UserType;
 use App\Models\WasteCollectionCenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -118,29 +119,52 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
         $this->assertEquals(2,count($geometry['coordinates']));
     }
 
-        /** @test     */
-        public function api_data_centri_raccolta_has_proper_user_types_section()
-        {
-            $c = Company::factory()->create();
-            $wcc = WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
-            $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
-            $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-            $wcc->userTypes()->attach([$ut1->id,$ut2->id]);
+    /** @test     */
+    public function api_data_centri_raccolta_has_proper_user_types_section()
+    {
+        $c = Company::factory()->create();
+        $wcc = WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
+        $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
+        $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
+        $wcc->userTypes()->attach([$ut1->id,$ut2->id]);
 
-            $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
-    
-            $response->assertStatus(200);
-            $geojson = $response->json();
-            $properties = $geojson['features'][0]['properties'];
+        $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
 
-            $this->assertArrayHasKey('userTypes',$properties);
+        $response->assertStatus(200);
+        $geojson = $response->json();
+        $properties = $geojson['features'][0]['properties'];
 
-            foreach($wcc->userTypes->pluck('slug')->toArray() as $ut) {
-                $this->assertContains($ut,$properties['userTypes']);
-            }
-    
+        $this->assertArrayHasKey('userTypes',$properties);
+
+        foreach($wcc->userTypes->pluck('slug')->toArray() as $ut) {
+            $this->assertContains($ut,$properties['userTypes']);
         }
-    
+
+    }
+
+    /** @test     */
+    public function api_data_centri_raccolta_has_proper_trash_types_section()
+    {
+        $c = Company::factory()->create();
+        $wcc = WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
+        $tt1 = TrashType::factory()->create(['company_id'=>$c->id]);
+        $tt2 = TrashType::factory()->create(['company_id'=>$c->id]);
+        $wcc->trashTypes()->attach([$tt1->id,$tt2->id]);
+
+        $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
+
+        $response->assertStatus(200);
+        $geojson = $response->json();
+        $properties = $geojson['features'][0]['properties'];
+
+        $this->assertArrayHasKey('trashTypes',$properties);
+
+        foreach($wcc->trashTypes->pluck('slug')->toArray() as $ut) {
+            $this->assertContains($ut,$properties['trashTypes']);
+        }
+
+    }
+
 
 
 
