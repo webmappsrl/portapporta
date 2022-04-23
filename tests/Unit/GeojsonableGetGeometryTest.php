@@ -16,8 +16,19 @@ class GeojsonableGetGeometryTest extends TestCase
         $this->assertIsArray($geojson);
         $this->assertEquals(0,count($geojson));
     }
-
-    /** @test */
+    
+    /** 
+    "geometry": {
+        "type": "MultiPolygon", 
+        "coordinates": [ [ [ 
+            [10,45],
+            [11,45],
+            [11,46],
+            [12,47],
+            [10,45]
+        ] ] ]
+    }
+     * @test */
     public function when_geometry_is_simple_multipolygon_it_returns_simple_multipolygon_geojson() {
         $f = new FeatureMock();
         $f->geometry = DB::select("(SELECT ST_GeomFromText('MULTIPOLYGON(((10 45, 11 45, 11 46, 12 47, 10 45)))')as g)")[0]->g;
@@ -48,6 +59,33 @@ class GeojsonableGetGeometryTest extends TestCase
 
         $this->assertEquals(10,$geometry['coordinates'][0][0][4][0]);
         $this->assertEquals(45,$geometry['coordinates'][0][0][4][1]);
+
+    }
+
+    /** 
+    "geometry": {
+      "type": "Point",
+        "coordinates": [
+          10,
+          45
+        ] 
+    }
+     * @test */
+    public function when_geometry_is_point_it_returns_point_geojson() {
+        $f = new FeatureMock();
+        $f->geometry = DB::select("(SELECT ST_GeomFromText('POINT(10 45)')as g)")[0]->g;
+
+        $geometry = json_decode($f->getGeojsonGeometry(),true);
+
+        $this->assertArrayHasKey('type',$geometry);
+        $this->assertEquals('Point',$geometry['type']);
+
+        $this->assertArrayHasKey('coordinates',$geometry);
+        $this->assertIsArray($geometry['coordinates']);
+        $this->assertEquals(2,count($geometry['coordinates']));
+
+        $this->assertEquals(10,$geometry['coordinates'][0]);
+        $this->assertEquals(45,$geometry['coordinates'][1]);
 
     }
 }
