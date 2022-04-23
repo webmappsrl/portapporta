@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\TrashTypeResource;
 use App\Http\Resources\UtenzeMetaResource;
 use App\Http\Resources\ZoneConfiniResource;
 use App\Models\Company;
@@ -34,6 +35,11 @@ Route::prefix('c')->name('company')->group(function () {
     Route::get('/{id}/data/zone_confini.geojson', function ($id) {
         return new ZoneConfiniResource(Company::findOrFail($id));
     })->name('zone_confini.geojson');
+
+    Route::get('/{id}/data/tipi_rifiuto.json', function ($id) {
+        return new TrashTypeResource(Company::findOrFail($id));
+    })->name('tipi_rifiuto.json');
+    
 });
 
 
