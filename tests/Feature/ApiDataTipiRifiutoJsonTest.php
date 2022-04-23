@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
-class ApiDataTipiRifiutoJson extends TestCase
+class ApiDataTipiRifiutoJsonTest extends TestCase
 {
         // https://apiersu.netseven.it/data/tipi_rifiuto.json
 
