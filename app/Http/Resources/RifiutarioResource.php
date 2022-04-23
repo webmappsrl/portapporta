@@ -23,16 +23,16 @@ class RifiutarioResource extends JsonResource
             foreach($this->wastes as $w) {
                 $item = [
                     'name' => $w->getTranslation('name','it'),
-                    'where' => $w->getTranslation('name','it'),
-                    'notes' => $w->getTranslation('name','it'),
+                    'where' => $w->getTranslation('where','it'),
+                    'notes' => $w->getTranslation('notes','it'),
                     'pap' => $w->pap,
                     'delivery' => $w->delivery,
                     'collection_center' => $w->collection_center,
                     'translations' => [
                         'en' => [
                             'name' => $w->getTranslation('name','en'),
-                            'where' => $w->getTranslation('name','en'),
-                            'notes' => $w->getTranslation('name','en'),        
+                            'where' => $w->getTranslation('where','en'),
+                            'notes' => $w->getTranslation('notes','en'),        
                         ],
                     ],
                 ];

@@ -54,4 +54,25 @@ class ApiDataRifiutarioTest extends TestCase
         $this->assertArrayHasKey('delivery',$item);
         $this->assertArrayHasKey('translations',$item);
     }
+    /** @test     */
+    public function rifiutario_has_proper_item_content()
+    {
+        $c = Company::factory()->create();
+        $w = Waste::factory()->create(['company_id'=>$c->id]);
+        $response = $this->get('/api/c/'.$c->id.'/data/rifiutario.json');
+
+        $response->assertStatus(200);
+        $json = $response->json();
+        $item = $json[0];
+
+        $this->assertEquals($w->getTranslation('name','it'),$item['name']);
+        $this->assertEquals($w->getTranslation('where','it'),$item['where']);
+        $this->assertEquals($w->getTranslation('notes','it'),$item['notes']);
+        $this->assertEquals($w->getTranslation('name','en'),$item['translations']['en']['name']);
+        $this->assertEquals($w->getTranslation('where','en'),$item['translations']['en']['where']);
+        $this->assertEquals($w->getTranslation('notes','en'),$item['translations']['en']['notes']);
+        $this->assertEquals($w->pap,$item['pap']);
+        $this->assertEquals($w->delivery,$item['delivery']);
+        $this->assertEquals($w->collection_center,$item['collection_center']);
+    }
 }
