@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Traits\GeojsonableTrait;
 
 class Zone extends Model
 {
     use HasFactory;
+    use GeojsonableTrait;
 
     public function company(){
         return $this->belongsTo(Company::class);
@@ -18,9 +20,4 @@ class Zone extends Model
         return $this->belongsToMany(UserType::class);
     }
 
-    // TODO: move to trait
-    // TODO: empty case returns '[]'
-    public function getGeojsonGeometry() {
-        return DB::SELECT("SELECT ST_AsGeoJSON('$this->geometry') as g")[0]->g;
-    }
 }
