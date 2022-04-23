@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Resources\CentriRaccoltaResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\TrashTypeResource;
 use App\Http\Resources\UtenzeMetaResource;
@@ -39,6 +40,10 @@ Route::prefix('c')->name('company')->group(function () {
     Route::get('/{id}/data/tipi_rifiuto.json', function ($id) {
         return new TrashTypeResource(Company::findOrFail($id));
     })->name('tipi_rifiuto.json');
+
+    Route::get('/{id}/data/centri_raccolta.geojson', function ($id) {
+        return new CentriRaccoltaResource(Company::findOrFail($id));
+    })->name('centri_raccolta.geojson');
     
 });
 
