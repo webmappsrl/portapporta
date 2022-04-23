@@ -2,6 +2,7 @@
 
 use App\Http\Resources\CentriRaccoltaResource;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\RifiutarioResource;
 use App\Http\Resources\TrashTypeResource;
 use App\Http\Resources\UtenzeMetaResource;
 use App\Http\Resources\ZoneConfiniResource;
@@ -44,6 +45,10 @@ Route::prefix('c')->name('company')->group(function () {
     Route::get('/{id}/data/centri_raccolta.geojson', function ($id) {
         return new CentriRaccoltaResource(Company::findOrFail($id));
     })->name('centri_raccolta.geojson');
+
+    Route::get('/{id}/data/rifiutario.json', function ($id) {
+        return new RifiutarioResource(Company::findOrFail($id));
+    })->name('rifiutario.json');
     
 });
 
