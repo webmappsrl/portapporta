@@ -39,7 +39,10 @@ class CentriRaccoltaResource extends JsonResource
                         ]]
                      ],
                     'geometry' => json_decode($wcc->getGeojsonGeometry(),true),
-                    ];
+                ];
+                if(count($wcc->userTypes)>0) {
+                    $item['properties']['userTypes']=$wcc->userTypes->pluck('slug')->toArray();
+                }
                 $features[]=$item;
             }
         }
