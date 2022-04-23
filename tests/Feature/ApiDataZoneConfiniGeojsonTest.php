@@ -15,7 +15,7 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
     use RefreshDatabase;
 
     /** @test     */
-    public function api_data_confini_return_200()
+    public function api_data_zone_confini_return_200()
     {
         $z = Zone::factory()->create();
         $response = $this->get('/api/c/'.$z->company->id.'/data/zone_confini.geojson');
@@ -24,7 +24,7 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
     }
 
     /** @test     */
-    public function api_data_confini_is_geojson()
+    public function api_data_zone_confini_is_geojson()
     {
         $z = Zone::factory()->create();
         $response = $this->get('/api/c/'.$z->company->id.'/data/zone_confini.geojson');
@@ -80,6 +80,28 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
 
         $this->assertArrayHasKey('COMUNE',$properties);
         $this->assertEquals($z->comune,$properties['COMUNE']);
+
+    }
+    /** @test     */
+    public function api_data_zone_confini_has_proper_geometry_feature_section()
+    {
+        $z = Zone::factory()->create();
+        $response = $this->get('/api/c/'.$z->company->id.'/data/zone_confini.geojson');
+
+        $response->assertStatus(200);
+        $geojson = $response->json();
+
+        $geometry = $geojson['features'][0]['geometry'];
+
+        $this->assertArrayHasKey('type',$geometry);
+        $this->assertEquals('MultiPolygon',$geometry['type']);
+
+        $this->assertArrayHasKey('coordinates',$geometry);
+        $this->assertIsArray($geometry['coordinates']);
+        $this->assertIsArray($geometry['coordinates'][0]);
+        $this->assertIsArray($geometry['coordinates'][0][0]);
+        $this->assertEquals(5,count($geometry['coordinates'][0][0]));
+        $this->assertEquals(2,count($geometry['coordinates'][0][0][0]));
 
     }
 

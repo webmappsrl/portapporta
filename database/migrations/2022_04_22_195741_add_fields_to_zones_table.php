@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::table('zones', function (Blueprint $table) {
             $table->string('comune');
+            $table->multiPolygon('geometry')->nullable();
         });
     }
 

@@ -28,7 +28,7 @@ class ZoneConfiniResource extends JsonResource
                         'id' => $z->id,
                         'COMUNE' => $z->comune
                     ],
-                    'geometry' => []
+                    'geometry' => json_decode($z->getGeojsonGeometry(),true),
                     ];
                 $features[]=$item;
 
