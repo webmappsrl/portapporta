@@ -26,7 +26,7 @@ class TrashTypeFactory extends Factory
         return [
             'company_id' => $company->id,
             'slug' => $this->faker->slug(),
-            'color' => $this->faker->rgbColor(),
+            'color' => $this->faker->hexColor(),
             'name' => [
                 'it' => $this->faker->sentence(3),
                 'en' => $this->faker->sentence(3),

@@ -120,4 +120,47 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $this->assertEquals(4,count($json1['translations']['en']['notallowed']));
         }
     
+        /** @test     */
+        public function tipi_rifiuto_item_has_proper_content()
+        {
+            $company = Company::factory()->create();
+            $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
+            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+    
+            $response->assertStatus(200);
+            $json = $response->json();
+
+            $json1 = $json[$tt1->slug];
+
+            // Simple not translatable
+            $this->assertEquals($tt1->color,$json1['color']);
+
+            // Simple translatable
+            $this->assertEquals($tt1->getTranslation('name','it'),$json1['name']);
+            $this->assertEquals($tt1->getTranslation('description','it'),$json1['description']);
+            $this->assertEquals($tt1->getTranslation('where','it'),$json1['where']);
+            $this->assertEquals($tt1->getTranslation('howto','it'),$json1['howto']);
+
+            $this->assertEquals($tt1->getTranslation('name','en'),$json1['translations']['en']['name']);
+            $this->assertEquals($tt1->getTranslation('description','en'),$json1['translations']['en']['description']);
+            $this->assertEquals($tt1->getTranslation('where','en'),$json1['translations']['en']['where']);
+            $this->assertEquals($tt1->getTranslation('howto','en'),$json1['translations']['en']['howto']);
+
+            // Array translatable
+            foreach($tt1->getTranslation('allowed','it') as $item) {
+                $this->assertContains($item,$json1['allowed']);
+            }
+            foreach($tt1->getTranslation('allowed','en') as $item) {
+                $this->assertContains($item,$json1['translations']['en']['allowed']);
+            }
+            foreach($tt1->getTranslation('notallowed','it') as $item) {
+                $this->assertContains($item,$json1['notallowed']);
+            }
+            foreach($tt1->getTranslation('notallowed','en') as $item) {
+                $this->assertContains($item,$json1['translations']['en']['notallowed']);
+            }
+
+        }
+    
 }
