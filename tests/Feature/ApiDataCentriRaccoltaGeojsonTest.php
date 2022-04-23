@@ -99,6 +99,24 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
 
     }
 
+    /** @test     */
+    public function api_data_centri_raccolta_has_proper_geometry_feature_section()
+    {
+        $z = WasteCollectionCenter::factory()->create();
+        $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+
+        $response->assertStatus(200);
+        $geojson = $response->json();
+
+        $geometry = $geojson['features'][0]['geometry'];
+
+        $this->assertArrayHasKey('type',$geometry);
+        $this->assertEquals('Point',$geometry['type']);
+
+        $this->assertArrayHasKey('coordinates',$geometry);
+        $this->assertEquals(2,count($geometry['coordinates']));
+    }
+
 
 
 }
