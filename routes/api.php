@@ -6,6 +6,7 @@ use App\Http\Resources\RifiutarioResource;
 use App\Http\Resources\TrashTypeResource;
 use App\Http\Resources\UtenzeMetaResource;
 use App\Http\Resources\ZoneConfiniResource;
+use App\Http\Resources\ZoneMetaResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,10 @@ Route::prefix('c')->name('company')->group(function () {
     Route::get('/{id}/data/rifiutario.json', function ($id) {
         return new RifiutarioResource(Company::findOrFail($id));
     })->name('rifiutario.json');
+
+    Route::get('/{id}/data/zone_meta.json', function ($id) {
+        return new ZoneMetaResource(Company::findOrFail($id));
+    })->name('zone_meta.json');
     
 });
 
