@@ -9,6 +9,7 @@ echo "Deployment started ..."
 
 # Pull the latest version of the app
 git reset --hard origin/develop
+git pull origin/develop
 
 
 # Install composer dependencies
