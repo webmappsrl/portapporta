@@ -19,4 +19,24 @@ class Company extends Model
     public function get_file_name_extension($file) {
         return sha1($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
     }
+
+    public function trashTypes(){
+        return $this->hasMany(TrashType::class);
+    }
+    
+    public function wastes(){
+        return $this->hasMany(Waste::class);
+    }
+    
+    public function wasteCollectionCenters(){
+        return $this->hasMany(WasteCollectionCenter::class);
+    }
+    
+    public function userTypes(){
+        return $this->hasMany(UserType::class);
+    }
+    
+    public function zones(){
+        return $this->hasMany(Zone::class);
+    }
 }
