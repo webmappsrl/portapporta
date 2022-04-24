@@ -51,4 +51,32 @@ class ApiDataZoneMetaJsonTest extends TestCase
 
     }
 
+    /** @test    */
+    public function zone_meta_has_proper_content()
+    {
+        // Prepare
+        $c = Company::factory()->create();
+        $z = Zone::factory()->create(['company_id'=>$c->id]);
+        $uts =  UserType::factory(3)->create(['company_id'=>$c->id]);
+        $z->userTypes()->attach($uts->pluck('id')->toArray());    
+
+        // Fire
+        $response = $this->get('/api/c/'.$c->id.'/data/zone_meta.json');
+        $json = $response->json();
+
+        // Check
+        $item = $json[0];
+        $this->assertEquals($z->id,$item['id']);
+        $this->assertEquals($z->label,$item['label']);
+        $this->assertEquals($z->comune,$item['comune']);
+        $this->assertEquals($z->url,$item['url']);
+
+        $this->assertIsArray($item['types']);
+        $this->assertEquals(3,count($item['types']));
+        foreach($uts as $ut) {
+            $this->assertContains($ut->slug,$item['types']);
+        }
+
+    }
+
 }

@@ -25,10 +25,12 @@ class ZoneMetaResource extends JsonResource
                 $item = [
                         'id' => $z->id,
                         'comune' => $z->comune,
-                        'label' => '',
-                        'url' => '',
-                        'types' => ''
+                        'label' => $z->label,
+                        'url' => $z->url,
                     ];
+                if(count($z->userTypes)>0) {
+                    $item['types']=$z->userTypes->pluck('slug')->toArray();
+                }
                 $json[]=$item;
             }
         }

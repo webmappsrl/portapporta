@@ -28,6 +28,8 @@ class ZoneFactory extends Factory
         return [
             'company_id' => $company->id,
             'comune' => $this->faker->city(),
+            'label' => $this->faker->sentence(3),
+            'url' => $this->faker->url(),
             'geometry' => DB::select("(SELECT ST_GeomFromText('MULTIPOLYGON(((10 45, 11 45, 11 46, 11 46, 10 45)))')as g)")[0]->g,
         ];
     }
