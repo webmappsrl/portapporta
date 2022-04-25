@@ -8,30 +8,29 @@ echo "Deployment started ..."
 (php artisan down) || true
 
 # Pull the latest version of the app
-git pull origin develop
+git pull origin main
 
 # Install composer dependencies
-composer install  --no-interaction --prefer-dist --optimize-autoloader
-php artisan nova:install
+# composer install  --no-interaction --prefer-dist --optimize-autoloader
+# php artisan nova:install
 
 # Run database migrations
-php artisan migrate --force
+# php artisan migrate --f# orce
 
-# Clear caches
-php artisan cache:clear
+#
+# # Clear caches
+# php artisan cache:clear
 
-# Clear and cache routes
-php artisan route:clear
-php artisan route:cache
+# # Clear and cache routes
+# php artisan route:clear
+# php artisan route:cache
+
 # Clear and cache config
-php artisan config:clear
-php artisan config:cache
+# php artisan config:clear
+# php artisan config:cache
 
 # Clear the old cache
-php artisan clear-compiled
-
-composer dump-autoload
-php artisan optimize
+# php artisan clear-compiled
 
 # Compile npm assets
 # npm run prod
