@@ -19,6 +19,16 @@ class TrashType extends Model
         'allowed',
         'notallowed'
     ];
+    protected $fillable = [
+        'slug',
+        'company_id',
+        'name',
+        'description',
+        'where',
+        'howto',
+        'allowed',
+        'notallowed'
+    ];
 
     protected $casts = [
         'allowed' => 'array',
