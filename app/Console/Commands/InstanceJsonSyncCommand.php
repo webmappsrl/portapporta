@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Helpers\InstanceJsonSyncCommandHelper;
 use App\Models\TrashType;
 use App\Models\UserType;
+use App\Models\WasteCollectionCenter;
 use Exception;
 use Illuminate\Console\Command;
 
@@ -36,7 +37,8 @@ class InstanceJsonSyncCommand extends Command
 
         
         // $this->syncTipiRifiuto($company_id,$endpoint);
-        $this->syncUtenzeMeta($company_id,$endpoint);
+        // $this->syncUtenzeMeta($company_id,$endpoint);
+        $this->syncCentriRaccolta($company_id,$endpoint);
     }
     
     protected function syncTipiRifiuto($company_id,$endpoint){
@@ -119,6 +121,66 @@ class InstanceJsonSyncCommand extends Command
                         'company_id' => $company_id
                     ],
                     $params);
+            }
+        } catch (Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
+        }
+    }
+
+    protected function syncCentriRaccolta($company_id,$endpoint){
+        $utenze_meta_url = $endpoint . '/data/centri_raccolta.geojson';
+        $response = json_decode(InstanceJsonSyncCommandHelper::importerCurl($utenze_meta_url),true);
+        try {
+            foreach ($response['features'] as $feature ) {
+                if (array_key_exists('name',$feature['properties'])) {
+                    $params['name']['it'] = $feature['properties']['name'];
+                }
+                if (array_key_exists('marker-color',$feature['properties'])) {
+                    $params['marker-color'] = $feature['properties']['marker-color'];
+                }
+                if (array_key_exists('marker-size',$feature['properties'])) {
+                    $params['marker-size'] = $feature['properties']['marker-size'];
+                }
+                if (array_key_exists('marker-symbol',$feature['properties'])) {
+                    $params['marker-symbol'] = $feature['properties']['marker-symbol'];
+                }
+                if (array_key_exists('website',$feature['properties'])) {
+                    $params['website'] = $feature['properties']['website'];
+                }
+                if (array_key_exists('picture_url',$feature['properties'])) {
+                    $params['picture_url'] = $feature['properties']['picture_url'];
+                }
+                if (array_key_exists('orario',$feature['properties'])) {
+                    $params['orario']['it'] = $feature['properties']['orario'];
+                }
+                if (array_key_exists('description',$feature['properties'])) {
+                    $params['description']['it'] = $feature['properties']['description'];
+                }
+                
+                if(!empty($feature['properties']['translations'])) { 
+                    if (array_key_exists('en',$feature['properties']['translations'])) { 
+                        $params['name']['en'] = $feature['properties']['translations']['en']['name']; 
+                        $params['orario']['en'] = $feature['properties']['translations']['en']['orario']; 
+                        $params['description']['en'] = $feature['properties']['translations']['en']['description']; 
+                    }
+                }
+                $waste_center = WasteCollectionCenter::updateOrCreate(
+                    [
+                        'name' => $feature['properties']['name'],
+                        'company_id' => $company_id
+                    ],
+                    $params);
+
+                if (array_key_exists('userTypes',$feature['properties'])) {
+                    $user_types = [];
+                    foreach ($feature['properties']['userTypes'] as $value) {
+                        $userType = UserType::where('company_id',$company_id)
+                                                ->where('slug',$value)
+                                                ->get();
+                        array_push($user_types,$userType->id);
+                    };
+                    $waste_center->userTypes()->sync($user_types, false);
+                }
             }
         } catch (Exception $e) {
             echo 'Caught exception: ',  $e->getMessage(), "\n";
