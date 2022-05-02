@@ -14,7 +14,7 @@ pg_dump pap > ~/backup/$(date +%Y-%m-%d).backup
 gzip  ~/backup/$(date +%Y-%m-%d).backup --force
 echo "Clearing old backups. takes only the last 10"
 cd ~/backup
-rm `ls -t | awk 'NR>10'`
+rm `ls -t | awk 'NR>10'` -f
 cd ~/portapporta
 
 
