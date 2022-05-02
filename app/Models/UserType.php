@@ -16,6 +16,12 @@ class UserType extends Model
         'label',
     ];
 
+    protected $fillable = [
+        'slug',
+        'label',
+        'company_id',
+    ];
+
     public function company(){
         return $this->belongsTo(Company::class);
     }
