@@ -1,4 +1,4 @@
-name: Laravel
+name: Laravel PROD
 on:
   push:
     branches:
