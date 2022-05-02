@@ -1,4 +1,4 @@
-name: Laravel
+name: Laravel DEV
 on:
   push:
     branches:
