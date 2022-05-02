@@ -12,8 +12,8 @@ echo "Deployment started ..."
 echo "create gz backup"
 pg_dump pap > ~/backup/$(date +%Y-%m-%d).backup
 gzip  ~/backup/$(date +%Y-%m-%d).backup
-echo "Clearing old backups"
-find ~/backup/ -type f -iname '*.backup.gz' -ctime +15 -not -name '????-??-01.backup.gz' -delete
+echo "Clearing old backups. takes only the last 10"
+rm `ls -t | awk 'NR>10'`
 
 
 # Pull the latest version of the app
