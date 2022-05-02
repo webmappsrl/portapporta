@@ -2,7 +2,7 @@ name: Laravel
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   laravel-tests:
@@ -34,4 +34,4 @@ jobs:
         username: ${{ secrets.USERNAME }}
         port: ${{ secrets.PORT }}
         key: ${{ secrets.SSHKEY }}
-        script: "cd /var/www/html/dev.portapporta && ./scripts/deploy_dev.sh"
+        script: "cd /var/www/html/portapporta && ./scripts/deploy_prod.sh"
