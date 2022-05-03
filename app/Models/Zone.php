@@ -12,6 +12,13 @@ class Zone extends Model
     use HasFactory;
     use GeojsonableTrait;
 
+    protected $fillable = [
+        'comune',
+        'company_id',
+        'label',
+        'url',
+        'geometry',
+    ];
     public function company(){
         return $this->belongsTo(Company::class);
     }

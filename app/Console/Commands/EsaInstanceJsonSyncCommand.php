@@ -6,10 +6,12 @@ use App\Models\TrashType;
 use App\Models\UserType;
 use App\Models\Waste;
 use App\Models\WasteCollectionCenter;
+use App\Models\Zone;
 use App\Providers\CurlServiceProvider;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EsaInstanceJsonSyncCommand extends Command
 {
@@ -42,6 +44,7 @@ class EsaInstanceJsonSyncCommand extends Command
         $this->syncUtenzeMeta($company_id,$endpoint);
         $this->syncCentriRaccolta($company_id,$endpoint);
         $this->syncRifiutario($company_id,$endpoint);
+        $this->syncZoneMeta($company_id,$endpoint);
     }
     
     protected function syncTipiRifiuto($company_id,$endpoint){
@@ -266,7 +269,7 @@ class EsaInstanceJsonSyncCommand extends Command
                                                 ->where('slug',$waste['category'])->get();
                         $params['trash_type_id'] = $trashType[0]->id;
                     } catch (Exception $e) {
-                        echo 'Third catch: '.json_encode($waste).' ' ,  $e->getMessage(), "\n";
+                        Log::error('TrashType relation not found: ' .json_encode($waste). ' ' . $e->getMessage());
                         continue;
                     }
                 }
@@ -280,7 +283,49 @@ class EsaInstanceJsonSyncCommand extends Command
                     $params);
             }
         } catch (Exception $e) {
-            echo 'Caught exception: '.$waste['name'] ,  $e->getMessage(), "\n";
+            Log::error('Caught exception syncRifiutario: ' . $waste['name'] . ' ' .  $e->getMessage());
+        }
+    }
+
+    protected function syncZoneMeta($company_id,$endpoint){
+
+        // Curl request to get the feature information from external source
+        $curl = app(CurlServiceProvider::class);
+        $url = 'http://apiesa.netseven.it/data/esa_zone_meta.json';
+        // $url = $endpoint . '/data/rifiutario.json';
+        $track_obj = $curl->exec($url);
+        $response = json_decode($track_obj,true);
+
+        try {
+            foreach ($response as $zone) {
+                if (array_key_exists('comune',$zone)) {
+                    $params['comune'] = $zone['comune'];
+                }
+                if (array_key_exists('url',$zone)) {
+                    $params['url'] = $zone['url'];
+                }
+
+                $zone_obg = Zone::updateOrCreate(
+                    [
+                        'label' =>  $zone['label'],
+                        'company_id' => $company_id
+                    ],
+                    $params);
+
+                // Relational Table: user_type_waste_collection_center 
+                if (array_key_exists('type',$zone)) {
+                    $zones = [];
+                    // foreach ($zone['type'] as $z) {
+                    foreach (['private', 'company'] as $z) {
+                        $userType = UserType::where('company_id',$company_id)
+                                                ->where('slug',$z)->get();
+                        array_push($zones,$userType[0]->id);
+                    };
+                    $zone_obg->userTypes()->sync($zones, false);
+                }
+            }
+        } catch (Exception $e) {
+            Log::error('Caught exception syncZoneMeta: ' . json_encode($zone) . ' ' .  $e->getMessage());
         }
     }
 }
