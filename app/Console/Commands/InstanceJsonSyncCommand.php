@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers\InstanceJsonSyncCommandHelper;
 use App\Models\TrashType;
 use App\Models\UserType;
 use App\Models\WasteCollectionCenter;
+use App\Providers\CurlServiceProvider;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class InstanceJsonSyncCommand extends Command
 {
@@ -16,7 +17,7 @@ class InstanceJsonSyncCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pap:sync {company_id} {endpoint : e.g. https://apiesa.webmapp.it/}';
+    protected $signature = 'pap:sync {company_id : e.g. 4 (for esa)} {endpoint : e.g. https://apiesa.webmapp.it/}';
 
     /**
      * The console command description.
@@ -36,14 +37,20 @@ class InstanceJsonSyncCommand extends Command
         $endpoint = $this->argument('endpoint');
 
         
-        // $this->syncTipiRifiuto($company_id,$endpoint);
-        // $this->syncUtenzeMeta($company_id,$endpoint);
+        $this->syncTipiRifiuto($company_id,$endpoint);
+        $this->syncUtenzeMeta($company_id,$endpoint);
         $this->syncCentriRaccolta($company_id,$endpoint);
     }
     
     protected function syncTipiRifiuto($company_id,$endpoint){
-        $tipi_rifiuto_url = $endpoint . '/data/tipi_rifiuto.json';
-        $response = json_decode(InstanceJsonSyncCommandHelper::importerCurl($tipi_rifiuto_url),true);
+
+        // Curl request to get the feature information from external source
+        $curl = app(CurlServiceProvider::class);
+        $url = $endpoint . '/data/tipi_rifiuto.json';
+        $track_obj = $curl->exec($url);
+        $response = json_decode($track_obj,true);
+
+
         try {
             foreach ($response as $trash) {
                 if (array_key_exists('name',$trash)) {
@@ -103,8 +110,13 @@ class InstanceJsonSyncCommand extends Command
     }
 
     protected function syncUtenzeMeta($company_id,$endpoint){
-        $utenze_meta_url = $endpoint . '/data/utenze_meta.json';
-        $response = json_decode(InstanceJsonSyncCommandHelper::importerCurl($utenze_meta_url),true);
+
+        // Curl request to get the feature information from external source
+        $curl = app(CurlServiceProvider::class);
+        $url = $endpoint . '/data/utenze_meta.json';
+        $track_obj = $curl->exec($url);
+        $response = json_decode($track_obj,true);
+
         try {
             foreach ($response as $usertype => $array) {
                 if (array_key_exists('label',$array)) {
@@ -128,8 +140,13 @@ class InstanceJsonSyncCommand extends Command
     }
 
     protected function syncCentriRaccolta($company_id,$endpoint){
-        $utenze_meta_url = $endpoint . '/data/centri_raccolta.geojson';
-        $response = json_decode(InstanceJsonSyncCommandHelper::importerCurl($utenze_meta_url),true);
+
+        // Curl request to get the feature information from external source
+        $curl = app(CurlServiceProvider::class);
+        $url = $endpoint . '/data/centri_raccolta.geojson';
+        $track_obj = $curl->exec($url);
+        $response = json_decode($track_obj,true);
+
         try {
             foreach ($response['features'] as $feature ) {
                 if (array_key_exists('name',$feature['properties'])) {
@@ -164,22 +181,37 @@ class InstanceJsonSyncCommand extends Command
                         $params['description']['en'] = $feature['properties']['translations']['en']['description']; 
                     }
                 }
+
+                $lat = $feature['geometry']['coordinates'][0];
+                $lng = $feature['geometry']['coordinates'][1];
+
                 $waste_center = WasteCollectionCenter::updateOrCreate(
                     [
-                        'name' => $feature['properties']['name'],
+                        'geometry' => DB::select("SELECT ST_GeomFromText('POINT($lat $lng)') as g")[0]->g,
                         'company_id' => $company_id
                     ],
                     $params);
-
+                
+                // Relational Table: user_type_waste_collection_center 
                 if (array_key_exists('userTypes',$feature['properties'])) {
                     $user_types = [];
                     foreach ($feature['properties']['userTypes'] as $value) {
                         $userType = UserType::where('company_id',$company_id)
-                                                ->where('slug',$value)
-                                                ->get();
-                        array_push($user_types,$userType->id);
+                                                ->where('slug',$value)->get();
+                        array_push($user_types,$userType[0]->id);
                     };
                     $waste_center->userTypes()->sync($user_types, false);
+                }
+                
+                // Relational Table: trash_type_waste_collection_center 
+                if (array_key_exists('trashTypes',$feature['properties'])) {
+                    $trash_types = [];
+                    foreach ($feature['properties']['trashTypes'] as $value) {
+                        $trashType = TrashType::where('company_id',$company_id)
+                                                ->where('slug',$value)->get();
+                        array_push($trash_types,$trashType[0]->id);
+                    };
+                    $waste_center->trashTypes()->sync($trash_types, false);
                 }
             }
         } catch (Exception $e) {
