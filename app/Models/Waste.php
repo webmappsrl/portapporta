@@ -11,10 +11,28 @@ class Waste extends Model
     use HasFactory;
     use HasTranslations;
 
+    
     public $translatable = [
         'name',
         'where',
         'notes'
+    ];
+    
+    protected $fillable = [
+        'name',
+        'where',
+        'notes',
+        'company_id',
+        'trash_type_id',
+        'pap',
+        'delivery',
+        'collection_center',
+    ];
+
+    protected $casts = [
+        'pap' => 'boolean',
+        'delivery' => 'boolean',
+        'collection_center' => 'boolean',
     ];
 
     public function company(){

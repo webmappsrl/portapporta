@@ -11,14 +11,14 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class InstanceJsonSyncCommand extends Command
+class EsaInstanceJsonSyncCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'pap:sync {company_id : e.g. 4 (for esa)} {endpoint : e.g. https://apiesa.webmapp.it/}';
+    protected $signature = 'pap:esasync {company_id : e.g. 4 (for esa)} {endpoint : e.g. https://apiesa.netseven.it/}';
 
     /**
      * The console command description.
@@ -115,7 +115,8 @@ class InstanceJsonSyncCommand extends Command
 
         // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
-        $url = $endpoint . '/data/utenze_meta.json';
+        // $url = $endpoint . '/data/utenze_meta.json';
+        $url = 'https://apiersu.netseven.it/data/utenze_meta.json';
         $track_obj = $curl->exec($url);
         $response = json_decode($track_obj,true);
 
