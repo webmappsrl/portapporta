@@ -24,5 +24,10 @@ class UserSeeder extends Seeder
             'email' => 's.guasti@esaspa.it',
             'password' => bcrypt('webmapp'),
         ]);
+        User::factory()->create([
+            'name' => 'Luca Leonardi',
+            'email' => 'lucaleon@gmail.com',
+            'password' => bcrypt('webmapp'),
+        ]);
     }
 }
