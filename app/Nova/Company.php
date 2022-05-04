@@ -4,6 +4,7 @@ namespace App\Nova;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
@@ -46,6 +47,7 @@ class Company extends Resource
         return [
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
+            BelongsTo::make('User')->nullable(),
             File::make(__('Config .TS'),'configTs')
                 ->acceptedTypes('.ts')
                 ->disk('public')
