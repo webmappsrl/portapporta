@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\File;
@@ -124,5 +125,20 @@ class Company extends Resource
     public function actions(Request $request)
     {
         return [];
+    }
+
+    /**
+     * Hides the resource from menu it its not admin@webmapp.it.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return boolean
+     */
+    public static function availableForNavigation(Request $request)
+    {
+        $current_id = auth()->user()->id;
+        if ($current_id !== 1) {
+            return false;
+        }
+        return true;
     }
 }
