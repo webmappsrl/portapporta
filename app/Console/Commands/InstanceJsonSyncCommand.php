@@ -288,6 +288,25 @@ class InstanceJsonSyncCommand extends Command
 
     protected function syncZoneMeta($company_id,$endpoint){
 
+        // Curl request to get the feature geometry
+        $curl = app(CurlServiceProvider::class);
+        $url = $endpoint . '/data/zone_confini.geojson';
+        $track_obj = $curl->exec($url);
+        $response = json_decode($track_obj,true);
+
+        $coordinate_array = [];
+        try {
+            foreach ($response['features'] as $zone) {
+                // $coordinate_array[$zone['properties']['id']] = $zone['geometry'];
+                $coordinate_array[$zone['properties']['id']] = array(
+                    "type" => "MultiPolygon",
+                    "coordinates" => [$zone['geometry']['coordinates']]
+                );
+            }
+        } catch (Exception $e) {
+            Log::error('Caught exception syncZoneConfini: ' . json_encode($zone) . ' ' .  $e->getMessage());
+        }
+
         // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
         $url = $endpoint . '/data/zone_meta.json';
@@ -310,7 +329,6 @@ class InstanceJsonSyncCommand extends Command
                     ],
                     $params);
 
-                // Relational Table: user_type_waste_collection_center 
                 if (array_key_exists('type',$zone)) {
                     $zones = [];
                     foreach ($zone['type'] as $z) {

@@ -289,6 +289,26 @@ class EsaInstanceJsonSyncCommand extends Command
 
     protected function syncZoneMeta($company_id,$endpoint){
 
+        // Curl request to get the feature geometry
+        $curl = app(CurlServiceProvider::class);
+        $url = 'http://apiesa.netseven.it/data/esa_zone_confini.geojson';
+        $track_obj = $curl->exec($url);
+        $response = json_decode($track_obj,true);
+
+        $coordinate_array = [];
+        try {
+            foreach ($response['features'] as $zone) {
+                // $coordinate_array[$zone['properties']['id']] = $zone['geometry'];
+                $coordinate_array[$zone['properties']['id']] = array(
+                    "type" => "MultiPolygon",
+                    "coordinates" => [$zone['geometry']['coordinates']]
+                );
+            }
+        } catch (Exception $e) {
+            Log::error('Caught exception syncZoneConfini: ' . json_encode($zone) . ' ' .  $e->getMessage());
+        }
+
+
         // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
         $url = 'http://apiesa.netseven.it/data/esa_zone_meta.json';
@@ -298,24 +318,22 @@ class EsaInstanceJsonSyncCommand extends Command
 
         try {
             foreach ($response as $zone) {
-                if (array_key_exists('comune',$zone)) {
-                    $params['comune'] = $zone['comune'];
-                }
+
                 if (array_key_exists('url',$zone)) {
                     $params['url'] = $zone['url'];
                 }
+                $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('".json_encode($coordinate_array[$zone['id']])."')) As wkt")[0]->wkt;
+                $params['company_id'] = $company_id;
 
                 $zone_obg = Zone::updateOrCreate(
                     [
                         'label' =>  $zone['label'],
-                        'company_id' => $company_id
+                        'comune' => $zone['comune']
                     ],
                     $params);
 
-                // Relational Table: user_type_waste_collection_center 
                 if (array_key_exists('type',$zone)) {
                     $zones = [];
-                    // foreach ($zone['type'] as $z) {
                     foreach (['private', 'company'] as $z) {
                         $userType = UserType::where('company_id',$company_id)
                                                 ->where('slug',$z)->get();
