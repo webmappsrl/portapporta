@@ -19,6 +19,17 @@ class WasteCollectionCenter extends Model
         'orario'
     ];
 
+    protected $fillable = [
+        'name',
+        'description',
+        'orario',
+        'company_id',
+        'marker_color',
+        'marker_size',
+        'website',
+        'picture_url',
+        'geometry',
+    ];
 
     public function company(){
         return $this->belongsTo(Company::class);
