@@ -31,9 +31,21 @@ class TrashType extends Model
     ];
 
     protected $casts = [
-        'allowed' => 'array',
-        'notallowed' => 'array',
+        'allowed' => 'json',
+        'notallowed' => 'json',
     ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($trash_type) {
+            $trash_type->company_id = auth()->user()->company->id;
+        });
+    }
 
     public function company(){
         return $this->belongsTo(Company::class);

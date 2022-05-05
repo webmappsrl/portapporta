@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f034ee222a2e9b90192021e87e6db47f",
+    "content-hash": "0d23b2e9cfa34047223b16917cadcf3c",
     "packages": [
         {
             "name": "box/spout",
@@ -1443,6 +1443,61 @@
                 }
             ],
             "time": "2022-01-18T10:59:08+00:00"
+        },
+        {
+            "name": "kongulov/nova-tab-translatable",
+            "version": "2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kongulov/nova-tab-translatable.git",
+                "reference": "be2c3a3e673577ada9b179a68c3c5597ca457cc7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kongulov/nova-tab-translatable/zipball/be2c3a3e673577ada9b179a68c3c5597ca457cc7",
+                "reference": "be2c3a3e673577ada9b179a68c3c5597ca457cc7",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/nova": "^4.0",
+                "php": "^8.0",
+                "spatie/laravel-translatable": "^5.0|^6.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Kongulov\\NovaTabTranslatable\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Kongulov\\NovaTabTranslatable\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ramiz Kongulov",
+                    "email": "ramiz.kongulov@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Making Nova Tab Translatable",
+            "homepage": "https://github.com/kongulov/nova-tab-translatable",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "support": {
+                "issues": "https://github.com/kongulov/nova-tab-translatable/issues",
+                "source": "https://github.com/kongulov/nova-tab-translatable/tree/2.0.2"
+            },
+            "time": "2022-05-03T09:57:40+00:00"
         },
         {
             "name": "laravel/framework",
@@ -8853,5 +8908,5 @@
         "php": "^8.0.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.3.0"
 }

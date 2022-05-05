@@ -26,7 +26,7 @@ class Company extends Resource
      *
      * @var string
      */
-    public static $title = 'id';
+    public static $title = 'name';
 
     /**
      * The columns that should be searched.
@@ -135,7 +135,7 @@ class Company extends Resource
      */
     public static function availableForNavigation(Request $request)
     {
-        $current_id = auth()->user()->id;
+        $current_id = $request->user()->id;
         if ($current_id !== 1) {
             return false;
         }
