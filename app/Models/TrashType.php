@@ -42,9 +42,11 @@ class TrashType extends Model
      */
     protected static function booted()
     {
-        static::creating(function ($trash_type) {
-            $trash_type->company_id = auth()->user()->company->id;
-        });
+        if (auth()->check()) {
+            static::creating(function ($trash_type) {
+                $trash_type->company_id = auth()->user()->company->id;
+            });
+        }
     }
 
     public function company(){
