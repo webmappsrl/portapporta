@@ -67,7 +67,23 @@ class WasteCollectionCenter extends Resource
            
                 // LeafletMap::make('geometry')
                 // ->type('GeoJson')
-                // ->geoJson('{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": {"type":"Point","coordinates":[10.4187271,42.863860723]}}]}')
+                // ->geoJson('{
+                //     "type": "FeatureCollection",
+                //     "features": [
+                //       {
+                //         "type": "Feature",
+                //         "properties": {},
+                //         "geometry": {
+                //           "type": "Point",
+                //           "coordinates": [
+                //             54.4921875,
+                //             49.15296965617042
+                //           ]
+                //         }
+                //       }
+                //     ]
+                //   }')
+                // // ->geoJson('{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": {"type":"Point","coordinates":[10.4187271,42.863860723]}}]}')
                 // ->center('10','42')
                 // ->zoom(12),
             ];
