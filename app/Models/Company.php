@@ -39,4 +39,8 @@ class Company extends Model
     public function zones(){
         return $this->hasMany(Zone::class);
     }
+    
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }

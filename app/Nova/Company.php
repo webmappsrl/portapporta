@@ -3,7 +3,9 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
@@ -24,7 +26,7 @@ class Company extends Resource
      *
      * @var string
      */
-    public static $title = 'id';
+    public static $title = 'name';
 
     /**
      * The columns that should be searched.
@@ -46,6 +48,7 @@ class Company extends Resource
         return [
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
+            BelongsTo::make('User')->nullable(),
             File::make(__('Config .TS'),'configTs')
                 ->acceptedTypes('.ts')
                 ->disk('public')
@@ -122,5 +125,20 @@ class Company extends Resource
     public function actions(Request $request)
     {
         return [];
+    }
+
+    /**
+     * Hides the resource from menu it its not admin@webmapp.it.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return boolean
+     */
+    public static function availableForNavigation(Request $request)
+    {
+        $current_id = $request->user()->id;
+        if ($current_id !== 1) {
+            return false;
+        }
+        return true;
     }
 }

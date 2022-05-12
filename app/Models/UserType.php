@@ -22,6 +22,20 @@ class UserType extends Model
         'company_id',
     ];
 
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        if (auth()->check()) {
+            static::creating(function ($user_type) {
+                $user_type->company_id = auth()->user()->company->id;
+            });
+        }
+    }
+
     public function company(){
         return $this->belongsTo(Company::class);
     }

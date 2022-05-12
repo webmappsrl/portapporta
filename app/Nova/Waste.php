@@ -3,21 +3,21 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules;
-use Laravel\Nova\Fields\Gravatar;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 
-class User extends Resource
+class Waste extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = \App\Models\User::class;
+    public static $model = \App\Models\Waste::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -32,7 +32,8 @@ class User extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'name', 'email',
+        'id',
+        'name'
     ];
 
     /**
@@ -43,25 +44,17 @@ class User extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [
+        return [ 
             ID::make()->sortable(),
+            Boolean::make('pap'),
+            Boolean::make('delivery'),
+            Boolean::make('collection_center'),
 
-            Gravatar::make()->maxWidth(50),
-
-            Text::make('Name')
-                ->sortable()
-                ->rules('required', 'max:255'),
-
-            Text::make('Email')
-                ->sortable()
-                ->rules('required', 'email', 'max:254')
-                ->creationRules('unique:users,email')
-                ->updateRules('unique:users,email,{{resourceId}}'),
-
-            Password::make('Password')
-                ->onlyOnForms()
-                ->creationRules('required', Rules\Password::defaults())
-                ->updateRules('nullable', Rules\Password::defaults()),
+            NovaTabTranslatable::make([
+                Text::make('name')->sortable(),
+                Textarea::make('where'),
+                Textarea::make('notes')
+            ]),
         ];
     }
 
@@ -110,17 +103,14 @@ class User extends Resource
     }
 
     /**
-     * Hides the resource from menu it its not admin@webmapp.it.
+     * Build an "index" query for the given resource.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return boolean
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function availableForNavigation(Request $request)
+    public static function indexQuery(NovaRequest $request, $query)
     {
-        $current_id = $request->user()->id;
-        if ($current_id !== 1) {
-            return false;
-        }
-        return true;
+        return $query->where('company_id', $request->user()->company->id);
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f034ee222a2e9b90192021e87e6db47f",
+    "content-hash": "14f35f37f5d0e8486b33e70d639ebd10",
     "packages": [
         {
             "name": "box/spout",
@@ -920,6 +920,66 @@
             "time": "2021-10-11T09:18:27+00:00"
         },
         {
+            "name": "eminiarts/nova-tabs",
+            "version": "2.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/eminiarts/nova-tabs.git",
+                "reference": "1156a9591a2fdcad8a1319f77790f002549fcd6c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/eminiarts/nova-tabs/zipball/1156a9591a2fdcad8a1319f77790f002549fcd6c",
+                "reference": "1156a9591a2fdcad8a1319f77790f002549fcd6c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "laravel/nova": "^4.0",
+                "php": "^7.4|^8"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2",
+                "orchestra/testbench": "^6",
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Eminiarts\\Tabs\\TabsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Eminiarts\\Tabs\\": "src/",
+                    "Eminiarts\\Tabs\\Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Emini Arts GmbH",
+                    "email": "support@eminiarts.ch",
+                    "homepage": "https://eminiarts.ch"
+                }
+            ],
+            "description": "Laravel Nova - Tabs.",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "support": {
+                "issues": "https://github.com/eminiarts/nova-tabs/issues",
+                "source": "https://github.com/eminiarts/nova-tabs/tree/2.0.3"
+            },
+            "time": "2022-05-01T22:22:16+00:00"
+        },
+        {
             "name": "fruitcake/php-cors",
             "version": "v1.2.0",
             "source": {
@@ -1376,6 +1436,51 @@
             "time": "2022-03-20T21:55:58+00:00"
         },
         {
+            "name": "imumz/leaflet-map",
+            "version": "1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/iMuMz/NovaLeafletMap.git",
+                "reference": "1dbbc4c4fbe02d40e3286697810a93365c00ae4a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/iMuMz/NovaLeafletMap/zipball/1dbbc4c4fbe02d40e3286697810a93365c00ae4a",
+                "reference": "1dbbc4c4fbe02d40e3286697810a93365c00ae4a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Imumz\\LeafletMap\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Imumz\\LeafletMap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A Laravel Nova field.",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "support": {
+                "issues": "https://github.com/iMuMz/NovaLeafletMap/issues",
+                "source": "https://github.com/iMuMz/NovaLeafletMap/tree/1.1"
+            },
+            "time": "2021-01-20T09:05:58+00:00"
+        },
+        {
             "name": "inertiajs/inertia-laravel",
             "version": "v0.5.4",
             "source": {
@@ -1443,6 +1548,61 @@
                 }
             ],
             "time": "2022-01-18T10:59:08+00:00"
+        },
+        {
+            "name": "kongulov/nova-tab-translatable",
+            "version": "2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kongulov/nova-tab-translatable.git",
+                "reference": "be2c3a3e673577ada9b179a68c3c5597ca457cc7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kongulov/nova-tab-translatable/zipball/be2c3a3e673577ada9b179a68c3c5597ca457cc7",
+                "reference": "be2c3a3e673577ada9b179a68c3c5597ca457cc7",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/nova": "^4.0",
+                "php": "^8.0",
+                "spatie/laravel-translatable": "^5.0|^6.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Kongulov\\NovaTabTranslatable\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Kongulov\\NovaTabTranslatable\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ramiz Kongulov",
+                    "email": "ramiz.kongulov@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Making Nova Tab Translatable",
+            "homepage": "https://github.com/kongulov/nova-tab-translatable",
+            "keywords": [
+                "laravel",
+                "nova"
+            ],
+            "support": {
+                "issues": "https://github.com/kongulov/nova-tab-translatable/issues",
+                "source": "https://github.com/kongulov/nova-tab-translatable/tree/2.0.2"
+            },
+            "time": "2022-05-03T09:57:40+00:00"
         },
         {
             "name": "laravel/framework",
@@ -8853,5 +9013,5 @@
         "php": "^8.0.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.3.0"
 }

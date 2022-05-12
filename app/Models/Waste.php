@@ -34,6 +34,19 @@ class Waste extends Model
         'delivery' => 'boolean',
         'collection_center' => 'boolean',
     ];
+        /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        if (auth()->check()) {
+            static::creating(function ($waste) {
+                $waste->company_id = auth()->user()->company->id;
+            });
+        }
+    }
 
     public function company(){
         return $this->belongsTo(Company::class);

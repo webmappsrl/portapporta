@@ -19,6 +19,21 @@ class Zone extends Model
         'url',
         'geometry',
     ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        if (auth()->check()) {
+            static::creating(function ($zone) {
+                $zone->company_id = auth()->user()->company->id;
+            });
+        }
+    }
+
     public function company(){
         return $this->belongsTo(Company::class);
     }
