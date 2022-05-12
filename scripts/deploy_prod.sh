@@ -17,8 +17,6 @@ cd ~/backup
 rm `ls -t | awk 'NR>10'` -f
 cd ~/portapporta
 
-
-
 # Pull the latest version of the app
 git pull origin main
 
@@ -27,24 +25,11 @@ composer install  --no-interaction --prefer-dist --optimize-autoloader
 php artisan nova:install
 
 # Clear caches
-php artisan cache:clear
-
-# Clear and cache routes
-php artisan route:clear
-php artisan route:cache
-
-# Clear and cache config
 php artisan config:clear
-php artisan config:cache
-
-# Clear the old cache
-php artisan clear-compiled
-
-composer dump-autoload
 php artisan optimize
 
-# Compile npm assets
-# npm run prod
+# Migration
+php artisan migrate --force
 
 # Exit maintenance mode
 php artisan up
