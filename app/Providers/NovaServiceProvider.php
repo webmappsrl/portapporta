@@ -5,6 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Nova\Nova;
 use Laravel\Nova\NovaApplicationServiceProvider;
+use Illuminate\Http\Request;
+use Laravel\Nova\Menu\Menu;
+use Laravel\Nova\Menu\MenuItem;
 
 class NovaServiceProvider extends NovaApplicationServiceProvider
 {
@@ -16,6 +19,19 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
+        Nova::userMenu(function (Request $request, Menu $menu) {
+
+            if(!empty($request->user()->company)) {
+                $menu->append(
+                    MenuItem::make(
+                        'Profile (company: ' . $request->user()->company->name.')',
+                        "/resources/users/{$request->user()->getKey()}"
+                    )
+                );   
+            }
+
+            return $menu;
+        });
     }
 
     /**

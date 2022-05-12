@@ -9,7 +9,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "eminiarts/nova-tabs": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
+        "imumz/leaflet-map": "^1.1",
+        "kongulov/nova-tab-translatable": "^2.0",
         "laravel/framework": "^9.2",
         "laravel/nova": "~4.0",
         "laravel/sanctum": "^2.14.1",
