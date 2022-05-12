@@ -233,7 +233,6 @@ class EsaInstanceJsonSyncCommand extends Command
         $track_obj = $curl->exec($url);
         $response = json_decode($track_obj,true);
 
-
         try {
             foreach ($response as $waste) {
                 if (array_key_exists('notes',$waste)) {
@@ -283,7 +282,7 @@ class EsaInstanceJsonSyncCommand extends Command
                     $params);
             }
         } catch (Exception $e) {
-            Log::error('Caught exception syncRifiutario: ' . $waste['name'] . ' ' .  $e->getMessage());
+            Log::error('Caught exception syncRifiutario: ' .  $e->getMessage());
         }
     }
 
