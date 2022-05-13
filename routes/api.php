@@ -31,8 +31,9 @@ Route::prefix('c')->name('company')->group(function () {
         return new CompanyResource(Company::findOrFail($id));
     })->name('info.json');
 
-    Route::get('/{id}/data/utenze_meta.json', function ($id) {
-        return new UtenzeMetaResource(Company::findOrFail($id));
+    //Route::get('/{id}/data/utenze_meta.json', function ($id) {
+    Route::get('/{id}/user_types.json', function ($id) {
+            return new UtenzeMetaResource(Company::findOrFail($id));
     })->name('utenze_meta.json');
 
     Route::get('/{id}/data/zone_confini.geojson', function ($id) {

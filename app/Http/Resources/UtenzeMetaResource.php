@@ -21,7 +21,9 @@ class UtenzeMetaResource extends JsonResource
         $json = [];
         if(count($this->userTypes)>0) {
             foreach($this->userTypes as $ut) {
-                $json[$ut->slug]=[
+                $json[]=[
+                    'id' => $ut->id,
+                    'slug' => $ut->slug,
                     'locale' => 'it',
                     'label' => $ut->getTranslation('label','it'),
                     'translations' => [ 'en' => ['label'=>$ut->getTranslation('label','en')]],
