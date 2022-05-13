@@ -46,14 +46,14 @@ Route::prefix('c')->name('company')->group(function () {
             return new RifiutarioResource(Company::findOrFail($id));
     })->name('wastes.json');
 
+    // LEGACY Route::get('/{id}/data/centri_raccolta.geojson', function ($id) {
+    Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
+            return new CentriRaccoltaResource(Company::findOrFail($id));
+    })->name('waste_collection_centers.geojson');
+
     Route::get('/{id}/data/zone_confini.geojson', function ($id) {
         return new ZoneConfiniResource(Company::findOrFail($id));
     })->name('zone_confini.geojson');
-
-
-    Route::get('/{id}/data/centri_raccolta.geojson', function ($id) {
-        return new CentriRaccoltaResource(Company::findOrFail($id));
-    })->name('centri_raccolta.geojson');
 
 
     Route::get('/{id}/data/zone_meta.json', function ($id) {
