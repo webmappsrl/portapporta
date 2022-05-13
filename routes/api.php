@@ -34,12 +34,17 @@ Route::prefix('c')->name('company')->group(function () {
     // LEGACY Route::get('/{id}/data/utenze_meta.json', function ($id) {
     Route::get('/{id}/user_types.json', function ($id) {
             return new UtenzeMetaResource(Company::findOrFail($id));
-    })->name('utenze_meta.json');
+    })->name('user_types.json');
 
     // LEGACY Route::get('/{id}/data/tipi_rifiuto.json', function ($id) {
     Route::get('/{id}/trash_types.json', function ($id) {
             return new TrashTypeResource(Company::findOrFail($id));
-    })->name('tipi_rifiuto.json');
+    })->name('trash_types.json');
+
+    // LEGACY Route::get('/{id}/data/rifiutario.json', function ($id) {
+    Route::get('/{id}/wastes.json', function ($id) {
+            return new RifiutarioResource(Company::findOrFail($id));
+    })->name('wastes.json');
 
     Route::get('/{id}/data/zone_confini.geojson', function ($id) {
         return new ZoneConfiniResource(Company::findOrFail($id));
@@ -50,9 +55,6 @@ Route::prefix('c')->name('company')->group(function () {
         return new CentriRaccoltaResource(Company::findOrFail($id));
     })->name('centri_raccolta.geojson');
 
-    Route::get('/{id}/data/rifiutario.json', function ($id) {
-        return new RifiutarioResource(Company::findOrFail($id));
-    })->name('rifiutario.json');
 
     Route::get('/{id}/data/zone_meta.json', function ($id) {
         return new ZoneMetaResource(Company::findOrFail($id));
