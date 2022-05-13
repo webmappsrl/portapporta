@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('c')->name('company')->group(function () {
+Route::prefix('c')->name('company.')->group(function () {
 
     // Route::get('/{id}/info.json', function ($id) {
     Route::get('/{id}/config.json', function ($id) {
