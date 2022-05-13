@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 class ApiDataCentriRaccoltaGeojsonTest extends TestCase
 {
-    // https://apiersu.netseven.it/data/centri_raccolta.geojson
+    // REF https://apiersu.netseven.it/data/centri_raccolta.geojson
 
     use RefreshDatabase;
 
@@ -20,7 +20,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
     public function api_data_centri_raccolta_returns_200()
     {
         $z = WasteCollectionCenter::factory()->create();
-        $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$z->company->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
     }
@@ -29,7 +29,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
     public function api_data_centri_raccolta_is_geojson()
     {
         $z = WasteCollectionCenter::factory()->create();
-        $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$z->company->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -47,7 +47,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
         $c = Company::factory()->create();
         WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
         WasteCollectionCenter::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$c->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -70,7 +70,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
     public function api_data_centri_raccolta_has_proper_properties_feature_section()
     {
         $z = WasteCollectionCenter::factory()->create();
-        $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$z->company->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -105,7 +105,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
     public function api_data_centri_raccolta_has_proper_geometry_feature_section()
     {
         $z = WasteCollectionCenter::factory()->create();
-        $response = $this->get('/api/c/'.$z->company->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$z->company->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -128,16 +128,16 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
         $wcc->userTypes()->attach([$ut1->id,$ut2->id]);
 
-        $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$c->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
         $properties = $geojson['features'][0]['properties'];
 
-        $this->assertArrayHasKey('userTypes',$properties);
+        $this->assertArrayHasKey('user_types',$properties);
 
-        foreach($wcc->userTypes->pluck('slug')->toArray() as $ut) {
-            $this->assertContains($ut,$properties['userTypes']);
+        foreach($wcc->userTypes->pluck('id')->toArray() as $ut) {
+            $this->assertContains($ut,$properties['user_types']);
         }
 
     }
@@ -151,21 +151,18 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
         $tt2 = TrashType::factory()->create(['company_id'=>$c->id]);
         $wcc->trashTypes()->attach([$tt1->id,$tt2->id]);
 
-        $response = $this->get('/api/c/'.$c->id.'/data/centri_raccolta.geojson');
+        $response = $this->get('/api/c/'.$c->id.'/waste_collection_centers.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
         $properties = $geojson['features'][0]['properties'];
 
-        $this->assertArrayHasKey('trashTypes',$properties);
+        $this->assertArrayHasKey('trash_types',$properties);
 
-        foreach($wcc->trashTypes->pluck('slug')->toArray() as $ut) {
-            $this->assertContains($ut,$properties['trashTypes']);
+        foreach($wcc->trashTypes->pluck('id')->toArray() as $ut) {
+            $this->assertContains($ut,$properties['trash_types']);
         }
 
     }
-
-
-
 
 }

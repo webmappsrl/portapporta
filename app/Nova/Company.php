@@ -11,6 +11,7 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Panel;
 
 class Company extends Resource
 {
@@ -79,8 +80,27 @@ class Company extends Resource
                 ->store(function (Request $request, $model) {
                     $file = $request->file('splash');
                     return $model->get_file_name_extension($file);
-                })
+                }),
+            new Panel('Company API',$this->apiPanel()),
         ];
+    }
+
+    public function apiPanel() {
+        $apis = [
+            'CONFIG' => 'company.config.json',
+            'USER TYPES' => 'company.user_types.json',
+            'TRASH TYPES' => 'company.trash_types.json',
+            'WASTES' => 'company.wastes.json',
+            'WASTE COLLECTION CENTER' => 'company.waste_collection_centers.geojson',
+        ];
+        $fields = [];
+        foreach($apis as $label => $route) {
+            $fields[] =  Text::make($label,function () use ($route) {
+                $url = route($route,['id'=>$this->id]);
+                return "<a href='$url' target='_blank'>$url</a>";
+            })->asHtml()->onlyOnDetail();
+        }
+        return $fields;
     }
 
     /**

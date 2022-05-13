@@ -12,7 +12,7 @@ use Tests\TestCase;
 class ApiDataUtenzeMetaJsonTest extends TestCase
 {
 
-    // https://apiersu.netseven.it/data/utenze_meta.json
+    // REF: https://apiersu.netseven.it/data/utenze_meta.json
 
     use RefreshDatabase;
 
@@ -20,7 +20,7 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
     public function when_visit_utenze_meta_json_return_200()
     {
         $ut = UserType::factory()->create();
-        $response = $this->get('/api/c/'.$ut->company->id.'/data/utenze_meta.json');
+        $response = $this->get('/api/c/'.$ut->company->id.'/user_types.json');
 
         $response->assertStatus(200);
     }
@@ -30,7 +30,7 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
         $c = Company::factory()->create();
         $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/utenze_meta.json');      
+        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
         $json = $response->json();
         $this->assertEquals(2,count($json));
     }
@@ -40,26 +40,29 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
         $c = Company::factory()->create();
         $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/utenze_meta.json');      
+        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
         $json = $response->json();
 
-        $this->assertArrayHasKey($ut1->slug,$json);
-        $this->assertArrayHasKey($ut2->slug,$json);
-        
+        $slugs = [];
+        foreach($json as $item) {
+            $slugs[]=$item['slug'];
+        }
+        $this->assertTrue(in_array($ut1->slug,$slugs));
+        $this->assertTrue(in_array($ut2->slug,$slugs));
+    
     }
     /** @test     */
     public function single_item_has_locale_it() {
         $c = Company::factory()->create();
         $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/utenze_meta.json');      
+        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
         $json = $response->json();
 
-        $this->assertArrayHasKey('locale',$json[$ut1->slug]);
-        $this->assertArrayHasKey('locale',$json[$ut2->slug]);
-
-        $this->assertEquals('it',$json[$ut1->slug]['locale']);
-        $this->assertEquals('it',$json[$ut2->slug]['locale']);
+        foreach($json as $item) {
+            $this->assertEquals('it',$item['locale']);
+            $this->assertEquals('it',$item['locale']);    
+        }
         
     }
 
@@ -68,14 +71,15 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
         $c = Company::factory()->create();
         $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/utenze_meta.json');      
+        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
         $json = $response->json();
 
-        $this->assertArrayHasKey('label',$json[$ut1->slug]);
-        $this->assertArrayHasKey('label',$json[$ut2->slug]);
-
-        $this->assertEquals($ut1->getTranslation('label','it'),$json[$ut1->slug]['label']);
-        $this->assertEquals($ut2->getTranslation('label','it'),$json[$ut2->slug]['label']);
+        $labels = [];
+        foreach($json as $item) {
+            $labels[]=$item['label'];
+        }
+        $this->assertTrue(in_array($ut1->getTranslation('label','it'),$labels));
+        $this->assertTrue(in_array($ut2->getTranslation('label','it'),$labels));
         
     }
 
@@ -84,21 +88,15 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
         $c = Company::factory()->create();
         $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
         $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/utenze_meta.json');      
+        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
         $json = $response->json();
-
-        $this->assertArrayHasKey('translations',$json[$ut1->slug]);
-        $this->assertArrayHasKey('translations',$json[$ut2->slug]);
-
-        $this->assertArrayHasKey('en',$json[$ut1->slug]['translations']);
-        $this->assertArrayHasKey('en',$json[$ut2->slug]['translations']);
-
-        // CONTENT
-        $this->assertEquals($ut1->getTranslation('label','en'),$json[$ut1->slug]['translations']['en']['label']);
-        $this->assertEquals($ut2->getTranslation('label','en'),$json[$ut2->slug]['translations']['en']['label']);
+        $labels = [];
+        foreach($json as $item) {
+            $labels[]=$item['translations']['en']['label'];
+        }
+        $this->assertTrue(in_array($ut1->getTranslation('label','en'),$labels));
+        $this->assertTrue(in_array($ut2->getTranslation('label','en'),$labels));
         
     }
-
-
 
 }
