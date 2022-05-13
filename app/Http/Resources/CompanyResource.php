@@ -19,18 +19,8 @@ class CompanyResource extends JsonResource
     public function toArray($request)
     {
         $json = [];
-        if ($this->configTs)
-            $json['configTs'] = url(Storage::url($this->configTs));
-        if ($this->configJson)
-            $json['configJson'] = url(Storage::url($this->configJson));
-        if ($this->configXMLID)
-            $json['config.xml']['id'] = $this->configXMLID;
-        if ($this->description)
-            $json['config.xml']['description'] = $this->description;
-        if ($this->name)
-            $json['config.xml']['name'] = $this->name;
-        if ($this->version)
-            $json['config.xml']['version'] = $this->version;
+        $json['id'] = $this->id;
+        $json['name'] = $this->name;
         if ($this->icon)
             $json['resources']['icon'] = url(Storage::url($this->icon));
         if ($this->splash)

@@ -27,9 +27,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('c')->name('company')->group(function () {
-    Route::get('/{id}/info.json', function ($id) {
-        return new CompanyResource(Company::findOrFail($id));
-    })->name('info.json');
+
+    // Route::get('/{id}/info.json', function ($id) {
+    Route::get('/{id}/config.json', function ($id) {
+            return new CompanyResource(Company::findOrFail($id));
+    })->name('config.json');
 
     // LEGACY Route::get('/{id}/data/utenze_meta.json', function ($id) {
     Route::get('/{id}/user_types.json', function ($id) {
