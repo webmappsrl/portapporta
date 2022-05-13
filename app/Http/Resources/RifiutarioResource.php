@@ -22,6 +22,7 @@ class RifiutarioResource extends JsonResource
         if(count($this->wastes)>0){
             foreach($this->wastes as $w) {
                 $item = [
+                    'id' => $w->id,
                     'name' => $w->getTranslation('name','it'),
                     'where' => $w->getTranslation('where','it'),
                     'notes' => $w->getTranslation('notes','it'),
@@ -37,7 +38,7 @@ class RifiutarioResource extends JsonResource
                     ],
                 ];
                 if(isset($w->trash_type_id)) {
-                    $item['category']=$w->trashType->slug;
+                    $item['trash_type_id']=$w->trashType->id;
                 }
                 $json[]=$item;
             }

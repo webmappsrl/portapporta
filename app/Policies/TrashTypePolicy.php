@@ -18,6 +18,9 @@ class TrashTypePolicy
      */
     public function viewAny(User $user)
     {
+        if($user->email=='admin@webmapp.it') {
+            return false;
+        }
         return true;
     }
 

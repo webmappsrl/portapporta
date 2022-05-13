@@ -21,7 +21,9 @@ class TrashTypeResource extends JsonResource
         $json = [];
         if(count($this->trashTypes)>0) {
             foreach($this->trashTypes as $tt) {
-                $json[$tt->slug] = [
+                $json[] = [
+                    'id' => $tt->id,
+                    'slug' => $tt->slug,
                     'name' => $tt->getTranslation('name','it'),
                     'description' => $tt->getTranslation('description','it'),
                     'howto' => $tt->getTranslation('howto','it'),

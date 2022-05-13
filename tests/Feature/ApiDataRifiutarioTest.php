@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class ApiDataRifiutarioTest extends TestCase
 {
-    // https://apiersu.netseven.it/data/rifiutario.json
+    // REF: https://apiersu.netseven.it/data/rifiutario.json
 
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class ApiDataRifiutarioTest extends TestCase
     public function rifiutario_returns_200()
     {
         $w = Waste::factory()->create();
-        $response = $this->get('/api/c/'.$w->company->id.'/data/rifiutario.json');
+        $response = $this->get('/api/c/'.$w->company->id.'/wastes.json');
 
         $response->assertStatus(200);
     }
@@ -29,7 +29,7 @@ class ApiDataRifiutarioTest extends TestCase
     {
         $c = Company::factory()->create();
         Waste::factory(10)->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/rifiutario.json');
+        $response = $this->get('/api/c/'.$c->id.'/wastes.json');
 
         $response->assertStatus(200);
         $json = $response->json();
@@ -42,7 +42,7 @@ class ApiDataRifiutarioTest extends TestCase
     {
         $c = Company::factory()->create();
         Waste::factory(10)->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/rifiutario.json');
+        $response = $this->get('/api/c/'.$c->id.'/wastes.json');
 
         $response->assertStatus(200);
         $json = $response->json();
@@ -61,7 +61,7 @@ class ApiDataRifiutarioTest extends TestCase
     {
         $c = Company::factory()->create();
         $w = Waste::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/data/rifiutario.json');
+        $response = $this->get('/api/c/'.$c->id.'/wastes.json');
 
         $response->assertStatus(200);
         $json = $response->json();
@@ -84,14 +84,14 @@ class ApiDataRifiutarioTest extends TestCase
         $tt = TrashType::factory()->create(['company_id'=>$c->id]);
         $w = Waste::factory()->create(['company_id'=>$c->id,'trash_type_id'=>$tt->id]);
 
-        $response = $this->get('/api/c/'.$c->id.'/data/rifiutario.json');
+        $response = $this->get('/api/c/'.$c->id.'/wastes.json');
 
         $response->assertStatus(200);
         $json = $response->json();
         $item = $json[0];
 
-        $this->assertArrayHasKey('category',$item);
-        $this->assertEquals($tt->slug,$item['category']);
+        $this->assertArrayHasKey('trash_type_id',$item);
+        $this->assertEquals($tt->id,$item['trash_type_id']);
 
     }
 }
