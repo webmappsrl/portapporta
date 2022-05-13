@@ -31,18 +31,20 @@ Route::prefix('c')->name('company')->group(function () {
         return new CompanyResource(Company::findOrFail($id));
     })->name('info.json');
 
-    //Route::get('/{id}/data/utenze_meta.json', function ($id) {
+    // LEGACY Route::get('/{id}/data/utenze_meta.json', function ($id) {
     Route::get('/{id}/user_types.json', function ($id) {
             return new UtenzeMetaResource(Company::findOrFail($id));
     })->name('utenze_meta.json');
+
+    // LEGACY Route::get('/{id}/data/tipi_rifiuto.json', function ($id) {
+    Route::get('/{id}/trash_types.json', function ($id) {
+            return new TrashTypeResource(Company::findOrFail($id));
+    })->name('tipi_rifiuto.json');
 
     Route::get('/{id}/data/zone_confini.geojson', function ($id) {
         return new ZoneConfiniResource(Company::findOrFail($id));
     })->name('zone_confini.geojson');
 
-    Route::get('/{id}/data/tipi_rifiuto.json', function ($id) {
-        return new TrashTypeResource(Company::findOrFail($id));
-    })->name('tipi_rifiuto.json');
 
     Route::get('/{id}/data/centri_raccolta.geojson', function ($id) {
         return new CentriRaccoltaResource(Company::findOrFail($id));

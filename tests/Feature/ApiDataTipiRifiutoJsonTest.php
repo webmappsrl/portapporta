@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class ApiDataTipiRifiutoJsonTest extends TestCase
 {
-        // https://apiersu.netseven.it/data/tipi_rifiuto.json
+        // REF https://apiersu.netseven.it/data/tipi_rifiuto.json
 
         use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
         public function tipi_rifiuto_returns_200()
         {
             $tt = TrashType::factory()->create();
-            $response = $this->get('/api/c/'.$tt->company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$tt->company->id.'/trash_types.json');
     
             $response->assertStatus(200);
         }
@@ -29,13 +29,22 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $company = Company::factory()->create();
             $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
             $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
-            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
     
             $response->assertStatus(200);
             $json = $response->json();
 
-            $this->assertArrayHasKey($tt1->slug,$json);
-            $this->assertArrayHasKey($tt2->slug,$json);
+            $slugs = [];
+            $ids = [];
+            foreach($json as $item) {
+                $slugs[]=$item['slug'];
+                $ids[]=$item['id'];
+            }
+            $this->assertTrue(in_array($tt1->slug,$slugs));
+            $this->assertTrue(in_array($tt2->slug,$slugs));
+            $this->assertTrue(in_array($tt1->id,$ids));
+            $this->assertTrue(in_array($tt2->id,$ids));
+    
         }
 
         /** @test     */
@@ -44,12 +53,12 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $company = Company::factory()->create();
             $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
             $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
-            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
     
             $response->assertStatus(200);
             $json = $response->json();
 
-            $json1 = $json[$tt1->slug];
+            $json1 = $json[0];
 
             $this->assertArrayHasKey('name',$json1);
             $this->assertArrayHasKey('description',$json1);
@@ -67,12 +76,12 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $company = Company::factory()->create();
             $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
             $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
-            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
     
             $response->assertStatus(200);
             $json = $response->json();
 
-            $json1 = $json[$tt1->slug]['translations']['en'];
+            $json1 = $json[0]['translations']['en'];
 
             $this->assertArrayHasKey('name',$json1);
             $this->assertArrayHasKey('description',$json1);
@@ -88,12 +97,12 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $company = Company::factory()->create();
             $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
             $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
-            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
     
             $response->assertStatus(200);
             $json = $response->json();
 
-            $json1 = $json[$tt1->slug];
+            $json1 = $json[0];
 
             $this->assertIsArray($json1['allowed']);
             $this->assertEquals(4,count($json1['allowed']));
@@ -107,12 +116,12 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $company = Company::factory()->create();
             $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
             $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
-            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
     
             $response->assertStatus(200);
             $json = $response->json();
 
-            $json1 = $json[$tt1->slug];
+            $json1 = $json[0];
 
             $this->assertIsArray($json1['notallowed']);
             $this->assertEquals(4,count($json1['notallowed']));
@@ -126,12 +135,13 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
             $company = Company::factory()->create();
             $tt1 = TrashType::factory()->create(['company_id'=>$company->id]);
             $tt2 = TrashType::factory()->create(['company_id'=>$company->id]);
-            $response = $this->get('/api/c/'.$company->id.'/data/tipi_rifiuto.json');
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
     
             $response->assertStatus(200);
             $json = $response->json();
 
-            $json1 = $json[$tt1->slug];
+            // TODO: make it stronger!!
+            $json1 = $json[0];
 
             // Simple not translatable
             $this->assertEquals($tt1->color,$json1['color']);
