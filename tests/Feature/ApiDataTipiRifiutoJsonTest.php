@@ -62,6 +62,7 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
 
             $this->assertArrayHasKey('name',$json1);
             $this->assertArrayHasKey('description',$json1);
+            $this->assertArrayHasKey('showed_in',$json1);
             $this->assertArrayHasKey('where',$json1);
             $this->assertArrayHasKey('color',$json1);
             $this->assertArrayHasKey('howto',$json1);
@@ -171,6 +172,33 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
                 $this->assertContains($item,$json1['translations']['en']['notallowed']);
             }
 
+        }
+    
+        /** @test     */
+        public function tipi_rifiuto_item_has_proper_showed_in()
+        {
+            $company = Company::factory()->create();
+            $tt1 = TrashType::factory()->
+                    create([
+                        'company_id'=>$company->id,
+                        'show_in_reservation'=>false,
+                        'show_in_info'=>false,
+                        'show_in_abandonment'=>false,
+                        'show_in_report'=>false,
+                    ]);
+            $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
+    
+            $response->assertStatus(200);
+            $json = $response->json();
+
+            // TODO: make it stronger!!
+            $json1 = $json[0];
+
+            // Simple not translatable
+            $this->assertEquals(false,$json1['showed_in']['reservation']);
+            $this->assertEquals(false,$json1['showed_in']['info']);
+            $this->assertEquals(false,$json1['showed_in']['abandonment']);
+            $this->assertEquals(false,$json1['showed_in']['report']);
         }
     
 }

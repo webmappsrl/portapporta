@@ -108,20 +108,4 @@ class User extends Resource
     {
         return [];
     }
-
-    /**
-     * Hides the resource from menu it its not admin@webmapp.it.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return boolean
-     */
-    public static function availableForNavigation(Request $request)
-    {
-        $current_id = $request->user()->id;
-        if ($current_id !== 1) {
-            return false;
-        }
-        return true;
-    }
-
 }
