@@ -8,6 +8,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Nova\Console\RenamesStubs;
 use Tests\TestCase;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 
 class ApiDataUtenzeMetaJsonTest extends TestCase
 {
@@ -20,83 +22,107 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
     public function when_visit_utenze_meta_json_return_200()
     {
         $ut = UserType::factory()->create();
-        $response = $this->get('/api/c/'.$ut->company->id.'/user_types.json');
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $ut->company->id . '/user_types.json');
 
         $response->assertStatus(200);
     }
 
     /** @test     */
-    public function when_company_has_two_user_type_then_meta_json_has_two_elements() {
+    public function when_company_has_two_user_type_then_meta_json_has_two_elements()
+    {
         $c = Company::factory()->create();
-        $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
-        $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
+        $ut1 = UserType::factory()->create(['company_id' => $c->id]);
+        $ut2 = UserType::factory()->create(['company_id' => $c->id]);
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $c->id . '/user_types.json');
         $json = $response->json();
-        $this->assertEquals(2,count($json));
+        $this->assertEquals(2, count($json));
     }
 
     /** @test     */
-    public function when_company_has_two_user_type_then_meta_json_has_proper_keys() {
+    public function when_company_has_two_user_type_then_meta_json_has_proper_keys()
+    {
         $c = Company::factory()->create();
-        $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
-        $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
+        $ut1 = UserType::factory()->create(['company_id' => $c->id]);
+        $ut2 = UserType::factory()->create(['company_id' => $c->id]);
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $c->id . '/user_types.json');
         $json = $response->json();
 
         $slugs = [];
-        foreach($json as $item) {
-            $slugs[]=$item['slug'];
+        foreach ($json as $item) {
+            $slugs[] = $item['slug'];
         }
-        $this->assertTrue(in_array($ut1->slug,$slugs));
-        $this->assertTrue(in_array($ut2->slug,$slugs));
-    
+        $this->assertTrue(in_array($ut1->slug, $slugs));
+        $this->assertTrue(in_array($ut2->slug, $slugs));
     }
     /** @test     */
-    public function single_item_has_locale_it() {
+    public function single_item_has_locale_it()
+    {
         $c = Company::factory()->create();
-        $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
-        $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
+        $ut1 = UserType::factory()->create(['company_id' => $c->id]);
+        $ut2 = UserType::factory()->create(['company_id' => $c->id]);
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $c->id . '/user_types.json');
         $json = $response->json();
 
-        foreach($json as $item) {
-            $this->assertEquals('it',$item['locale']);
-            $this->assertEquals('it',$item['locale']);    
+        foreach ($json as $item) {
+            $this->assertEquals('it', $item['locale']);
+            $this->assertEquals('it', $item['locale']);
         }
-        
     }
 
     /** @test     */
-    public function single_item_has_proper_label() {
+    public function single_item_has_proper_label()
+    {
         $c = Company::factory()->create();
-        $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
-        $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
+        $ut1 = UserType::factory()->create(['company_id' => $c->id]);
+        $ut2 = UserType::factory()->create(['company_id' => $c->id]);
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $c->id . '/user_types.json');
         $json = $response->json();
 
         $labels = [];
-        foreach($json as $item) {
-            $labels[]=$item['label'];
+        foreach ($json as $item) {
+            $labels[] = $item['label'];
         }
-        $this->assertTrue(in_array($ut1->getTranslation('label','it'),$labels));
-        $this->assertTrue(in_array($ut2->getTranslation('label','it'),$labels));
-        
+        $this->assertTrue(in_array($ut1->getTranslation('label', 'it'), $labels));
+        $this->assertTrue(in_array($ut2->getTranslation('label', 'it'), $labels));
     }
 
     /** @test     */
-    public function single_item_has_proper_translations() {
+    public function single_item_has_proper_translations()
+    {
         $c = Company::factory()->create();
-        $ut1 = UserType::factory()->create(['company_id'=>$c->id]);
-        $ut2 = UserType::factory()->create(['company_id'=>$c->id]);
-        $response = $this->get('/api/c/'.$c->id.'/user_types.json');      
+        $ut1 = UserType::factory()->create(['company_id' => $c->id]);
+        $ut2 = UserType::factory()->create(['company_id' => $c->id]);
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $c->id . '/user_types.json');
         $json = $response->json();
         $labels = [];
-        foreach($json as $item) {
-            $labels[]=$item['translations']['en']['label'];
+        foreach ($json as $item) {
+            $labels[] = $item['translations']['en']['label'];
         }
-        $this->assertTrue(in_array($ut1->getTranslation('label','en'),$labels));
-        $this->assertTrue(in_array($ut2->getTranslation('label','en'),$labels));
-        
+        $this->assertTrue(in_array($ut1->getTranslation('label', 'en'), $labels));
+        $this->assertTrue(in_array($ut2->getTranslation('label', 'en'), $labels));
     }
-
 }
