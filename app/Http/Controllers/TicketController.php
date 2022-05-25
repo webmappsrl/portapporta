@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
 {
@@ -25,7 +28,19 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Auth::user();
+        try {
+            $request->validate([
+                'ticket_type' => [
+                    'required',
+                    Rule::in(['reservation','info','abandonment','report' ]),
+                ],
+            ]);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+
+
     }
 
     /**

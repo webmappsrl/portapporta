@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\TicketController;
 use App\Http\Resources\CentriRaccoltaResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\RifiutarioResource;
@@ -61,8 +62,11 @@ Route::prefix('c')->name('company.')->middleware('auth:sanctum')->group(function
         return new ZoneConfiniResource(Company::findOrFail($id));
     })->name('zone_confini.geojson');
 
-
     Route::get('/{id}/data/zone_meta.json', function ($id) {
         return new ZoneMetaResource(Company::findOrFail($id));
     })->name('zone_meta.json');
+
+    // Ticket
+    Route::post('/{id}/ticket', [TicketController::class, 'store'])->name('ticket');
+
 });
