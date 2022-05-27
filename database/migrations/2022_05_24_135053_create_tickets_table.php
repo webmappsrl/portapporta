@@ -29,7 +29,7 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->foreignId('trash_type_id');
+            $table->foreignId('trash_type_id')->nullable();
             $table->foreign('trash_type_id')->references('id')->on('trash_types')->onDelete('cascade');
 
         });
