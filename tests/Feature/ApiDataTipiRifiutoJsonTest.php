@@ -188,14 +188,40 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
         foreach ($tt1->getTranslation('allowed', 'it') as $item) {
             $this->assertContains($item, $json1['allowed']);
         }
-        foreach ($tt1->getTranslation('allowed', 'en') as $item) {
-            $this->assertContains($item, $json1['translations']['en']['allowed']);
-        }
-        foreach ($tt1->getTranslation('notallowed', 'it') as $item) {
-            $this->assertContains($item, $json1['notallowed']);
-        }
-        foreach ($tt1->getTranslation('notallowed', 'en') as $item) {
-            $this->assertContains($item, $json1['translations']['en']['notallowed']);
-        }
+
     }
+
+        /** @test     */
+        public function tipi_rifiuto_item_has_proper_showed_in()
+        {
+    
+            $company = Company::factory()->create();
+            $tt1 = TrashType::factory()->
+                    create([
+                        'company_id'=>$company->id,
+                        'show_in_reservation'=>false,
+                        'show_in_info'=>false,
+                        'show_in_abandonment'=>false,
+                        'show_in_report'=>false,
+                    ]);
+                    Sanctum::actingAs(
+                        User::factory()->create(),
+                        ['*']
+                    );
+                    $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
+    
+            $response->assertStatus(200);
+            $json = $response->json();
+
+            // TODO: make it stronger!!
+            $json1 = $json[0];
+
+            // Simple not translatable
+            $this->assertEquals(false,$json1['showed_in']['reservation']);
+            $this->assertEquals(false,$json1['showed_in']['info']);
+            $this->assertEquals(false,$json1['showed_in']['abandonment']);
+            $this->assertEquals(false,$json1['showed_in']['report']);
+        }
+    
+ 
 }

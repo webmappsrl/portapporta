@@ -31,6 +31,12 @@ class TrashTypeResource extends JsonResource
                     'color' => $tt->color,
                     'allowed' => $tt->getTranslation('allowed','it'),
                     'notallowed' => $tt->getTranslation('notallowed','it'),
+                    'showed_in' => [
+                        'reservation' => $tt->show_in_reservation,
+                        'info' => $tt->show_in_info,
+                        'abandonment' => $tt->show_in_abandonment,
+                        'report' => $tt->show_in_report,
+                    ],
                     'translations' => [ 'en' => [
                         'name' => $tt->getTranslation('name','en'),
                         'description' => $tt->getTranslation('description','en'),
