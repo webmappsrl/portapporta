@@ -22,6 +22,7 @@ return new class extends Migration
             $table->point('geometry')->nullable();
             $table->text('note')->nullable();
             $table->text('phone')->nullable();
+            $table->text('image')->nullable();
 
             $table->foreignId('company_id');
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
