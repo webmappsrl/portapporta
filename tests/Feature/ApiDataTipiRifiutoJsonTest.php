@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\TrashType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -15,6 +15,7 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
     // REF https://apiersu.netseven.it/data/tipi_rifiuto.json
 
     use RefreshDatabase;
+    use WithoutMiddleware;
 
     /** @test     */
     public function tipi_rifiuto_returns_200()
@@ -188,40 +189,36 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
         foreach ($tt1->getTranslation('allowed', 'it') as $item) {
             $this->assertContains($item, $json1['allowed']);
         }
-
     }
 
-        /** @test     */
-        public function tipi_rifiuto_item_has_proper_showed_in()
-        {
-    
-            $company = Company::factory()->create();
-            $tt1 = TrashType::factory()->
-                    create([
-                        'company_id'=>$company->id,
-                        'show_in_reservation'=>false,
-                        'show_in_info'=>false,
-                        'show_in_abandonment'=>false,
-                        'show_in_report'=>false,
-                    ]);
-                    Sanctum::actingAs(
-                        User::factory()->create(),
-                        ['*']
-                    );
-                    $response = $this->get('/api/c/'.$company->id.'/trash_types.json');
-    
-            $response->assertStatus(200);
-            $json = $response->json();
+    /** @test     */
+    public function tipi_rifiuto_item_has_proper_showed_in()
+    {
 
-            // TODO: make it stronger!!
-            $json1 = $json[0];
+        $company = Company::factory()->create();
+        $tt1 = TrashType::factory()->create([
+                'company_id' => $company->id,
+                'show_in_reservation' => false,
+                'show_in_info' => false,
+                'show_in_abandonment' => false,
+                'show_in_report' => false,
+            ]);
+        Sanctum::actingAs(
+            User::factory()->create(),
+            ['*']
+        );
+        $response = $this->get('/api/c/' . $company->id . '/trash_types.json');
 
-            // Simple not translatable
-            $this->assertEquals(false,$json1['showed_in']['reservation']);
-            $this->assertEquals(false,$json1['showed_in']['info']);
-            $this->assertEquals(false,$json1['showed_in']['abandonment']);
-            $this->assertEquals(false,$json1['showed_in']['report']);
-        }
-    
- 
+        $response->assertStatus(200);
+        $json = $response->json();
+
+        // TODO: make it stronger!!
+        $json1 = $json[0];
+
+        // Simple not translatable
+        $this->assertEquals(false, $json1['showed_in']['reservation']);
+        $this->assertEquals(false, $json1['showed_in']['info']);
+        $this->assertEquals(false, $json1['showed_in']['abandonment']);
+        $this->assertEquals(false, $json1['showed_in']['report']);
+    }
 }

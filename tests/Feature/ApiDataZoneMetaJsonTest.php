@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Models\UserType;
 use App\Models\Zone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -16,6 +16,7 @@ class ApiDataZoneMetaJsonTest extends TestCase
     // https://apiersu.netseven.it/data/zone_meta.json
 
     use RefreshDatabase;
+    use WithoutMiddleware;
 
     /** @test     */
     public function zone_meta_returns_200()

@@ -3,6 +3,8 @@
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\VerificationController;
+
 use App\Http\Resources\CentriRaccoltaResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\RifiutarioResource;
@@ -31,7 +33,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
-Route::prefix('c')->name('company.')->middleware('auth:sanctum')->group(function () {
+Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'signed')->group(function () {
 
     // Route::get('/{id}/info.json', function ($id) {
     Route::get('/{id}/config.json', function ($id) {
@@ -68,5 +70,7 @@ Route::prefix('c')->name('company.')->middleware('auth:sanctum')->group(function
 
     // Ticket
     Route::post('/{id}/ticket', [TicketController::class, 'store'])->name('ticket');
-
+    Route::get('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 });
+
+Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');

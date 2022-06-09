@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use Exception;
 
 class RegisterController extends Controller
@@ -32,7 +33,7 @@ class RegisterController extends Controller
 
         $success['token'] =  $user->createToken('access_token')->plainTextToken;
         $success['name'] =  $user->name;
-
+        event(new Registered($user));
         return $this->sendResponse($success, 'User register successfully.');
     }
 }

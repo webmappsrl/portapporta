@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\Zone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -15,6 +15,7 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
     // https://apiersu.netseven.it/data/zone_confini.geojson
 
     use RefreshDatabase;
+    use WithoutMiddleware;
 
 
     /** @test     */
