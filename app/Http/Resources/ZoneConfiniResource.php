@@ -20,24 +20,29 @@ class ZoneConfiniResource extends JsonResource
     {
         $features = [];
 
-        if(count($this->zones)>0) {
-            foreach($this->zones as $z) {
+        if (count($this->zones) > 0) {
+            foreach ($this->zones as $z) {
                 $item = [
                     'type' => 'Feature',
                     'properties' => [
                         'id' => $z->id,
-                        'COMUNE' => $z->comune
+                        'comune' => $z->comune,
+                        'label' => $z->label,
+                        'url' => $z->url,
                     ],
-                    'geometry' => json_decode($z->getGeojsonGeometry(),true),
-                    ];
-                $features[]=$item;
+                    'geometry' => json_decode($z->getGeojsonGeometry(), true),
+                ];
 
+                if (count($z->userTypes) > 0) {
+                    $item['properties']['types'] = $z->userTypes->pluck('id')->toArray();
+                }
+                $features[] = $item;
             }
         }
 
         $json = [
             'type' => 'FeatureCollection',
-            'name' => 'zone_confini',
+            'name' => 'zones',
             'features' => $features
         ];
         return $json;
