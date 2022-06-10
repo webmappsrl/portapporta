@@ -9,6 +9,7 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Color;
 use Laravel\Nova\Fields\KeyValue;
 use Laravel\Nova\Fields\Textarea;
@@ -50,6 +51,11 @@ class TrashType extends Resource
             ID::make()->sortable(),
             Text::make('slug')->sortable(),
             Color::make('color'),
+            Boolean::make('show_in_reservation')->hideFromIndex(),
+            Boolean::make('show_in_info')->hideFromIndex(),
+            Boolean::make('show_in_abandonment')->hideFromIndex(),
+            Boolean::make('show_in_report')->hideFromIndex(),
+
 
             NovaTabTranslatable::make([
                 Text::make('name')->sortable(),

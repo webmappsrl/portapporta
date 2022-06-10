@@ -36,15 +36,23 @@ class UserType extends Model
         }
     }
 
-    public function company(){
+    public function company()
+    {
         return $this->belongsTo(Company::class);
     }
 
-    public function zones(){
+    public function zones()
+    {
         return $this->belongsToMany(Zone::class);
     }
 
-    public function wasteCollectionCenters(){
+    public function wasteCollectionCenters()
+    {
         return $this->belongsToMany(WasteCollectionCenter::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
     }
 }

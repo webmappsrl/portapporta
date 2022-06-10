@@ -2,7 +2,7 @@
 
 namespace App\Nova\Dashboards;
 
-use App\Nova\Metrics\CompanyValueMetric;
+use Laravel\Nova\Cards\Help;
 use Laravel\Nova\Dashboards\Main as Dashboard;
 
 class Main extends Dashboard
@@ -15,7 +15,7 @@ class Main extends Dashboard
     public function cards()
     {
         return [
-            new CompanyValueMetric()
+            new Help,
         ];
     }
 }

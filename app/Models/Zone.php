@@ -34,12 +34,18 @@ class Zone extends Model
         }
     }
 
-    public function company(){
+    public function company()
+    {
         return $this->belongsTo(Company::class);
     }
 
-    public function userTypes(){
+    public function userTypes()
+    {
         return $this->belongsToMany(UserType::class);
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

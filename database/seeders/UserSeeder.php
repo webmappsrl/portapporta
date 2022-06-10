@@ -29,5 +29,7 @@ class UserSeeder extends Seeder
             'email' => 'lucaleon@gmail.com',
             'password' => bcrypt('webmapp'),
         ]);
+
+        User::factory(100)->create();
     }
 }

@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
             WasteCollectionCenterSeeder::class,
             UserTypeSeeder::class,
             ZoneSeeder::class,
-            ManyToManySeeder::class
+            ManyToManySeeder::class,
+            CalendarSeeder::class,
         ]);
     }
 }
