@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // AUTH AND SIGNED
-Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'signed')->group(function () {
+Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'verified')->group(function () {
     Route::get('/{id}/config.json', function ($id) {
         return new CompanyResource(Company::findOrFail($id));
     })->name('config.json');
@@ -62,6 +62,7 @@ Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'signed')->grou
         return new CentriRaccoltaResource(Company::findOrFail($id));
     })->name('waste_collection_centers.geojson');
     Route::post('/{id}/ticket', [TicketController::class, 'store'])->name('ticket');
+    // Route::get('/{id}/tickets', [TicketController::class, 'list'])->name('ticket.list');
     Route::get('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 });
 
