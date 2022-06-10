@@ -32,6 +32,19 @@ class Calendar extends Resource
     public static $search = [
         'id',
     ];
+    
+    /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        return $query->where('company_id', $request->user()->company->id);
+    }
+
 
     /**
      * Get the fields displayed by the resource.
