@@ -2,7 +2,9 @@
 
 namespace App\Nova;
 
+use App\Models\Company;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
@@ -16,6 +18,8 @@ class CalendarItem extends Resource
      * @var string
      */
     public static $model = \App\Models\CalendarItem::class;
+
+    public static $perPageViaRelationship = 20;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -34,6 +38,19 @@ class CalendarItem extends Resource
     ];
 
     /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        $calendars = $request->user()->company->calendars->pluck('id')->toArray();
+        return $query->whereIn('calendar_id', $calendars);
+    }
+
+    /**
      * Get the fields displayed by the resource.
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
@@ -43,6 +60,7 @@ class CalendarItem extends Resource
     {
         return [
             ID::make()->sortable(),
+            BelongsTo::make('Calendar'),
             Text::make('start_time'),
             Text::make('stop_time'),
             Select::make('day_of_week')->options([
@@ -55,8 +73,8 @@ class CalendarItem extends Resource
                 6 => 'Sat',
             ])->displayUsingLabels(),
             Select::make('frequency')->options([
-                'Weekly' => 'weekly',
-                'Biweekly' => 'biweekly',
+                'weekly' => 'weekly',
+                'biweekly' => 'biweekly',
             ])
         ];
     }

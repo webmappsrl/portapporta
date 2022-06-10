@@ -33,5 +33,9 @@ class Calendar extends Model
         return $this->hasMany(CalendarItem::class);
     }
 
+    public function company() {
+        return $this->belongsTo(Company::class);
+    }
+
         
 }

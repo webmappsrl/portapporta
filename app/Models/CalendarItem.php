@@ -13,4 +13,8 @@ class CalendarItem extends Model
         return $this->belongsToMany(UserType::class);
     }
 
+    public function calendar() {
+        return $this->belongsTo(Calendar::class);
+    }
+
 }
