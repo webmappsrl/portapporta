@@ -18,8 +18,10 @@ return new class extends Migration
             $table->timestamps();
             $table->time('start_time');
             $table->time('stop_time');
-
-            
+            $table->enum('day_of_week',[0,1,2,3,4,5,6]);
+            $table->enum('frequency',['weekly','beweekly']);
+            $table->foreignId('calendar_id');
+            $table->foreign('calendar_id')->references('id')->on('calendars')->onDelete('cascade');
         });
     }
 

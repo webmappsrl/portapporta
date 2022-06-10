@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Calendar extends Model
 {
@@ -26,6 +27,10 @@ class Calendar extends Model
                 $calendar->company_id = auth()->user()->company->id;
             });
         }
+    }
+
+    public function calendarItems() {
+        return $this->hasMany(CalendarItem::class);
     }
 
         

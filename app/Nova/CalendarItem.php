@@ -3,20 +3,19 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\Date;
-use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class Calendar extends Resource
+class CalendarItem extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = \App\Models\Calendar::class;
+    public static $model = \App\Models\CalendarItem::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -33,19 +32,6 @@ class Calendar extends Resource
     public static $search = [
         'id',
     ];
-    
-    /**
-     * Build an "index" query for the given resource.
-     *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public static function indexQuery(NovaRequest $request, $query)
-    {
-        return $query->where('company_id', $request->user()->company->id);
-    }
-
 
     /**
      * Get the fields displayed by the resource.
@@ -57,10 +43,21 @@ class Calendar extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('name'),
-            Date::make('start_date'),
-            Date::make('stop_date'),
-            HasMany::make('CalendarItems'),
+            Text::make('start_time'),
+            Text::make('stop_time'),
+            Select::make('day_of_week')->options([
+                0 => 'Sun',
+                1 => 'Mon',
+                2 => 'Tue' ,
+                3 => 'Wed',
+                4 => 'Thu',
+                5 => 'Fri',
+                6 => 'Sat',
+            ])->displayUsingLabels(),
+            Select::make('frequency')->options([
+                'Weekly' => 'weekly',
+                'Biweekly' => 'biweekly',
+            ])
         ];
     }
 
