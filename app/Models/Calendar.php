@@ -37,5 +37,8 @@ class Calendar extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function zone() {
+        return $this->belongsTo(Zone::class);
+    }
         
 }

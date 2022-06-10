@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
@@ -46,7 +47,6 @@ class Calendar extends Resource
         return $query->where('company_id', $request->user()->company->id);
     }
 
-
     /**
      * Get the fields displayed by the resource.
      *
@@ -58,6 +58,7 @@ class Calendar extends Resource
         return [
             ID::make()->sortable(),
             Text::make('name'),
+            BelongsTo::make('zone'),
             Date::make('start_date'),
             Date::make('stop_date'),
             HasMany::make('CalendarItems'),
