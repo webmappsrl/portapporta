@@ -21,6 +21,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'zone_id',
+        'user_type_id',
+        'location'
     ];
 
     /**
@@ -45,5 +48,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function company()
     {
         return $this->hasOne(Company::class);
+    }
+
+    public function userType()
+    {
+        return $this->belongsTo(UserType::class);
+    }
+
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
     }
 }
