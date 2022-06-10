@@ -5,6 +5,7 @@ namespace App\Nova;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
@@ -75,7 +76,8 @@ class CalendarItem extends Resource
             Select::make('frequency')->options([
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
-            ])
+            ]),
+            BelongsToMany::make('UserTypes'),
         ];
     }
 
