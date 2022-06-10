@@ -35,7 +35,7 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'zone_id' => $request->zone_id,
             'user_type_id' => $request->user_type_id,
-            'location' => DB::raw("(ST_GeomFromText('POINT(" . $request->location[0] . " " . $request->location[1] . " )'))"),
+            'location' => DB::select("SELECT ST_GeomFromText('POINT(" . $request->location[0] . " " . $request->location[1] . " )') as g")[0]->g,
         ]);
 
         $success['token'] =  $user->createToken('access_token')->plainTextToken;

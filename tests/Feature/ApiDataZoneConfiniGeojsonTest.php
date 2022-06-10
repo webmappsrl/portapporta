@@ -12,7 +12,7 @@ use Laravel\Sanctum\Sanctum;
 
 class ApiDataZoneConfiniGeojsonTest extends TestCase
 {
-    // https://apiersu.netseven.it/data/zone_confini.geojson
+    // https://apiersu.netseven.it/zones.geojson
 
     use RefreshDatabase;
     use WithoutMiddleware;
@@ -22,11 +22,8 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
     public function api_data_zone_confini_return_200()
     {
         $z = Zone::factory()->create();
-        Sanctum::actingAs(
-            User::factory()->create(),
-            ['*']
-        );
-        $response = $this->get('/api/c/' . $z->company->id . '/data/zone_confini.geojson');
+
+        $response = $this->get('/api/c/' . $z->company->id . '/zones.geojson');
 
         $response->assertStatus(200);
     }
@@ -35,11 +32,8 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
     public function api_data_zone_confini_is_geojson()
     {
         $z = Zone::factory()->create();
-        Sanctum::actingAs(
-            User::factory()->create(),
-            ['*']
-        );
-        $response = $this->get('/api/c/' . $z->company->id . '/data/zone_confini.geojson');
+
+        $response = $this->get('/api/c/' . $z->company->id . '/zones.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -49,7 +43,7 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
         $this->assertArrayHasKey('features', $geojson);
 
         $this->assertEquals('FeatureCollection', $geojson['type']);
-        $this->assertEquals('zone_confini', $geojson['name']);
+        $this->assertEquals('zones', $geojson['name']);
     }
 
     /** @test     */
@@ -58,11 +52,8 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
         $c = Company::factory()->create();
         $z = Zone::factory()->create(['company_id' => $c->id]);
         $z = Zone::factory()->create(['company_id' => $c->id]);
-        Sanctum::actingAs(
-            User::factory()->create(),
-            ['*']
-        );
-        $response = $this->get('/api/c/' . $c->id . '/data/zone_confini.geojson');
+
+        $response = $this->get('/api/c/' . $c->id . '/zones.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -83,11 +74,8 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
     public function api_data_zone_confini_has_proper_properties_feature_section()
     {
         $z = Zone::factory()->create();
-        Sanctum::actingAs(
-            User::factory()->create(),
-            ['*']
-        );
-        $response = $this->get('/api/c/' . $z->company->id . '/data/zone_confini.geojson');
+
+        $response = $this->get('/api/c/' . $z->company->id . '/zones.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
@@ -97,18 +85,15 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
         $this->assertArrayHasKey('id', $properties);
         $this->assertEquals($z->id, $properties['id']);
 
-        $this->assertArrayHasKey('COMUNE', $properties);
-        $this->assertEquals($z->comune, $properties['COMUNE']);
+        $this->assertArrayHasKey('comune', $properties);
+        $this->assertEquals($z->comune, $properties['comune']);
     }
     /** @test     */
     public function api_data_zone_confini_has_proper_geometry_feature_section()
     {
         $z = Zone::factory()->create();
-        Sanctum::actingAs(
-            User::factory()->create(),
-            ['*']
-        );
-        $response = $this->get('/api/c/' . $z->company->id . '/data/zone_confini.geojson');
+
+        $response = $this->get('/api/c/' . $z->company->id . '/zones.geojson');
 
         $response->assertStatus(200);
         $geojson = $response->json();
