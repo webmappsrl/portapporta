@@ -42,4 +42,5 @@ class Zone extends Model
         return $this->belongsToMany(UserType::class);
     }
 
+
 }
