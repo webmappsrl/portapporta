@@ -26,8 +26,8 @@ class DatabaseSeeder extends Seeder
             ZoneSeeder::class,
             ManyToManySeeder::class,
             CalendarSeeder::class,
-            TicketSeeder::class
             CalendarItemSeeder::class,
+            TicketSeeder::class,
         ]);
     }
 }

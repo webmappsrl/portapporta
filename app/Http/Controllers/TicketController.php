@@ -16,9 +16,14 @@ class TicketController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $result=Ticket::where('company_id',$request->id)
+                ->where('user_id',Auth::user()->id)
+                ->orderBy('created_at','desc')
+                ->get()
+                ->toArray();
+        return $this->sendResponse($result,'User tickets');
     }
 
     /**

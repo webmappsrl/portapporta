@@ -16,8 +16,8 @@ class TicketSeeder extends Seeder
      */
     public function run()
     {
-        $numberOfTikets = 10;
-        foreach (range(1, $numberOfTikets) as $index) {
+        $numberOfTickets = 10;
+        foreach (range(1, $numberOfTickets) as $index) {
             Ticket::factory()->create(['user_id' => 1]);
         }
     }

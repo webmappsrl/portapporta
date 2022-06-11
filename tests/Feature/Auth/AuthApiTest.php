@@ -7,7 +7,7 @@ use App\Models\Zone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class LoginApiTest extends TestCase
+class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -57,6 +57,7 @@ class LoginApiTest extends TestCase
         $this->assertSame('{"success":false,"message":"The password confirmation does not match. (and 4 more errors)"}', $response->content());
     }
 
+    // TODO: remove email send
     public function testRegisterSuccess()
     {
         $z = Zone::factory()->create();
