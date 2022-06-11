@@ -26,6 +26,13 @@ class CalendarItemSeeder extends Seeder
                     'calendar_id' => $calendar->id,
                 ]);
             }
-        } 
+        }
+
+        // ELEGANT RANDOM ARRAY VALUES: array_rand (array_flip($a),rand(2,count($a)))
+        foreach(CalendarItem::all() as $item) {
+            $trash_types = $item->calendar->company->trashTypes->pluck('id')->toArray();
+            $item->trashTypes()->attach(array_rand (array_flip($trash_types),rand(1,count($trash_types))));
+        }
+        
     }
 }

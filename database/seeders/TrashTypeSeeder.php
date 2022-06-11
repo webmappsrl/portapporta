@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\TrashType;
+use Faker\Factory;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,12 +17,17 @@ class TrashTypeSeeder extends Seeder
      */
     public function run()
     {
+        $faker = Factory::create();
         foreach(Company::all() as $company) {
-            TrashType::factory()->create(['company_id' => $company->id]);
-            TrashType::factory()->create(['company_id' => $company->id]);
-            TrashType::factory()->create(['company_id' => $company->id]);
-            TrashType::factory()->create(['company_id' => $company->id]);
-            TrashType::factory()->create(['company_id' => $company->id]);
+            for ($i=0; $i <5 ; $i++) { 
+                TrashType::factory()->create([
+                    'name' => [
+                        'it' =>'TrashType: '.$faker->name()." ({$company->name}) IT",
+                        'en' =>'TrashType: '.$faker->name()." ({$company->name}) EN",
+                    ],
+                    'company_id' => $company->id]);
+                }
         }
+
     }
 }

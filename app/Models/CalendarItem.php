@@ -13,4 +13,9 @@ class CalendarItem extends Model
         return $this->belongsTo(Calendar::class);
     }
 
+    public function trashTypes(){
+        return $this->belongsToMany(TrashType::class);
+    }
+
+
 }
