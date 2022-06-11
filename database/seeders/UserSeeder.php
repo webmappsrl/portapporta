@@ -18,17 +18,17 @@ class UserSeeder extends Seeder
             'name' => 'amministratore webmapp',
             'email' => 'admin@webmapp.it',
             'password' => bcrypt('webmapp'),
-        ]);
+        ])->markEmailAsVerified();
         User::factory()->create([
             'name' => 'Sara Guasti',
             'email' => 's.guasti@esaspa.it',
             'password' => bcrypt('webmapp'),
-        ]);
+        ])->markEmailAsVerified();
         User::factory()->create([
             'name' => 'Luca Leonardi',
             'email' => 'lucaleon@gmail.com',
             'password' => bcrypt('webmapp'),
-        ]);
+        ])->markEmailAsVerified();
 
         User::factory(100)->create();
     }
