@@ -40,5 +40,9 @@ class Calendar extends Model
     public function zone() {
         return $this->belongsTo(Zone::class);
     }
+
+    public function userType() {
+        return $this->belongsTo(UserType::class);
+    }
         
 }

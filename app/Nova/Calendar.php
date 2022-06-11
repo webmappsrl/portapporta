@@ -59,6 +59,7 @@ class Calendar extends Resource
             ID::make()->sortable(),
             Text::make('name'),
             BelongsTo::make('zone'),
+            BelongsTo::make('userType'),
             Date::make('start_date'),
             Date::make('stop_date'),
             HasMany::make('CalendarItems'),
