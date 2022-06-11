@@ -19,8 +19,15 @@ return new class extends Migration
             $table->string('name');
             $table->date('start_date');
             $table->date('stop_date');
+            
             $table->foreignId('company_id');
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
+
+            $table->foreignId('zone_id');
+            $table->foreign('zone_id')->references('id')->on('zones')->onDelete('cascade');
+
+            $table->foreignId('user_type_id');
+            $table->foreign('user_type_id')->references('id')->on('user_types')->onDelete('cascade');
         });
     }
 

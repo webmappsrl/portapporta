@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Calendar;
 use App\Models\Company;
+use App\Models\Zone;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,24 +24,28 @@ class CalendarSeeder extends Seeder
         $summer_start=Carbon::parse("$year-07-01 00:00:00");
         $summer_stop=Carbon::parse("$year-12-31 11:59:59");
         foreach(Company::all() as $company) {
-
-            // winter calendar 01/01/this year -> 30/06/this-year
-            $data_winter = [
-                'name' => "WINTER Calendar $year for Company {$company->name}",
-                'start_date' => $winter_start,
-                'stop_date' => $winter_stop,
-                'company_id' => $company->id
-            ];
-            Calendar::factory()->create($data_winter);
-            // summer calendar
-            $data_summer = [
-                'name' => "SUMMER Calendar $year for Company {$company->name}",
-                'start_date' => $summer_start,
-                'stop_date' => $summer_stop,
-                'company_id' => $company->id
-            ];
-            Calendar::factory()->create($data_summer);
-
+            foreach($company->zones as $zone) {
+                foreach($zone->userTypes as $user_type) {
+                    $data_winter = [
+                        'name' => "WCAL $year {$company->name} / {$zone->label} / {$user_type->label}",
+                        'start_date' => $winter_start,
+                        'stop_date' => $winter_stop,
+                        'company_id' => $company->id,
+                        'zone_id' => $zone->id,
+                        'user_type_id' => $user_type->id,
+                    ];
+                    Calendar::factory()->create($data_winter);
+                    $data_summer = [
+                        'name' => "SCAL $year {$company->name} / {$zone->label} / {$user_type->label}",
+                        'start_date' => $summer_start,
+                        'stop_date' => $summer_stop,
+                        'company_id' => $company->id,
+                        'zone_id' => $zone->id,
+                        'user_type_id' => $user_type->id,
+                    ];
+                    Calendar::factory()->create($data_summer);  
+                }
+            }
         }
     }
 }
