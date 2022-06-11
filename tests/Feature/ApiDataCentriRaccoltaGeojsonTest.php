@@ -7,7 +7,7 @@ use App\Models\TrashType;
 use App\Models\UserType;
 use App\Models\WasteCollectionCenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -17,7 +17,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
     // REF https://apiersu.netseven.it/data/centri_raccolta.geojson
 
     use RefreshDatabase;
-
+    use WithoutMiddleware;
     /** @test     */
     public function api_data_centri_raccolta_returns_200()
     {

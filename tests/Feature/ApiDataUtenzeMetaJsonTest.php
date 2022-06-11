@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\UserType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Laravel\Nova\Console\RenamesStubs;
 use Tests\TestCase;
 use App\Models\User;
@@ -17,6 +17,7 @@ class ApiDataUtenzeMetaJsonTest extends TestCase
     // REF: https://apiersu.netseven.it/data/utenze_meta.json
 
     use RefreshDatabase;
+    use WithoutMiddleware;
 
     /** @test     */
     public function when_visit_utenze_meta_json_return_200()

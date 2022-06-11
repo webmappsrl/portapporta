@@ -20,18 +20,18 @@ class ZoneMetaResource extends JsonResource
     {
         $json = [];
 
-        if(count($this->zones)>0) {
-            foreach($this->zones as $z) {
+        if (count($this->zones) > 0) {
+            foreach ($this->zones as $z) {
                 $item = [
-                        'id' => $z->id,
-                        'comune' => $z->comune,
-                        'label' => $z->label,
-                        'url' => $z->url,
-                    ];
-                if(count($z->userTypes)>0) {
-                    $item['types']=$z->userTypes->pluck('slug')->toArray();
+                    'id' => $z->id,
+                    'comune' => $z->comune,
+                    'label' => $z->label,
+                    'url' => $z->url,
+                ];
+                if (count($z->userTypes) > 0) {
+                    $item['types'] = $z->userTypes->pluck('slug')->toArray();
                 }
-                $json[]=$item;
+                $json[] = $item;
             }
         }
         return $json;
