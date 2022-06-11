@@ -9,10 +9,6 @@ class CalendarItem extends Model
 {
     use HasFactory;
 
-    public function userTypes(){
-        return $this->belongsToMany(UserType::class);
-    }
-
     public function calendar() {
         return $this->belongsTo(Calendar::class);
     }

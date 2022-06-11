@@ -77,8 +77,7 @@ class CalendarItem extends Resource
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ]),
-            BelongsToMany::make('UserTypes'),
-        ];
+       ];
     }
 
     /**
