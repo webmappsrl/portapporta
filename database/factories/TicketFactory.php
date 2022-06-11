@@ -23,7 +23,7 @@ class TicketFactory extends Factory
         try {
             $trash_type = TrashType::all()->random();
         } catch (Exception $e) {
-            $company = TrashType::factory()->create();
+            $trash_type = TrashType::factory()->create();
         }
         try {
             $user = User::all()->random();

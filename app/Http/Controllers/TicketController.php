@@ -16,9 +16,14 @@ class TicketController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $result=Ticket::where('company_id',$request->id)
+                ->where('user_id',Auth::user()->id)
+                ->orderBy('created_at','desc')
+                ->get()
+                ->toArray();
+        return $this->sendResponse($result,'User tickets');
     }
 
     /**
@@ -34,7 +39,7 @@ class TicketController extends Controller
             $request->validate([
                 'ticket_type' => [
                     'required',
-                    Rule::in(['reservation','info','abandonment','report' ]),
+                    Rule::in(['reservation', 'info', 'abandonment', 'report']),
                 ],
             ]);
         } catch (Exception $e) {
@@ -43,23 +48,23 @@ class TicketController extends Controller
 
         // Create Ticket
         $ticket = new Ticket();
-        $ticket->ticket_type=$request->ticket_type;
-        $ticket->company_id=$request->id;
-        $ticket->user_id=Auth::user()->id;
-        if($request->exists('trash_type_id')) {
+        $ticket->ticket_type = $request->ticket_type;
+        $ticket->company_id = $request->id;
+        $ticket->user_id = Auth::user()->id;
+        if ($request->exists('trash_type_id')) {
             $ticket->trash_type_id = $request->trash_type_id;
         }
-        if($request->exists('note')) {
+        if ($request->exists('note')) {
             $ticket->note = $request->note;
         }
-        if($request->exists('phone')) {
+        if ($request->exists('phone')) {
             $ticket->phone = $request->phone;
         }
-        if($request->exists('image')) {
+        if ($request->exists('image')) {
             $ticket->image = $request->image;
         }
-        if($request->exists('location')) {
-            $ticket->geometry=(DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
+        if ($request->exists('location')) {
+            $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
         }
         $ticket->save();
 
@@ -99,5 +104,18 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         //
+    }
+
+
+    /**
+     * return all ticktes related to user request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function list(Request $request)
+    {
+        $user = Auth::user();
+        $tickets = Ticket::query(['user_id', $user->id]);
     }
 }

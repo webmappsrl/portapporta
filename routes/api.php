@@ -65,7 +65,7 @@ Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'verified')->gr
     Route::post('/{id}/ticket', [TicketController::class, 'store'])->name('ticket');
 
     Route::get('/{id}/calendar', [CalendarController::class, 'index'])->name('calendar');
-    // Route::get('/{id}/tickets', [TicketController::class, 'list'])->name('ticket.list');
+    Route::get('/{id}/tickets', [TicketController::class, 'index'])->name('ticket.list');
     Route::get('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 });
 
