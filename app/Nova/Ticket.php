@@ -59,7 +59,7 @@ class Ticket extends Resource
             ID::make()->sortable(),
             Text::make('ticket_type'),
             BelongsTo::make('User'),
-            Date::make('created_at'),
+            Date::make('created_at')->sortable(),
             Text::make('phone'),
         ];
     }
