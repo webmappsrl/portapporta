@@ -46,8 +46,10 @@ Route::prefix('c')->name('company.')->group(function () {
     Route::get('/{id}/zones.geojson', function ($id) {
         return new ZoneConfiniResource(Company::findOrFail($id));
     })->name('zones.geojson');
+    Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
+        return new CentriRaccoltaResource(Company::findOrFail($id));
+    })->name('waste_collection_centers.geojson');
 });
-
 
 // AUTH
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -59,11 +61,7 @@ Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'verified')->gr
     Route::get('/{id}/config.json', function ($id) {
         return new CompanyResource(Company::findOrFail($id));
     })->name('config.json');
-    Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
-        return new CentriRaccoltaResource(Company::findOrFail($id));
-    })->name('waste_collection_centers.geojson');
     Route::post('/{id}/ticket', [TicketController::class, 'store'])->name('ticket');
-
     Route::get('/{id}/calendar', [CalendarController::class, 'index'])->name('calendar');
     Route::get('/{id}/tickets', [TicketController::class, 'index'])->name('ticket.list');
     Route::get('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
