@@ -3,26 +3,29 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\BelongsToMany;
+use Illuminate\Support\Facades\DB;
+use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class Zone extends Resource
+class Ticket extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = \App\Models\Zone::class;
+    public static $model = \App\Models\Ticket::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
      * @var string
      */
-    public static $title = 'label';
+    public static $title = 'id';
 
     /**
      * The columns that should be searched.
@@ -31,8 +34,20 @@ class Zone extends Resource
      */
     public static $search = [
         'id',
-        'label'
     ];
+
+        /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        return $query->where('company_id', $request->user()->company->id);
+    }
+
 
     /**
      * Get the fields displayed by the resource.
@@ -42,12 +57,26 @@ class Zone extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [ 
+        return [
             ID::make()->sortable(),
-            Text::make('label'),
-            Text::make('comune'),
-            Text::make('url'),
-            BelongsToMany::make('UserTypes'),
+            Text::make('ticket_type'),
+            BelongsTo::make('trash_type'),
+            BelongsTo::make('User'),
+            Text::make('User Email',function (){
+                return $this->user->email;
+            })->onlyOnDetail(),
+            Date::make('created_at')->sortable(),
+            Text::make('phone'),
+            Text::make('Location',function() {
+                if(!is_null($this->geometry)) {
+                    $g = json_decode(DB::select("SELECT st_asgeojson('{$this->geometry}') as g")[0]->g);
+                    return "({$g->coordinates[0]},{$g->coordinates[1]})";
+                }
+            })->onlyOnDetail(),
+            Textarea::make('note')->alwaysShow()->onlyOnDetail(),
+            Text::make('image',function(){
+                return '<img src="'.$this->image.'" />';
+            })->asHtml()->onlyOnDetail()
         ];
     }
 
@@ -93,17 +122,5 @@ class Zone extends Resource
     public function actions(NovaRequest $request)
     {
         return [];
-    }
-
-    /**
-     * Build an "index" query for the given resource.
-     *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public static function indexQuery(NovaRequest $request, $query)
-    {
-        return $query->where('company_id', $request->user()->company->id);
     }
 }
