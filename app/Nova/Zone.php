@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -46,6 +47,7 @@ class Zone extends Resource
             Text::make('label'),
             Text::make('comune'),
             Text::make('url'),
+            BelongsToMany::make('UserTypes'),
         ];
     }
 

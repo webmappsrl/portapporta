@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\Zone;
+use Faker\Factory;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,12 +17,13 @@ class ZoneSeeder extends Seeder
      */
     public function run()
     {
+        $faker = Factory::create();
         foreach(Company::all() as $company) {
-            Zone::factory()->create(['company_id' => $company->id]);
-            Zone::factory()->create(['company_id' => $company->id]);
-            Zone::factory()->create(['company_id' => $company->id]);
-            Zone::factory()->create(['company_id' => $company->id]);
-            Zone::factory()->create(['company_id' => $company->id]);
+            for ($i=0; $i <5 ; $i++) { 
+                Zone::factory()->create([
+                    'label' => 'Zona: '.$faker->name()." ({$company->name})",
+                    'company_id' => $company->id]);
+                }
         }
     }
 }
