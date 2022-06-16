@@ -29,7 +29,7 @@ class AuthServiceProvider extends ServiceProvider
             return (new MailMessage)
                 ->from('noreply@webmapp.it', 'portAPPorta')
                 ->subject('Verifica email portAPPorta')
-                ->line('Fai clic sul pulsante qui sotto per verificare il tuo indirizzo email.')
+                ->line('Fai click sul pulsante qui sotto per verificare il tuo indirizzo email.')
                 ->action('verifica indirizzo e-mail', $url);
         });
         //
