@@ -18,12 +18,28 @@ class TicketController extends Controller
      */
     public function index(Request $request)
     {
-        $result=Ticket::where('company_id',$request->id)
-                ->where('user_id',Auth::user()->id)
-                ->orderBy('created_at','desc')
-                ->get()
-                ->toArray();
-        return $this->sendResponse($result,'User tickets');
+
+
+        $result = collect(Ticket::where('company_id', $request->id)
+            ->where('user_id', Auth::user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->toArray())->map(function ($item) {
+            return $this->iterator($item);
+        });
+
+
+
+        return $this->sendResponse($result, 'User tickets');
+    }
+
+    function iterator($item)
+    {
+        $geometry = $item['geometry'];
+        $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
+        unset($item['geometry']);
+        $item['location'] = [$g->coordinates[0], $g->coordinates[1]];
+        return $item;
     }
 
     /**
@@ -104,18 +120,5 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         //
-    }
-
-
-    /**
-     * return all ticktes related to user request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function list(Request $request)
-    {
-        $user = Auth::user();
-        $tickets = Ticket::query(['user_id', $user->id]);
     }
 }
