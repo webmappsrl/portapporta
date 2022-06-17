@@ -12,6 +12,7 @@
         "eminiarts/nova-tabs": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
         "imumz/leaflet-map": "^1.1",
+        "jenssegers/agent": "^2.6",
         "kongulov/nova-tab-translatable": "^2.0",
         "laravel/framework": "^9.2",
         "laravel/nova": "~4.0",

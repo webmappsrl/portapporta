@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\File;
+use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
@@ -67,21 +68,8 @@ class Company extends Resource
             Text::make(__('configXML ID'),'configXMLID'),
             Textarea::make(__('configXML description'),'description'),
             Text::make(__('configXML Version'),'version'),
-            File::make(__('ICON'),'icon')
-                ->acceptedTypes('image/*')
-                ->disk('public')
-                ->store(function (Request $request, $model) {
-                    $file = $request->file('icon');
-                    return $model->get_file_name_extension($file);
-                }),
-            File::make(__('SPLASH'),'splash')
-                ->acceptedTypes('image/*')
-                ->disk('public')
-                ->store(function (Request $request, $model) {
-                    $file = $request->file('splash');
-                    return $model->get_file_name_extension($file);
-                }),
             new Panel('Company API',$this->apiPanel()),
+            new Panel('Company Resources',$this->companyResources()),
         ];
     }
 
@@ -101,6 +89,52 @@ class Company extends Resource
             })->asHtml()->onlyOnDetail();
         }
         return $fields;
+    }
+
+    public function companyResources() {
+        return [
+            Image::make(__('Icon'), 'icon')
+                ->rules('image', 'mimes:png', 'dimensions: width=1024,height=1024')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->storeAs(function () {
+                    return 'icon.png';
+                })
+                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 1024]))
+                ->hideFromIndex()
+                ->disableDownload(),
+            Image::make(__('Splash image'), 'splash')
+                ->rules('image', 'mimes:png', 'dimensions:width=2732,height=2732')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->storeAs(function () {
+                    return 'splash.png';
+                })
+                ->help(__('Required size is :widthx:heightpx', ['width' => 2732, 'height' => 2732]))
+                ->hideFromIndex()
+                ->disableDownload(),
+            Image::make(__('Icon small'), 'icon_small')
+                ->rules('image', 'mimes:png', 'dimensions:width=512,height=512')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->storeAs(function () {
+                    return 'icon_small.png';
+                })
+                ->help(__('Required size is :widthx:heightpx', ['width' => 512, 'height' => 512]))
+                ->hideFromIndex()
+                ->disableDownload(),
+
+            Image::make(__('Feature image'), 'feature_image')
+                ->rules('image', 'mimes:png', 'dimensions:width=1024,height=500')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->storeAs(function () {
+                    return 'feature_image.png';
+                })
+                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500]))
+                ->hideFromIndex()
+                ->disableDownload(),
+        ];
     }
 
     /**
