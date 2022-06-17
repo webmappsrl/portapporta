@@ -18,10 +18,16 @@ class VerificationController extends Controller
 
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
-            $this->sendResponse([], 'email has been validated');
+            return view('auth.verifyemail',[
+                'user' => $user,
+                'already_validated' => false
+            ]);
         }
 
-        $this->sendResponse([], 'email already validated');
+        return view('auth.verifyemail',[
+            'user' => $user,
+            'already_validated' => true
+        ]);
     }
 
     public function resend()
