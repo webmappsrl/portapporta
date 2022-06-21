@@ -4,6 +4,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\UpdateUserController;
 use App\Http\Controllers\VerificationController;
 
 use App\Http\Resources\CentriRaccoltaResource;
@@ -56,7 +57,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// AUTH AND SIGNED
+Route::middleware('auth:sanctum')->post('/user', [UpdateUserController::class, 'update'])->name('update');
+
+// AUTH AND SIGNED WITH COMPANY
 Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'verified')->group(function () {
     Route::get('/{id}/config.json', function ($id) {
         return new CompanyResource(Company::findOrFail($id));

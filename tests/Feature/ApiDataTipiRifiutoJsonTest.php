@@ -158,7 +158,6 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
     {
         $company = Company::factory()->create();
         $tt1 = TrashType::factory()->create(['company_id' => $company->id]);
-        $tt2 = TrashType::factory()->create(['company_id' => $company->id]);
         Sanctum::actingAs(
             User::factory()->create(),
             ['*']
@@ -197,12 +196,12 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
 
         $company = Company::factory()->create();
         $tt1 = TrashType::factory()->create([
-                'company_id' => $company->id,
-                'show_in_reservation' => false,
-                'show_in_info' => false,
-                'show_in_abandonment' => false,
-                'show_in_report' => false,
-            ]);
+            'company_id' => $company->id,
+            'show_in_reservation' => false,
+            'show_in_info' => false,
+            'show_in_abandonment' => false,
+            'show_in_report' => false,
+        ]);
         Sanctum::actingAs(
             User::factory()->create(),
             ['*']
