@@ -35,10 +35,12 @@ class TicketController extends Controller
 
     function iterator($item)
     {
-        $geometry = $item['geometry'];
-        $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
-        unset($item['geometry']);
-        $item['location'] = [$g->coordinates[0], $g->coordinates[1]];
+        if (!is_null($item['geometry'])) {
+            $geometry = $item['geometry'];
+            $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
+            unset($item['geometry']);
+            $item['location'] = [$g->coordinates[0], $g->coordinates[1]];
+        }
         return $item;
     }
 
