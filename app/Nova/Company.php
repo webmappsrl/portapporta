@@ -51,23 +51,8 @@ class Company extends Resource
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
             BelongsTo::make('User')->nullable(),
-            File::make(__('Config .TS'),'configTs')
-                ->acceptedTypes('.ts')
-                ->disk('public')
-                ->store(function (Request $request, $model) {
-                    $file = $request->file('configTs');
-                    return $model->get_file_name_extension($file);
-                }),
-            File::make(__('Config .JSON'),'configJson')
-                ->acceptedTypes('.json')
-                ->disk('public')
-                ->store(function (Request $request, $model) {
-                    $file = $request->file('configJson');
-                    return $model->get_file_name_extension($file);
-                }),
-            Text::make(__('configXML ID'),'configXMLID'),
-            Textarea::make(__('configXML description'),'description'),
-            Text::make(__('configXML Version'),'version'),
+            Text::make(__('Play Store link (android)'), 'android_store_link'),
+            Text::make(__('App Store link (iOS)'), 'ios_store_link'),
             new Panel('Company API',$this->apiPanel()),
             new Panel('Company Resources',$this->companyResources()),
         ];
