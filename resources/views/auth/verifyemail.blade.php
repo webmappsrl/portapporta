@@ -7,8 +7,8 @@
     $zone = Zone::find($user->zone_id)->first();
     $company = strtoupper($zone->company->name);
 
-    $link_apple = '#';
-    $link_android = '#';
+    $link_apple = $zone->company->ios_store_link;
+    $link_android = $zone->company->android_store_link;
 
     if ($already_validated) {
         $verification_message = "La tua email è già stata convalidata";
@@ -49,21 +49,10 @@
             .button-wrapper {
                 tab-size: 4;
                 -webkit-text-size-adjust: 100%;
-                --swiper-theme-color: #007aff;
-                --swiper-navigation-size: 44px;
                 line-height: inherit;
-                font-family: "Inter";
                 box-sizing: border-box;
                 border-width: 0;
                 border-style: solid;
-                --tw-border-opacity: 1;
-                --tw-shadow: 0 0 #0000;
-                --tw-ring-inset: var(--tw-empty,/*!*/ /*!*/);
-                --tw-ring-offset-width: 0px;
-                --tw-ring-offset-color: #fff;
-                --tw-ring-color: rgba(59, 130, 246, 0.5);
-                --tw-ring-offset-shadow: 0 0 #0000;
-                --tw-ring-shadow: 0 0 #0000;
                 position: fixed;
                 bottom: 0px;
                 z-index: 1000;
@@ -73,29 +62,16 @@
                 height: 5rem;
                 width: 100%;
                 flex-direction: row;
-                --tw-bg-opacity: 1;
                 padding-left: 1rem;
                 padding-right: 1rem;
                 box-shadow: 0px -2px 12px rgba(0, 0, 0, 0.2);
             }
             .button-container {
                 tab-size: 4;
-                -webkit-text-size-adjust: 100%;
-                --swiper-theme-color: #007aff;
-                --swiper-navigation-size: 44px;
                 line-height: inherit;
-                font-family: "Inter";
-                --tw-bg-opacity: 1;
                 box-sizing: border-box;
                 border-width: 0;
                 border-style: solid;
-                --tw-border-opacity: 1;
-                --tw-shadow: 0 0 #0000;
-                --tw-ring-offset-width: 0px;
-                --tw-ring-offset-color: #fff;
-                --tw-ring-color: rgba(59, 130, 246, 0.5);
-                --tw-ring-offset-shadow: 0 0 #0000;
-                --tw-ring-shadow: 0 0 #0000;
                 display: flex;
                 width: 33.333333%;
                 align-items: center;
@@ -106,20 +82,10 @@
                 background-color: #007aff;
                 color: white;
                 -webkit-text-size-adjust: 100%;
-                --swiper-theme-color: #007aff;
-                --swiper-navigation-size: 44px;
                 line-height: inherit;
-                font-family: "Inter";
                 box-sizing: border-box;
                 border-width: 0;
                 border-style: solid;
-                --tw-border-opacity: 1;
-                --tw-shadow: 0 0 #0000;
-                --tw-ring-offset-width: 0px;
-                --tw-ring-offset-color: #fff;
-                --tw-ring-color: rgba(59, 130, 246, 0.5);
-                --tw-ring-offset-shadow: 0 0 #0000;
-                --tw-ring-shadow: 0 0 #0000;
                 text-decoration: inherit;
                 display: flex;
                 height: 3rem;
@@ -127,9 +93,7 @@
                 align-items: center;
                 justify-content: center;
                 border-radius: 9999px;
-                --tw-bg-opacity: 1;
                 font-weight: 600;
-                --tw-text-opacity: 1;
             }
         </style>
     </head>
