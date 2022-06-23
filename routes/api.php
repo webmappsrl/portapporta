@@ -6,7 +6,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UpdateUserController;
 use App\Http\Controllers\VerificationController;
-
+use Illuminate\Support\Facades\DB;
 use App\Http\Resources\CentriRaccoltaResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\RifiutarioResource;
@@ -54,7 +54,14 @@ Route::prefix('c')->name('company.')->group(function () {
 
 // AUTH
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    $user = $request->user();
+    if ($user->location != null) {
+        $geometry = $user->location;
+        $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
+        $user->location = [$g->coordinates[0], $g->coordinates[1]];
+    }
+
+    return $user;
 });
 
 Route::middleware('auth:sanctum')->post('/user', [UpdateUserController::class, 'update'])->name('update');
