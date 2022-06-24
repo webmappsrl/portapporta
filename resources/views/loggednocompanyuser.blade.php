@@ -92,7 +92,7 @@
     </head>
     <body class="antialiased">
         <div class="content">
-            <p>Caro, {{$user->name}} puoi accedere alla nostra APP PortAPPorta - {{$company}}.</p>
+            <p>Ciao {{$user->name}}, puoi accedere alla nostra APP PortAPPorta - {{$company}}.</p>
 
             <div class="button-wrapper">
                 <div class="button-container">
