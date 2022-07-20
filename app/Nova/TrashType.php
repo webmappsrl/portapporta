@@ -62,12 +62,10 @@ class TrashType extends Resource
                 Textarea::make('description'),
                 Text::make('where'),
                 Textarea::make('howto'),
-                // TODO: Remove Key for allowed
-                // KeyValue::make('allowed')
-                // ->rules('json'),
-                // TODO: Remove Key for notallowed
-                // KeyValue::make('notallowed')
-                //     ->rules('json'),
+                KeyValue::make('allowed')
+                    ->rules('json'),
+                KeyValue::make('notallowed')
+                    ->rules('json'),
             ]),
 
         ];
