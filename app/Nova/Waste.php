@@ -7,8 +7,11 @@ use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
+use Illuminate\Support\Facades\DB;
+use Laravel\Nova\Fields\BelongsTo;
 
 class Waste extends Resource
 {
@@ -44,12 +47,16 @@ class Waste extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [ 
+        $allTrashTypeId = array();
+
+
+        $selectedTrashTypeId = $this->model()->trash_type_id;
+        return [
             ID::make()->sortable(),
             Boolean::make('pap'),
             Boolean::make('delivery'),
             Boolean::make('collection_center'),
-
+            BelongsTo::make('trashType'),
             NovaTabTranslatable::make([
                 Text::make('name')->sortable(),
                 Textarea::make('where'),
