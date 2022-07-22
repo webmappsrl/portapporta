@@ -2,6 +2,10 @@
 
 namespace App\Nova;
 
+use App\Nova\Filters\WasteBooleanFilter;
+use App\Nova\Filters\WasteCollectionCenterFilter;
+use App\Nova\Filters\WasteDeliveryFilter;
+use App\Nova\Filters\WastePap;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
@@ -84,7 +88,11 @@ class Waste extends Resource
      */
     public function filters(NovaRequest $request)
     {
-        return [];
+        return [
+            new WastePap,
+            new WasteDeliveryFilter,
+            new WasteCollectionCenterFilter,
+        ];
     }
 
     /**
