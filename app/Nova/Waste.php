@@ -6,6 +6,7 @@ use App\Nova\Filters\WasteBooleanFilter;
 use App\Nova\Filters\WasteCollectionCenterFilter;
 use App\Nova\Filters\WasteDeliveryFilter;
 use App\Nova\Filters\WastePap;
+use App\Nova\Filters\WasteTrashTypeFilter;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
@@ -16,6 +17,8 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
+use Khalin\Nova4SearchableBelongsToFilter\NovaSearchableBelongsToFilter;
+
 
 class Waste extends Resource
 {
@@ -92,6 +95,7 @@ class Waste extends Resource
             new WastePap,
             new WasteDeliveryFilter,
             new WasteCollectionCenterFilter,
+            new WasteTrashTypeFilter,
         ];
     }
 
