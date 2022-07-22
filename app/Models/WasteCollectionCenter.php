@@ -31,6 +31,21 @@ class WasteCollectionCenter extends Model
         'geometry',
     ];
 
+        /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        if (auth()->check()) {
+            static::creating(function ($collection_center) {
+                $collection_center->company_id = auth()->user()->company->id;
+            });
+        }
+    }
+
+
     public function company(){
         return $this->belongsTo(Company::class);
     }
