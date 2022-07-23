@@ -12,7 +12,7 @@ git pull origin develop
 
 # Install composer dependencies
 composer install  --no-interaction --prefer-dist --optimize-autoloader
-php artisan nova:install
+# php artisan nova:install
 
 # Run database migrations
 php artisan migrate:fresh --force --seed
