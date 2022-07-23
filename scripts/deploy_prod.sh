@@ -22,7 +22,7 @@ git pull origin main
 
 # Install composer dependencies
 composer install  --no-interaction --prefer-dist --optimize-autoloader
-php artisan nova:install
+# php artisan nova:install
 
 # Clear caches
 php artisan config:clear
