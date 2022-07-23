@@ -53,6 +53,19 @@ class UpdateUserController extends Controller
         }
     }
 
+    public function delete(Request $request)
+    {
+        try {
+            $authUser = Auth::user();
+            $user = User::find($authUser->id);
+            $user->delete();
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+        $success['user'] =  $user;
+        return $this->sendResponse($success, 'user deleted successfully');
+    }
+
     private  function getLocation($user)
     {
         $g = json_decode(DB::select("SELECT st_asgeojson('$user->location') as g")[0]->g);
