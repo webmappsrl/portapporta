@@ -4,6 +4,7 @@ namespace App\Nova;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
@@ -62,7 +63,32 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
-        ];
+
+
+                Text::make('Company',function () {
+                    if(!is_null($this->zone_id)) {
+                        return $this->zone->company->name;
+                    }
+                    return 'ND';
+                })->onlyOnDetail(),
+
+                Text::make('Zone',function () {
+                    if(!is_null($this->zone_id)) {
+                        return $this->zone->label;
+                    }
+                    return 'ND';
+                })->onlyOnDetail(),
+                Text::make('User Type',function () {
+                    if(!is_null($this->user_type_id)) {
+                        return $this->userType->label;
+                    }
+                    return 'ND';
+                })->onlyOnDetail(),
+            //BelongsTo::make('Zone')->onlyOnDetail(),
+
+            //BelongsTo::make('User Type')->onlyOnDetail(),
+
+            ];
     }
 
     /**
