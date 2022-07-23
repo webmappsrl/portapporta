@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use App\Models\Company;
+use App\Nova\Filters\CalendarItemsCalendarFilter;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\BelongsToMany;
@@ -62,8 +63,12 @@ class CalendarItem extends Resource
         return [
             ID::make()->sortable(),
             BelongsTo::make('Calendar'),
-            Text::make('start_time'),
-            Text::make('stop_time'),
+            Text::make('Trash Types',function(){
+                if ($this->trashTypes->count() >0) {
+                    return implode(',',$this->trashTypes->pluck('name')->toArray());
+                }
+                return 'ND';
+            }),
             Select::make('day_of_week')->options([
                 0 => 'Sun',
                 1 => 'Mon',
@@ -77,6 +82,8 @@ class CalendarItem extends Resource
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ]),
+            Text::make('start_time'),
+            Text::make('stop_time'),
 
             BelongsToMany::make('TrashTypes'),
        ];
@@ -101,7 +108,9 @@ class CalendarItem extends Resource
      */
     public function filters(NovaRequest $request)
     {
-        return [];
+        return [
+            new CalendarItemsCalendarFilter,
+        ];
     }
 
     /**
