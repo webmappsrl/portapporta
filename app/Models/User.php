@@ -8,10 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Nova\Auth\Impersonatable;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, Impersonatable;
 
     /**
      * The attributes that are mass assignable.
@@ -59,5 +60,31 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     public function zone()
     {
         return $this->belongsTo(Zone::class);
+    }
+
+    /**
+     * Determine if the user can impersonate another user.
+     *
+     * @return bool
+     */
+    public function canImpersonate()
+    {
+        if(auth()->user()->id==1) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if the user can be impersonated.
+     *
+     * @return bool
+     */
+    public function canBeImpersonated()
+    {
+        if(Company::where('user_id',$this->id)->count()) {
+            return true;
+        }
+        return false;
     }
 }
