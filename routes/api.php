@@ -66,6 +66,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->post('/user', [UpdateUserController::class, 'update'])->name('update');
 
+Route::middleware('auth:sanctum')->get('/delete', [UpdateUserController::class, 'delete'])->name('delete');
+
 // AUTH AND SIGNED WITH COMPANY
 Route::prefix('c')->name('company.')->middleware('auth:sanctum', 'verified')->group(function () {
     Route::get('/{id}/config.json', function ($id) {
