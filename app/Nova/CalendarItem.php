@@ -70,10 +70,15 @@ class CalendarItem extends Resource
             BelongsTo::make('Calendar'),
             Text::make('Trash Types',function(){
                 if ($this->trashTypes->count() >0) {
-                    return implode(',',$this->trashTypes->pluck('name')->toArray());
+                    $out = "<ul>\n";
+                    foreach($this->trashTypes as $item) {
+                        $out .= "  <li>{$item->name}</li>\n";
+                    }
+                    $out.= "</ul>\n";
+                    return $out;
                 }
                 return 'ND';
-            }),
+            })->asHtml(),
             Select::make('day_of_week')->options([
                 0 => 'Sun',
                 1 => 'Mon',
