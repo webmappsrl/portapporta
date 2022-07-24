@@ -31,7 +31,8 @@ class Zone extends Resource
      */
     public static $search = [
         'id',
-        'label'
+        'label',
+        'comune'
     ];
 
     /**
