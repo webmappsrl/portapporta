@@ -12,6 +12,7 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Query\Search\SearchableRelation;
 use NovaAttachMany\AttachMany;
 
 
@@ -34,13 +35,14 @@ class CalendarItem extends Resource
     public static $title = 'id';
 
     /**
-     * The columns that should be searched.
+     * Get the searchable columns for the resource.
      *
-     * @var array
+     * @return array
      */
-    public static $search = [
-        'id',
-    ];
+    public static function searchableColumns()
+    {
+        return [new SearchableRelation('calendar', 'name'),new SearchableRelation('trashTypes', 'name')];
+    }
 
     /**
      * Build an "index" query for the given resource.
