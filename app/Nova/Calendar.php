@@ -9,6 +9,7 @@ use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Query\Search\SearchableRelation;
 
 class Calendar extends Resource
 {
@@ -27,13 +28,19 @@ class Calendar extends Resource
     public static $title = 'name';
 
     /**
-     * The columns that should be searched.
+     * Get the searchable columns for the resource.
      *
-     * @var array
+     * @return array
      */
-    public static $search = [
-        'id',
-    ];
+    public static function searchableColumns()
+    {
+        return [
+            'name',
+            new SearchableRelation('zone', 'label'),
+            new SearchableRelation('userType', 'label')
+        ];
+    }
+
     
     /**
      * Build an "index" query for the given resource.
