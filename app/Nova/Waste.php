@@ -18,7 +18,7 @@ use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
 use Khalin\Nova4SearchableBelongsToFilter\NovaSearchableBelongsToFilter;
-
+use Laravel\Nova\Query\Search\SearchableRelation;
 
 class Waste extends Resource
 {
@@ -37,15 +37,18 @@ class Waste extends Resource
     public static $title = 'name';
 
     /**
-     * The columns that should be searched.
+     * Get the searchable columns for the resource.
      *
-     * @var array
+     * @return array
      */
-    public static $search = [
-        'id',
-        'name'
-    ];
-
+    public static function searchableColumns()
+    {
+        return [
+            'id',
+            'name',
+            new SearchableRelation('trashType', 'name'),
+        ];
+    }
     /**
      * Get the fields displayed by the resource.
      *

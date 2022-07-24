@@ -53,39 +53,29 @@ class WasteCollectionCenter extends Resource
         // $geojson = '{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": '.$geom.'}]}';
         return [ 
                 ID::make()->sortable(),
-                Color::make('marker_color'),
-                Text::make('marker_size'),
-                Text::make('website'),
-                Text::make('picture_url'),
+                Color::make('marker_color')->hideFromIndex(),
+                Text::make('marker_size')->hideFromIndex(),
+                Text::make('website')->hideFromIndex(),
+
+                // Text::make('picture_url')->hideFromIndex(),
 
                 NovaTabTranslatable::make([
                     Text::make('name')->sortable(),
                     Textarea::make('description'),
                     Textarea::make('orario')
                 ]),
+
+                Text::make('Position',function () {
+                    if(!is_null($this->geometry)) {
+                        $geojson = DB::select(DB::raw("select st_asgeojson(geometry) as g from waste_collection_centers where id={$this->id} "))[0]->g;
+                        $coord = json_decode($geojson,true)['coordinates'];
+                        $lon = $coord[0];
+                        $lat = $coord[1];
+                        return "<a href='https://www.google.it/maps/@$lat,$lon,15z' target='_blank'>($lon,$lat)</a>";
+                    }
+                    return 'ND';
+                })->asHtml(),
             
-           
-                // LeafletMap::make('geometry')
-                // ->type('GeoJson')
-                // ->geoJson('{
-                //     "type": "FeatureCollection",
-                //     "features": [
-                //       {
-                //         "type": "Feature",
-                //         "properties": {},
-                //         "geometry": {
-                //           "type": "Point",
-                //           "coordinates": [
-                //             54.4921875,
-                //             49.15296965617042
-                //           ]
-                //         }
-                //       }
-                //     ]
-                //   }')
-                // // ->geoJson('{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": {"type":"Point","coordinates":[10.4187271,42.863860723]}}]}')
-                // ->center('10','42')
-                // ->zoom(12),
             ];
 
         
