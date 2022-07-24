@@ -30,7 +30,7 @@ class UserType extends Resource
      * @var array
      */
     public static $search = [
-        'id',
+        'slug','label'
     ];
 
     /**
