@@ -32,10 +32,6 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
 
             return $menu;
         });
-
-        Nova::userTimezone(function (Request $request) {
-            return $request->user()->timezone;
-        });
     }
 
     /**

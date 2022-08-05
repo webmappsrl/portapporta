@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TicketCreated;
+use App\Models\Company;
 use App\Models\Ticket;
 use App\Traits\GeojsonableTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
@@ -104,7 +107,17 @@ class TicketController extends Controller
             }
             
         }
-        $ticket->save();
+        $res = $ticket->save();
+
+        // Send a notification email to company for the newly created ticket
+        if ($res) {
+            $company = Company::find($request->id);
+            if ($company->ticket_email) {
+                foreach (explode(',',$company->ticket_email) as $recipient) {
+                    Mail::to($recipient)->send(new TicketCreated($ticket,$company));
+                }
+            }
+        }
 
         // Response
         return $this->sendResponse($ticket, 'Ticket created.');
