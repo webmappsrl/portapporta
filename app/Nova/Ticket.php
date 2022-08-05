@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
@@ -71,14 +72,15 @@ class Ticket extends Resource
             Text::make('User Email',function (){
                 return $this->user->email;
             })->onlyOnDetail(),
-            Date::make('created_at')->sortable(),
+            DateTime::make(__('Created At'), 'created_at')->sortable(),
             Text::make('phone'),
             Text::make('Location',function() {
                 if(!is_null($this->geometry)) {
                     $g = json_decode(DB::select("SELECT st_asgeojson('{$this->geometry}') as g")[0]->g);
-                    return "({$g->coordinates[0]},{$g->coordinates[1]})";
+                    return "<a href='http://www.google.com/maps/place/{$g->coordinates[0]},{$g->coordinates[1]}' target='_blank'>({$g->coordinates[0]},{$g->coordinates[1]})</a>";
                 }
-            })->onlyOnDetail(),
+            })->onlyOnDetail()->asHtml(),
+            Text::make('Location Address','location_address'),
             Textarea::make('note')->alwaysShow()->onlyOnDetail(),
             Text::make('image',function(){
                 return '<img src="'.$this->image.'" />';

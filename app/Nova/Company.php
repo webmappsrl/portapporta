@@ -53,6 +53,7 @@ class Company extends Resource
             BelongsTo::make('User')->nullable(),
             Text::make(__('Play Store link (android)'), 'android_store_link'),
             Text::make(__('App Store link (iOS)'), 'ios_store_link'),
+            Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
             new Panel('Company API',$this->apiPanel()),
             new Panel('Company Resources',$this->companyResources()),
         ];

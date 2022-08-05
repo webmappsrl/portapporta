@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TicketCreated;
+use App\Models\Company;
 use App\Models\Ticket;
+use App\Traits\GeojsonableTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
 {
+    use GeojsonableTrait;
+
     /**
      * Display a listing of the resource.
      *
@@ -84,7 +90,34 @@ class TicketController extends Controller
         if ($request->exists('location')) {
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
         }
-        $ticket->save();
+        if ($request->exists('location')) {
+            // Curl request to get the feature information from external source
+            $lat = $request->location[0];
+            $lon = $request->location[1];
+            $url = "https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json";
+            $response = $this->curlRequest($url);
+
+            if ($response) {
+                if (array_key_exists('display_name',$response)) {
+                    $ticket->location_address = $response['display_name'];
+                }
+                if (array_key_exists('error',$response)) {
+                    $ticket->location_address = $response['error'];
+                }
+            }
+            
+        }
+        $res = $ticket->save();
+
+        // Send a notification email to company for the newly created ticket
+        if ($res) {
+            $company = Company::find($request->id);
+            if ($company->ticket_email) {
+                foreach (explode(',',$company->ticket_email) as $recipient) {
+                    Mail::to($recipient)->send(new TicketCreated($ticket,$company));
+                }
+            }
+        }
 
         // Response
         return $this->sendResponse($ticket, 'Ticket created.');
