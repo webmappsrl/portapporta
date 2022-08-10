@@ -1,6 +1,8 @@
 @php
     $site_url = request()->getHost();
-    $g = json_decode(DB::select("SELECT st_asgeojson('{$ticket->geometry}') as g")[0]->g);
+    if ($ticket->geometry) {
+        $g = json_decode(DB::select("SELECT st_asgeojson('{$ticket->geometry}') as g")[0]->g);
+    }
     $trash_type = '';
     if ($ticket->trashType) {
         $trash_type = $ticket->trashType->name;
@@ -12,8 +14,10 @@
     Nome: {{ $ticket->user->name }}<br>
     Tipo segnalazione: {{ $ticket->ticket_type }}<br>
     Tipo spazzatura: {{ $trash_type }}<br>
+    @isset($g)
     Posizione (lat,lon): {{ $g->coordinates[0] }},{{ $g->coordinates[1] }}<br>
     Indirizzo: {{ $ticket->location_address }}<br>
+    @endisset
     Telefono: {{ $ticket->phone }}<br>
     Note: {{ $ticket->note }}<br>
     Link al Ticket: {{$site_url . '/resources/tickets/' . $ticket->id}}
