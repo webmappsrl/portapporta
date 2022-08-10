@@ -89,8 +89,7 @@ class TicketController extends Controller
         }
         if ($request->exists('location')) {
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
-        }
-        if ($request->exists('location')) {
+        
             // Curl request to get the feature information from external source
             $lat = $request->location[0];
             $lon = $request->location[1];
@@ -105,7 +104,6 @@ class TicketController extends Controller
                     $ticket->location_address = $response['error'];
                 }
             }
-            
         }
         $res = $ticket->save();
 
