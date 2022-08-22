@@ -13,6 +13,7 @@ use Eminiarts\Tabs\Tabs;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Imumz\LeafletMap\LeafletMap;
+use Wm\MapPoi\MapPoi;
 
 class WasteCollectionCenter extends Resource
 {
@@ -40,6 +41,16 @@ class WasteCollectionCenter extends Resource
         'name'
     ];
 
+    public function position()
+    {
+        $coords = [];
+        if (!is_null($this->geometry)) {
+            $geojson = DB::select(DB::raw("select st_asgeojson(geometry) as g from waste_collection_centers where id={$this->id} "))[0]->g;
+            $coords = json_decode($geojson, true)['coordinates'];
+            return $coords;
+        }
+    }
+
     /**
      * Get the fields displayed by the resource.
      *
@@ -51,34 +62,33 @@ class WasteCollectionCenter extends Resource
         // $geom = DB::select("SELECT ST_AsGeoJSON('".$this->geometry."') as g")[0]->g;
         // $geojson = "{'type': 'FeatureCollection','features':[{'type': 'Feature','geometry': '$geom'}]}";
         // $geojson = '{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": '.$geom.'}]}';
-        return [ 
-                ID::make()->sortable(),
-                Color::make('marker_color')->hideFromIndex(),
-                Text::make('marker_size')->hideFromIndex(),
-                Text::make('website')->hideFromIndex(),
+        return [
+            ID::make()->sortable(),
+            Color::make('marker_color')->hideFromIndex(),
+            Text::make('marker_size')->hideFromIndex(),
+            Text::make('website')->hideFromIndex(),
+            MapPoi::make('geometry')->withMeta([
+                'position' => $this->position(),
+            ]),
+            // Text::make('picture_url')->hideFromIndex(),
 
-                // Text::make('picture_url')->hideFromIndex(),
+            NovaTabTranslatable::make([
+                Text::make('name')->sortable(),
+                Textarea::make('description'),
+                Textarea::make('orario')
+            ]),
 
-                NovaTabTranslatable::make([
-                    Text::make('name')->sortable(),
-                    Textarea::make('description'),
-                    Textarea::make('orario')
-                ]),
+            Text::make('Position', function () {
+                if (!is_null($this->geometry)) {
+                    $coord = $this->position();
+                    $lon = $coord[0];
+                    $lat = $coord[1];
+                    return "<a href='https://www.google.it/maps/@$lat,$lon,15z' target='_blank'>($lon,$lat)</a>";
+                }
+                return 'ND';
+            })->asHtml(),
 
-                Text::make('Position',function () {
-                    if(!is_null($this->geometry)) {
-                        $geojson = DB::select(DB::raw("select st_asgeojson(geometry) as g from waste_collection_centers where id={$this->id} "))[0]->g;
-                        $coord = json_decode($geojson,true)['coordinates'];
-                        $lon = $coord[0];
-                        $lat = $coord[1];
-                        return "<a href='https://www.google.it/maps/@$lat,$lon,15z' target='_blank'>($lon,$lat)</a>";
-                    }
-                    return 'ND';
-                })->asHtml(),
-            
-            ];
-
-        
+        ];
     }
 
     /**
