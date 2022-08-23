@@ -2,7 +2,7 @@
 <template>
     <default-field :field="field">
     <template #field>
-      <wm-map  :field="field" :edit=true></wm-map>
+      <wm-map  :field="field" :position="position" :edit="true"></wm-map>
     </template>
     </default-field>
 </template>

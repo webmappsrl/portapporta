@@ -1,7 +1,7 @@
 <template>
   <PanelItem :index="index" :field="field">
     <template #value>
-      <wm-map :field="field" :edit=false></wm-map>
+      <wm-map :field="field" :edit="false"></wm-map>
     </template>
   </PanelItem>
 </template>

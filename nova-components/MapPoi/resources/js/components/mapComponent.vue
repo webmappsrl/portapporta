@@ -31,19 +31,25 @@ export default {
                     id: "mapbox/streets-v11",
                 }
             ).addTo(mapDiv);
-            const circle = L.circle(this.center, {
+            var circleOption = {
                 color: 'red',
                 fillColor: '#f03',
                 fillOpacity: 1,
-                radius: 50
-            }).addTo(mapDiv);
-            console.log(this.edit)
+                radius: 10
+            };
+            var circle = L.circle(this.center, circleOption).addTo(mapDiv);
+            console.log(this.edit);
             if (this.edit) {
-                mapDiv.on('click', this.onMapClick);
+                mapDiv.on('click', function(e){
+                    mapDiv.removeLayer(circle);
+                    circle = new L.circle(e.latlng, circleOption).addTo(mapDiv);
+                });
             }
         },
         onMapClick(e) {
-            alert("You clicked the map at " + e.latlng);
+            // alert("You clicked the map at " + e.latlng);
+            mapDiv.removeLayer(circle);
+            marker = new L.circle(e.latlng).addTo(mapDiv);
         }
     },
     mounted() {
