@@ -13,7 +13,7 @@ use Eminiarts\Tabs\Tabs;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Imumz\LeafletMap\LeafletMap;
-use Wm\MapPoi\MapPoi;
+use Wm\MapPoint\MapPoint;
 
 class WasteCollectionCenter extends Resource
 {
@@ -67,7 +67,7 @@ class WasteCollectionCenter extends Resource
             Color::make('marker_color')->hideFromIndex(),
             Text::make('marker_size')->hideFromIndex(),
             Text::make('website')->hideFromIndex(),
-            MapPoi::make('geometry')->withMeta([
+            MapPoint::make('geometry')->withMeta([
                 'center' => ["42", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
                 'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'

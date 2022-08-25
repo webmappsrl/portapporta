@@ -8,8 +8,8 @@
         "hot": "mix watch --hot",
         "prod": "npm run production",
         "production": "mix --production",
-        "build-map-poi": "cd nova-components/MapPoi && npm run dev",
-        "build-map-poi-prod": "cd nova-components/MapPoi && npm run prod"
+        "build-map-point": "cd nova-components/MapPoint && npm run dev",
+        "build-map-point-prod": "cd nova-components/MapPoint && npm run prod"
     },
     "devDependencies": {
         "@vue/compiler-sfc": "^3.2.37",
