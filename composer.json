@@ -18,7 +18,8 @@
         "laravel/nova": "~4.0",
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
-        "spatie/laravel-translatable": "^6.0"
+        "spatie/laravel-translatable": "^6.0",
+        "wm/map-point": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -71,6 +72,10 @@
         {
             "type": "composer",
             "url": "https://nova.laravel.com"
+        },
+        {
+            "type": "path",
+            "url": "./nova-components/MapPoint"
         }
     ]
 }

@@ -36,7 +36,7 @@ php artisan optimize
 
 # Compile npm assets
 # npm run prod
-
+cd vendor/laravel/nova && npm install
 # Exit maintenance mode
 php artisan up
 
