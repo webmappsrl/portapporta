@@ -47,8 +47,8 @@ class WasteCollectionCenter extends Resource
         if (!is_null($this->geometry)) {
             $geojson = DB::select(DB::raw("select st_asgeojson(geometry) as g from waste_collection_centers where id={$this->id} "))[0]->g;
             $coords = json_decode($geojson, true)['coordinates'];
-            return $coords;
         }
+        return $coords;
     }
 
     /**
@@ -68,7 +68,10 @@ class WasteCollectionCenter extends Resource
             Text::make('marker_size')->hideFromIndex(),
             Text::make('website')->hideFromIndex(),
             MapPoi::make('geometry')->withMeta([
-                'position' => $this->position(),
+                'center' => ["42", "10"],
+                'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
+                'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'
+
             ]),
             // Text::make('picture_url')->hideFromIndex(),
 
@@ -86,7 +89,7 @@ class WasteCollectionCenter extends Resource
                     return "<a href='https://www.google.it/maps/@$lat,$lon,15z' target='_blank'>($lon,$lat)</a>";
                 }
                 return 'ND';
-            })->asHtml(),
+            })->asHtml()->hideFromIndex(),
 
         ];
     }

@@ -12,10 +12,12 @@
         "build-map-poi-prod": "cd nova-components/MapPoi && npm run prod"
     },
     "devDependencies": {
+        "@vue/compiler-sfc": "^3.2.37",
         "axios": "^0.25",
         "laravel-mix": "^6.0.6",
         "lodash": "^4.17.19",
-        "postcss": "^8.1.14"
+        "postcss": "^8.1.14",
+        "vue-loader": "^16.8.3"
     },
     "dependencies": {
         "vuex": "^4.0.2"
