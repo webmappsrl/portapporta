@@ -1,9 +1,13 @@
 <template>
-  <PanelItem :index="index" :field="field" />
+  <PanelItem :index="index" :field="field">
+    <template #value>
+      <wm-map :field="field" :edit=false></wm-map>
+    </template>
+  </PanelItem>
 </template>
 
 <script>
 export default {
-  props: ['index', 'resource', 'resourceName', 'resourceId', 'field'],
+  props: ['index', 'field'],
 }
 </script>

@@ -1,15 +1,8 @@
 <template>
-  <span>{{ fieldValue }}</span>
+  <wm-map class="index-view" :field="field" :edit=false></wm-map>
 </template>
-
 <script>
 export default {
-  props: ['resourceName', 'field'],
-
-  computed: {
-    fieldValue() {
-      return this.field.displayedAs || this.field.value
-    },
-  }
+  props: ['field'],
 }
 </script>
