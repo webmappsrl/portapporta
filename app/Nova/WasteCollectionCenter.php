@@ -75,12 +75,6 @@ class WasteCollectionCenter extends Resource
             ]),
             // Text::make('picture_url')->hideFromIndex(),
 
-            NovaTabTranslatable::make([
-                Text::make('name')->sortable(),
-                Textarea::make('description'),
-                Textarea::make('orario')
-            ]),
-
             Text::make('Position', function () {
                 if (!is_null($this->geometry)) {
                     $coord = $this->position();
@@ -91,6 +85,11 @@ class WasteCollectionCenter extends Resource
                 return 'ND';
             })->asHtml()->hideFromIndex(),
 
+            NovaTabTranslatable::make([
+                Text::make('name')->sortable(),
+                Textarea::make('description'),
+                Textarea::make('orario')
+            ]),
         ];
     }
 

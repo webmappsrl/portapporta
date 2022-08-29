@@ -3,10 +3,12 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Wm\MapMultiPolygon\MapMultiPolygon;
 
 class Zone extends Resource
 {
@@ -35,6 +37,16 @@ class Zone extends Resource
         'comune'
     ];
 
+    public function zoneArea()
+    {
+        $coords = [];
+        if (!is_null($this->geometry)) {
+            return $geojson = DB::select(DB::raw("select st_asgeojson(geometry) as g from zones where id={$this->id} "))[0]->g;
+            $coords = json_decode($geojson, true)['coordinates'];
+        }
+        return $coords;
+    }
+
     /**
      * Get the fields displayed by the resource.
      *
@@ -48,6 +60,21 @@ class Zone extends Resource
             Text::make('label'),
             Text::make('comune'),
             Text::make('url'),
+            MapMultiPolygon::make('geometry')->withMeta([
+                'center' => ["42", "10"],
+                'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
+                'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'
+
+            ]),
+            
+            Text::make('Position', function () {
+                if (!is_null($this->geometry)) {
+                    $coord = $this->zoneArea();
+                    return $coord;
+                }
+                return 'ND';
+            })->asHtml()->hideFromIndex(),
+
             BelongsToMany::make('UserTypes'),
         ];
     }

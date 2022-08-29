@@ -12,6 +12,7 @@ import L from "leaflet";
 const DEFAULT_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const DEFAULT_ATTRIBUTION = '<a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>';
 const DEFAULT_CENTER = [0, 0];
+console.log('area');
 export default {
     name: "Map",
     mixins: [FormField, HandlesValidationErrors],

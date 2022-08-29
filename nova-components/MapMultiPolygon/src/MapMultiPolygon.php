@@ -14,7 +14,7 @@ class MapMultiPolygon extends Field
      * @var string
      */
     public $component = 'map-multi-polygon';
-    public $latlng = [];
+    public $zone = [];
 
     /**
      * Resolve the field's value.
@@ -26,8 +26,9 @@ class MapMultiPolygon extends Field
     public function resolve($resource, $attribute = null)
     {
         parent::resolve($resource, $attribute = null);
-        $this->latlng = $this->geometryToLatLon($this->value);
-        $this->withMeta(['latlng' => $this->latlng]);
+        $this->zone = $this->geometryToArea($this->value);
+        $this->withMeta(['area' => $this->zone['area']]);
+        $this->withMeta(['center' => $this->zone['center']]);
     }
     /**
      * Hydrate the given attribute on the model based on the incoming request.
@@ -38,33 +39,35 @@ class MapMultiPolygon extends Field
      * @param  string  $attribute
      * @return void
      */
-    protected function fillAttributeFromRequest(
-        NovaRequest $request,
-        $requestAttribute,
-        $model,
-        $attribute
-    ) {
-        if ($request->exists($requestAttribute)) {
-            $lonLat = explode(',', $request[$requestAttribute]);
-            $model->{$attribute} = $this->latLonToGeometry($lonLat);
-        }
-    }
+    // protected function fillAttributeFromRequest(
+    //     NovaRequest $request,
+    //     $requestAttribute,
+    //     $model,
+    //     $attribute
+    // ) {
+    //     if ($request->exists($requestAttribute)) {
+    //         $lonLat = explode(',', $request[$requestAttribute]);
+    //         $model->{$attribute} = $this->latLonToGeometry($lonLat);
+    //     }
+    // }
 
-    public function geometryToLatLon($geometry)
+    public function geometryToArea($geometry)
     {
         $coords = [];
         if (!is_null($geometry)) {
-            // g->coordinates == [lon,lat] we needs inverted order
             $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
-            $coords = [$g->coordinates[1], $g->coordinates[0]];
+            $c = json_decode(DB::select("SELECT st_asgeojson(ST_Centroid('$geometry')) as g")[0]->g);
+            $coords['area'] = $g->coordinates[0][0];
+            // g->coordinates == [lon,lat] we needs inverted order
+            $coords['center'] = [$c->coordinates[1], $c->coordinates[0]];
         }
         return $coords;
     }
 
-    public function latLonToGeometry($latlon)
-    {
-        $lat = $latlon[0];
-        $lon = $latlon[1];
-        return DB::select("SELECT ST_GeomFromText('POINT($lon $lat)') as g")[0]->g;
-    }
+    // public function latLonToGeometry($latlon)
+    // {
+    //     $lat = $latlon[0];
+    //     $lon = $latlon[1];
+    //     return DB::select("SELECT ST_GeomFromText('POINT($lon $lat)') as g")[0]->g;
+    // }
 }
