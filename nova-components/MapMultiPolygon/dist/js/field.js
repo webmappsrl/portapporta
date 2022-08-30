@@ -475,7 +475,15 @@ __webpack_require__.r(__webpack_exports__);
   props: ['field'],
   methods: {
     fill: function fill(formData) {
-      formData.append(this.field.attribute, JSON.stringify(this.geojson.features[0].geometry).replace('polygon', 'multyPolygon'));
+      var geometry = this.geojson.features[0].geometry;
+
+      if (geometry.type === 'Polygon') {
+        geometry.type = 'MultiPolygon';
+        geometry.coordinates = [geometry.coordinates];
+      }
+
+      console.log(geometry);
+      formData.append(this.field.attribute, JSON.stringify(geometry));
     },
     previewFiles: function previewFiles(event) {
       var _this = this;

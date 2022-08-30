@@ -21,7 +21,13 @@ export default {
   props: ['field'],
   methods: {
     fill(formData) {
-      formData.append(this.field.attribute, JSON.stringify(this.geojson.features[0].geometry))
+      const geometry = this.geojson.features[0].geometry;
+      if (geometry.type === 'Polygon') {
+        geometry.type = 'MultiPolygon'
+        geometry.coordinates = [geometry.coordinates]
+      }
+      console.log(geometry)
+      formData.append(this.field.attribute, JSON.stringify(geometry))
     },
     previewFiles(event) {
       var reader = new FileReader();
