@@ -26,8 +26,8 @@ class MapMultiPolygon extends Field
     public function resolve($resource, $attribute = null)
     {
         parent::resolve($resource, $attribute = null);
-        $this->zone = $this->geometryToArea($this->value);
-        $this->withMeta(['area' => $this->zone['area']]);
+        $this->zone = $this->geometryToGeojson($this->value);
+        $this->withMeta(['geojson' => $this->zone['geojson']]);
         $this->withMeta(['center' => $this->zone['center']]);
     }
     /**
@@ -50,17 +50,13 @@ class MapMultiPolygon extends Field
         }
     }
 
-    public function geometryToArea($geometry)
+    public function geometryToGeojson($geometry)
     {
         $coords = [];
         if (!is_null($geometry)) {
-            $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
+            $g = DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g;
             $c = json_decode(DB::select("SELECT st_asgeojson(ST_Centroid('$geometry')) as g")[0]->g);
-            $coords_latlon = $g->coordinates[0][0];
-            $coords_latlon = array_map(function ($coord) {
-                return [$coord[1], $coord[0]];
-            }, $coords_latlon);
-            $coords['area'] = $coords_latlon;
+            $coords['geojson'] = $g;
             // g->coordinates == [lon,lat] we needs inverted order
             $coords['center'] = [$c->coordinates[1], $c->coordinates[0]];
         }

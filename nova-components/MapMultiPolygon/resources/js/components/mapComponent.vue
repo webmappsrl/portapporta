@@ -32,7 +32,7 @@ export default {
         initMap() {
             setTimeout(() => {
                 const center = this.field.center ?? this.center ?? DEFAULT_CENTER;
-                const area = this.field.area;
+                const polygonGeojson = this.field.geojson;
                 mapDiv = L.map(this.mapRef).setView(center, 13);
                 const myZoom = {
                     start: mapDiv.getZoom(),
@@ -49,7 +49,9 @@ export default {
                     }
                 ).addTo(mapDiv);
 
-                polygon = L.polygon(area, polygonOption).addTo(mapDiv);
+                polygon = L.geoJson(JSON.parse(polygonGeojson), {
+                    style: polygonOption
+                }).addTo(mapDiv);
                 mapDiv.fitBounds(polygon.getBounds());
 
                 mapDiv.dragging.disable();
@@ -57,11 +59,10 @@ export default {
                 mapDiv.scrollWheelZoom.disable();
                 mapDiv.doubleClickZoom.disable();
             }, 300);
-
         }
     },
     watch: {
-        geojson: (gjson, oldVal) => { // watch it
+        geojson: (gjson, oldVal) => {
             mapDiv.removeLayer(polygon);
             if (gjson != null && gjson.features != null && gjson.features[0] != null && gjson.features[0].geometry != null && gjson.features[0].geometry.coordinates != null) {
                 polygon = L.geoJSON(gjson, polygonOption).addTo(mapDiv);

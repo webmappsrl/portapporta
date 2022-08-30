@@ -2,11 +2,13 @@
 <template>
   <default-field :field="field">
     <template #field>
-      <input :id="field.name" type="file" :class="errorClasses" :placeholder="field.name" @change="previewFiles"
-        accept=".geojson,.gpx,.kml" />
-      <p v-if="hasError" class="my-2 text-danger">
-        {{  firstError  }}
-      </p>
+      <div class="mt-1 md:mt-0 pb-5 md:w-3/5 w-full md:py-5">
+        <input :id="field.name" type="file" :class="errorClasses" :placeholder="field.name" @change="previewFiles"
+          accept=".geojson,.gpx,.kml" />
+        <p v-if="hasError" class="my-2 text-danger">
+          {{  firstError  }}
+        </p>
+      </div>
       <wm-map-multi-polygon :field="field" :attribution="attribution" :geojson="geojson">
       </wm-map-multi-polygon>
     </template>
@@ -21,12 +23,15 @@ export default {
   props: ['field'],
   methods: {
     fill(formData) {
-      const geometry = this.geojson.features[0].geometry;
+      try {
+        const geometry = this.geojson.features[0].geometry;
+      } catch (error) {
+        console.error(error);
+      }
       if (geometry.type === 'Polygon') {
         geometry.type = 'MultiPolygon'
         geometry.coordinates = [geometry.coordinates]
       }
-      console.log(geometry)
       formData.append(this.field.attribute, JSON.stringify(geometry))
     },
     previewFiles(event) {
