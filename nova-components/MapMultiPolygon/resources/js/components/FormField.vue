@@ -2,36 +2,49 @@
 <template>
   <default-field :field="field">
     <template #field>
-      <input :id="field.name" type="file"
-          :class="errorClasses"
-          :placeholder="field.name"
-          @change="previewFiles"
-      />
-      <wm-map-multi-polygon :field="field" :edit=true :attribution="attribution"></wm-map-multi-polygon>
+      <input :id="field.name" type="file" :class="errorClasses" :placeholder="field.name" @change="previewFiles"
+        accept=".geojson,.gpx,.kml" />
+      <p v-if="hasError" class="my-2 text-danger">
+        {{  firstError  }}
+      </p>
+      <wm-map-multi-polygon :field="field" :attribution="attribution" :geojson="geojson">
+      </wm-map-multi-polygon>
     </template>
   </default-field>
 </template>
 <script>
 import { FormField, HandlesValidationErrors } from 'laravel-nova';
+import * as t from '@mapbox/togeojson'
 
 export default {
   mixins: [FormField, HandlesValidationErrors],
   props: ['field'],
   methods: {
     fill(formData) {
-      // formData.append(this.field.attribute, this.);
+      formData.append(this.field.attribute, JSON.stringify(this.geojson.features[0].geometry))
     },
     previewFiles(event) {
-      console.log(event.target.files);
-      const reader = new FileReader();
-      reader.readAsDataURL(event.target.files[0])
-      reader.onload = async (event) => {
-        var parser = new DOMParser();
-		var doc = parser.parseFromString( event.target.result, "text/xml");
-    console.log(doc);
-      }
-      // this.updateForm(event.target.files);
+      var reader = new FileReader();
+      let fileName = event.target.files[0].name;
+      reader.onload = (event) => {
+        let res = event.target.result;
+        if (fileName.indexOf('gpx') > -1) {
+          const parser = new DOMParser().parseFromString(res, 'text/xml')
+          res = t.gpx(parser);
+        } else
+          if (fileName.indexOf('kml') > -1) {
+            const parser = new DOMParser().parseFromString(res, 'text/xml')
+            res = t.kml(parser);
+          } else {
+            res = JSON.parse(res);
+          }
+        this.geojson = res;
+      };
+      reader.readAsText(event.target.files[0]);
     }
+  },
+  data() {
+    return { geojson: null }
   }
 };
 </script>

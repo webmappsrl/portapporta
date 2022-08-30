@@ -81,10 +81,6 @@
         {
             "type": "path",
             "url": "./nova-components/MapMultiPolygon"
-        },
-        {
-            "type": "path",
-            "url": "./nova-components/MapMultiPolygon"
         }
     ]
 }

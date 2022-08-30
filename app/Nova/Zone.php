@@ -55,7 +55,7 @@ class Zone extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [ 
+        return [
             ID::make()->sortable(),
             Text::make('label'),
             Text::make('comune'),
@@ -63,9 +63,8 @@ class Zone extends Resource
             MapMultiPolygon::make('geometry')->withMeta([
                 'center' => ["42", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
-                'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'
             ]),
-            
+
             Text::make('Position', function () {
                 if (!is_null($this->geometry)) {
                     $coord = $this->zoneArea();

@@ -19,6 +19,7 @@
     "vue-loader": "^16.8.3"
   },
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.0",
     "leaflet": "^1.8.0"
   }
 }

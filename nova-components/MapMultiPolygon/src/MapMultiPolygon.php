@@ -46,8 +46,7 @@ class MapMultiPolygon extends Field
         $attribute
     ) {
         if ($request->exists($requestAttribute)) {
-            $lonLat = explode(',', $request[$requestAttribute]);
-            $model->{$attribute} = $this->latLonToGeometry($lonLat);
+            $model->{$attribute} = $this->geojsonToGeometry($request[$requestAttribute]);
         }
     }
 
@@ -58,9 +57,9 @@ class MapMultiPolygon extends Field
             $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
             $c = json_decode(DB::select("SELECT st_asgeojson(ST_Centroid('$geometry')) as g")[0]->g);
             $coords_latlon = $g->coordinates[0][0];
-            $coords_latlon = array_map(function($coord){
+            $coords_latlon = array_map(function ($coord) {
                 return [$coord[1], $coord[0]];
-            },$coords_latlon);
+            }, $coords_latlon);
             $coords['area'] = $coords_latlon;
             // g->coordinates == [lon,lat] we needs inverted order
             $coords['center'] = [$c->coordinates[1], $c->coordinates[0]];
@@ -68,10 +67,9 @@ class MapMultiPolygon extends Field
         return $coords;
     }
 
-    public function latLonToGeometry($latlon)
+    public function geojsonToGeometry($geojson)
     {
-        $lat = $latlon[0];
-        $lon = $latlon[1];
-        return DB::select("SELECT ST_GeomFromText('POINT($lon $lat)') as g")[0]->g;
+        $query = "SELECT ST_AsText(ST_GeomFromGeoJSON('$geojson')) As wkt";
+        return DB::select($query)[0]->wkt;
     }
 }

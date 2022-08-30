@@ -1,6 +1,442 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./node_modules/@mapbox/togeojson/togeojson.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@mapbox/togeojson/togeojson.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+/* provided dependency */ var process = __webpack_require__(/*! process/browser.js */ "./node_modules/process/browser.js");
+var toGeoJSON = (function() {
+    'use strict';
+
+    var removeSpace = /\s*/g,
+        trimSpace = /^\s*|\s*$/g,
+        splitSpace = /\s+/;
+    // generate a short, numeric hash of a string
+    function okhash(x) {
+        if (!x || !x.length) return 0;
+        for (var i = 0, h = 0; i < x.length; i++) {
+            h = ((h << 5) - h) + x.charCodeAt(i) | 0;
+        } return h;
+    }
+    // all Y children of X
+    function get(x, y) { return x.getElementsByTagName(y); }
+    function attr(x, y) { return x.getAttribute(y); }
+    function attrf(x, y) { return parseFloat(attr(x, y)); }
+    // one Y child of X, if any, otherwise null
+    function get1(x, y) { var n = get(x, y); return n.length ? n[0] : null; }
+    // https://developer.mozilla.org/en-US/docs/Web/API/Node.normalize
+    function norm(el) { if (el.normalize) { el.normalize(); } return el; }
+    // cast array x into numbers
+    function numarray(x) {
+        for (var j = 0, o = []; j < x.length; j++) { o[j] = parseFloat(x[j]); }
+        return o;
+    }
+    // get the content of a text node, if any
+    function nodeVal(x) {
+        if (x) { norm(x); }
+        return (x && x.textContent) || '';
+    }
+    // get the contents of multiple text nodes, if present
+    function getMulti(x, ys) {
+        var o = {}, n, k;
+        for (k = 0; k < ys.length; k++) {
+            n = get1(x, ys[k]);
+            if (n) o[ys[k]] = nodeVal(n);
+        }
+        return o;
+    }
+    // add properties of Y to X, overwriting if present in both
+    function extend(x, y) { for (var k in y) x[k] = y[k]; }
+    // get one coordinate from a coordinate array, if any
+    function coord1(v) { return numarray(v.replace(removeSpace, '').split(',')); }
+    // get all coordinates from a coordinate array as [[],[]]
+    function coord(v) {
+        var coords = v.replace(trimSpace, '').split(splitSpace),
+            o = [];
+        for (var i = 0; i < coords.length; i++) {
+            o.push(coord1(coords[i]));
+        }
+        return o;
+    }
+    function coordPair(x) {
+        var ll = [attrf(x, 'lon'), attrf(x, 'lat')],
+            ele = get1(x, 'ele'),
+            // handle namespaced attribute in browser
+            heartRate = get1(x, 'gpxtpx:hr') || get1(x, 'hr'),
+            time = get1(x, 'time'),
+            e;
+        if (ele) {
+            e = parseFloat(nodeVal(ele));
+            if (!isNaN(e)) {
+                ll.push(e);
+            }
+        }
+        return {
+            coordinates: ll,
+            time: time ? nodeVal(time) : null,
+            heartRate: heartRate ? parseFloat(nodeVal(heartRate)) : null
+        };
+    }
+
+    // create a new feature collection parent object
+    function fc() {
+        return {
+            type: 'FeatureCollection',
+            features: []
+        };
+    }
+
+    var serializer;
+    if (typeof XMLSerializer !== 'undefined') {
+        /* istanbul ignore next */
+        serializer = new XMLSerializer();
+    // only require xmldom in a node environment
+    } else if ( true && typeof process === 'object' && !process.browser) {
+        serializer = new ((__webpack_require__(/*! xmldom */ "?b2cc").XMLSerializer))();
+    }
+    function xml2str(str) {
+        // IE9 will create a new XMLSerializer but it'll crash immediately.
+        // This line is ignored because we don't run coverage tests in IE9
+        /* istanbul ignore next */
+        if (str.xml !== undefined) return str.xml;
+        return serializer.serializeToString(str);
+    }
+
+    var t = {
+        kml: function(doc) {
+
+            var gj = fc(),
+                // styleindex keeps track of hashed styles in order to match features
+                styleIndex = {}, styleByHash = {},
+                // stylemapindex keeps track of style maps to expose in properties
+                styleMapIndex = {},
+                // atomic geospatial types supported by KML - MultiGeometry is
+                // handled separately
+                geotypes = ['Polygon', 'LineString', 'Point', 'Track', 'gx:Track'],
+                // all root placemarks in the file
+                placemarks = get(doc, 'Placemark'),
+                styles = get(doc, 'Style'),
+                styleMaps = get(doc, 'StyleMap');
+
+            for (var k = 0; k < styles.length; k++) {
+                var hash = okhash(xml2str(styles[k])).toString(16);
+                styleIndex['#' + attr(styles[k], 'id')] = hash;
+                styleByHash[hash] = styles[k];
+            }
+            for (var l = 0; l < styleMaps.length; l++) {
+                styleIndex['#' + attr(styleMaps[l], 'id')] = okhash(xml2str(styleMaps[l])).toString(16);
+                var pairs = get(styleMaps[l], 'Pair');
+                var pairsMap = {};
+                for (var m = 0; m < pairs.length; m++) {
+                    pairsMap[nodeVal(get1(pairs[m], 'key'))] = nodeVal(get1(pairs[m], 'styleUrl'));
+                }
+                styleMapIndex['#' + attr(styleMaps[l], 'id')] = pairsMap;
+
+            }
+            for (var j = 0; j < placemarks.length; j++) {
+                gj.features = gj.features.concat(getPlacemark(placemarks[j]));
+            }
+            function kmlColor(v) {
+                var color, opacity;
+                v = v || '';
+                if (v.substr(0, 1) === '#') { v = v.substr(1); }
+                if (v.length === 6 || v.length === 3) { color = v; }
+                if (v.length === 8) {
+                    opacity = parseInt(v.substr(0, 2), 16) / 255;
+                    color = '#' + v.substr(6, 2) +
+                        v.substr(4, 2) +
+                        v.substr(2, 2);
+                }
+                return [color, isNaN(opacity) ? undefined : opacity];
+            }
+            function gxCoord(v) { return numarray(v.split(' ')); }
+            function gxCoords(root) {
+                var elems = get(root, 'coord', 'gx'), coords = [], times = [];
+                if (elems.length === 0) elems = get(root, 'gx:coord');
+                for (var i = 0; i < elems.length; i++) coords.push(gxCoord(nodeVal(elems[i])));
+                var timeElems = get(root, 'when');
+                for (var j = 0; j < timeElems.length; j++) times.push(nodeVal(timeElems[j]));
+                return {
+                    coords: coords,
+                    times: times
+                };
+            }
+            function getGeometry(root) {
+                var geomNode, geomNodes, i, j, k, geoms = [], coordTimes = [];
+                if (get1(root, 'MultiGeometry')) { return getGeometry(get1(root, 'MultiGeometry')); }
+                if (get1(root, 'MultiTrack')) { return getGeometry(get1(root, 'MultiTrack')); }
+                if (get1(root, 'gx:MultiTrack')) { return getGeometry(get1(root, 'gx:MultiTrack')); }
+                for (i = 0; i < geotypes.length; i++) {
+                    geomNodes = get(root, geotypes[i]);
+                    if (geomNodes) {
+                        for (j = 0; j < geomNodes.length; j++) {
+                            geomNode = geomNodes[j];
+                            if (geotypes[i] === 'Point') {
+                                geoms.push({
+                                    type: 'Point',
+                                    coordinates: coord1(nodeVal(get1(geomNode, 'coordinates')))
+                                });
+                            } else if (geotypes[i] === 'LineString') {
+                                geoms.push({
+                                    type: 'LineString',
+                                    coordinates: coord(nodeVal(get1(geomNode, 'coordinates')))
+                                });
+                            } else if (geotypes[i] === 'Polygon') {
+                                var rings = get(geomNode, 'LinearRing'),
+                                    coords = [];
+                                for (k = 0; k < rings.length; k++) {
+                                    coords.push(coord(nodeVal(get1(rings[k], 'coordinates'))));
+                                }
+                                geoms.push({
+                                    type: 'Polygon',
+                                    coordinates: coords
+                                });
+                            } else if (geotypes[i] === 'Track' ||
+                                geotypes[i] === 'gx:Track') {
+                                var track = gxCoords(geomNode);
+                                geoms.push({
+                                    type: 'LineString',
+                                    coordinates: track.coords
+                                });
+                                if (track.times.length) coordTimes.push(track.times);
+                            }
+                        }
+                    }
+                }
+                return {
+                    geoms: geoms,
+                    coordTimes: coordTimes
+                };
+            }
+            function getPlacemark(root) {
+                var geomsAndTimes = getGeometry(root), i, properties = {},
+                    name = nodeVal(get1(root, 'name')),
+                    address = nodeVal(get1(root, 'address')),
+                    styleUrl = nodeVal(get1(root, 'styleUrl')),
+                    description = nodeVal(get1(root, 'description')),
+                    timeSpan = get1(root, 'TimeSpan'),
+                    timeStamp = get1(root, 'TimeStamp'),
+                    extendedData = get1(root, 'ExtendedData'),
+                    lineStyle = get1(root, 'LineStyle'),
+                    polyStyle = get1(root, 'PolyStyle'),
+                    visibility = get1(root, 'visibility');
+
+                if (!geomsAndTimes.geoms.length) return [];
+                if (name) properties.name = name;
+                if (address) properties.address = address;
+                if (styleUrl) {
+                    if (styleUrl[0] !== '#') {
+                        styleUrl = '#' + styleUrl;
+                    }
+
+                    properties.styleUrl = styleUrl;
+                    if (styleIndex[styleUrl]) {
+                        properties.styleHash = styleIndex[styleUrl];
+                    }
+                    if (styleMapIndex[styleUrl]) {
+                        properties.styleMapHash = styleMapIndex[styleUrl];
+                        properties.styleHash = styleIndex[styleMapIndex[styleUrl].normal];
+                    }
+                    // Try to populate the lineStyle or polyStyle since we got the style hash
+                    var style = styleByHash[properties.styleHash];
+                    if (style) {
+                        if (!lineStyle) lineStyle = get1(style, 'LineStyle');
+                        if (!polyStyle) polyStyle = get1(style, 'PolyStyle');
+                    }
+                }
+                if (description) properties.description = description;
+                if (timeSpan) {
+                    var begin = nodeVal(get1(timeSpan, 'begin'));
+                    var end = nodeVal(get1(timeSpan, 'end'));
+                    properties.timespan = { begin: begin, end: end };
+                }
+                if (timeStamp) {
+                    properties.timestamp = nodeVal(get1(timeStamp, 'when'));
+                }
+                if (lineStyle) {
+                    var linestyles = kmlColor(nodeVal(get1(lineStyle, 'color'))),
+                        color = linestyles[0],
+                        opacity = linestyles[1],
+                        width = parseFloat(nodeVal(get1(lineStyle, 'width')));
+                    if (color) properties.stroke = color;
+                    if (!isNaN(opacity)) properties['stroke-opacity'] = opacity;
+                    if (!isNaN(width)) properties['stroke-width'] = width;
+                }
+                if (polyStyle) {
+                    var polystyles = kmlColor(nodeVal(get1(polyStyle, 'color'))),
+                        pcolor = polystyles[0],
+                        popacity = polystyles[1],
+                        fill = nodeVal(get1(polyStyle, 'fill')),
+                        outline = nodeVal(get1(polyStyle, 'outline'));
+                    if (pcolor) properties.fill = pcolor;
+                    if (!isNaN(popacity)) properties['fill-opacity'] = popacity;
+                    if (fill) properties['fill-opacity'] = fill === '1' ? properties['fill-opacity'] || 1 : 0;
+                    if (outline) properties['stroke-opacity'] = outline === '1' ? properties['stroke-opacity'] || 1 : 0;
+                }
+                if (extendedData) {
+                    var datas = get(extendedData, 'Data'),
+                        simpleDatas = get(extendedData, 'SimpleData');
+
+                    for (i = 0; i < datas.length; i++) {
+                        properties[datas[i].getAttribute('name')] = nodeVal(get1(datas[i], 'value'));
+                    }
+                    for (i = 0; i < simpleDatas.length; i++) {
+                        properties[simpleDatas[i].getAttribute('name')] = nodeVal(simpleDatas[i]);
+                    }
+                }
+                if (visibility) {
+                    properties.visibility = nodeVal(visibility);
+                }
+                if (geomsAndTimes.coordTimes.length) {
+                    properties.coordTimes = (geomsAndTimes.coordTimes.length === 1) ?
+                        geomsAndTimes.coordTimes[0] : geomsAndTimes.coordTimes;
+                }
+                var feature = {
+                    type: 'Feature',
+                    geometry: (geomsAndTimes.geoms.length === 1) ? geomsAndTimes.geoms[0] : {
+                        type: 'GeometryCollection',
+                        geometries: geomsAndTimes.geoms
+                    },
+                    properties: properties
+                };
+                if (attr(root, 'id')) feature.id = attr(root, 'id');
+                return [feature];
+            }
+            return gj;
+        },
+        gpx: function(doc) {
+            var i,
+                tracks = get(doc, 'trk'),
+                routes = get(doc, 'rte'),
+                waypoints = get(doc, 'wpt'),
+                // a feature collection
+                gj = fc(),
+                feature;
+            for (i = 0; i < tracks.length; i++) {
+                feature = getTrack(tracks[i]);
+                if (feature) gj.features.push(feature);
+            }
+            for (i = 0; i < routes.length; i++) {
+                feature = getRoute(routes[i]);
+                if (feature) gj.features.push(feature);
+            }
+            for (i = 0; i < waypoints.length; i++) {
+                gj.features.push(getPoint(waypoints[i]));
+            }
+            function getPoints(node, pointname) {
+                var pts = get(node, pointname),
+                    line = [],
+                    times = [],
+                    heartRates = [],
+                    l = pts.length;
+                if (l < 2) return {};  // Invalid line in GeoJSON
+                for (var i = 0; i < l; i++) {
+                    var c = coordPair(pts[i]);
+                    line.push(c.coordinates);
+                    if (c.time) times.push(c.time);
+                    if (c.heartRate) heartRates.push(c.heartRate);
+                }
+                return {
+                    line: line,
+                    times: times,
+                    heartRates: heartRates
+                };
+            }
+            function getTrack(node) {
+                var segments = get(node, 'trkseg'),
+                    track = [],
+                    times = [],
+                    heartRates = [],
+                    line;
+                for (var i = 0; i < segments.length; i++) {
+                    line = getPoints(segments[i], 'trkpt');
+                    if (line) {
+                        if (line.line) track.push(line.line);
+                        if (line.times && line.times.length) times.push(line.times);
+                        if (line.heartRates && line.heartRates.length) heartRates.push(line.heartRates);
+                    }
+                }
+                if (track.length === 0) return;
+                var properties = getProperties(node);
+                extend(properties, getLineStyle(get1(node, 'extensions')));
+                if (times.length) properties.coordTimes = track.length === 1 ? times[0] : times;
+                if (heartRates.length) properties.heartRates = track.length === 1 ? heartRates[0] : heartRates;
+                return {
+                    type: 'Feature',
+                    properties: properties,
+                    geometry: {
+                        type: track.length === 1 ? 'LineString' : 'MultiLineString',
+                        coordinates: track.length === 1 ? track[0] : track
+                    }
+                };
+            }
+            function getRoute(node) {
+                var line = getPoints(node, 'rtept');
+                if (!line.line) return;
+                var prop = getProperties(node);
+                extend(prop, getLineStyle(get1(node, 'extensions')));
+                var routeObj = {
+                    type: 'Feature',
+                    properties: prop,
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: line.line
+                    }
+                };
+                return routeObj;
+            }
+            function getPoint(node) {
+                var prop = getProperties(node);
+                extend(prop, getMulti(node, ['sym']));
+                return {
+                    type: 'Feature',
+                    properties: prop,
+                    geometry: {
+                        type: 'Point',
+                        coordinates: coordPair(node).coordinates
+                    }
+                };
+            }
+            function getLineStyle(extensions) {
+                var style = {};
+                if (extensions) {
+                    var lineStyle = get1(extensions, 'line');
+                    if (lineStyle) {
+                        var color = nodeVal(get1(lineStyle, 'color')),
+                            opacity = parseFloat(nodeVal(get1(lineStyle, 'opacity'))),
+                            width = parseFloat(nodeVal(get1(lineStyle, 'width')));
+                        if (color) style.stroke = color;
+                        if (!isNaN(opacity)) style['stroke-opacity'] = opacity;
+                        // GPX width is in mm, convert to px with 96 px per inch
+                        if (!isNaN(width)) style['stroke-width'] = width * 96 / 25.4;
+                    }
+                }
+                return style;
+            }
+            function getProperties(node) {
+                var prop = getMulti(node, ['name', 'cmt', 'desc', 'type', 'time', 'keywords']),
+                    links = get(node, 'link');
+                if (links.length) prop.links = [];
+                for (var i = 0, link; i < links.length; i++) {
+                    link = { href: attr(links[i], 'href') };
+                    extend(link, getMulti(links[i], ['text', 'type']));
+                    prop.links.push(link);
+                }
+                return prop;
+            }
+            return gj;
+        }
+    };
+    return t;
+})();
+
+if (true) module.exports = toGeoJSON;
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/DetailField.vue?vue&type=script&lang=js":
 /*!*****************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/DetailField.vue?vue&type=script&lang=js ***!
@@ -30,51 +466,47 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var laravel_nova__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! laravel-nova */ "../../vendor/laravel/nova/resources/js/mixins/packages.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return generator._invoke = function (innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; }(innerFn, self, context), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == _typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; this._invoke = function (method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); }; } function maybeInvokeDelegate(delegate, context) { var method = delegate.iterator[context.method]; if (undefined === method) { if (context.delegate = null, "throw" === context.method) { if (delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method)) return ContinueSentinel; context.method = "throw", context.arg = new TypeError("The iterator does not provide a 'throw' method"); } return ContinueSentinel; } var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, define(Gp, "constructor", GeneratorFunctionPrototype), define(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (object) { var keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+/* harmony import */ var _mapbox_togeojson__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @mapbox/togeojson */ "./node_modules/@mapbox/togeojson/togeojson.js");
+/* harmony import */ var _mapbox_togeojson__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_mapbox_togeojson__WEBPACK_IMPORTED_MODULE_1__);
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   mixins: [laravel_nova__WEBPACK_IMPORTED_MODULE_0__.FormField, laravel_nova__WEBPACK_IMPORTED_MODULE_0__.HandlesValidationErrors],
   props: ['field'],
   methods: {
-    fill: function fill(formData) {// formData.append(this.field.attribute, this.);
+    fill: function fill(formData) {
+      formData.append(this.field.attribute, JSON.stringify(this.geojson.features[0].geometry).replace('polygon', 'multyPolygon'));
     },
     previewFiles: function previewFiles(event) {
-      console.log(event.target.files);
+      var _this = this;
+
       var reader = new FileReader();
-      reader.readAsDataURL(event.target.files[0]);
+      var fileName = event.target.files[0].name;
 
-      reader.onload = /*#__PURE__*/function () {
-        var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(event) {
-          var parser, doc;
-          return _regeneratorRuntime().wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  parser = new DOMParser();
-                  doc = parser.parseFromString(event.target.result, "text/xml");
-                  console.log(doc);
+      reader.onload = function (event) {
+        var res = event.target.result;
 
-                case 3:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee);
-        }));
+        if (fileName.indexOf('gpx') > -1) {
+          var parser = new DOMParser().parseFromString(res, 'text/xml');
+          res = _mapbox_togeojson__WEBPACK_IMPORTED_MODULE_1__.gpx(parser);
+        } else if (fileName.indexOf('kml') > -1) {
+          var _parser = new DOMParser().parseFromString(res, 'text/xml');
 
-        return function (_x) {
-          return _ref.apply(this, arguments);
-        };
-      }(); // this.updateForm(event.target.files);
+          res = _mapbox_togeojson__WEBPACK_IMPORTED_MODULE_1__.kml(_parser);
+        } else {
+          res = JSON.parse(res);
+        }
 
+        _this.geojson = res;
+      };
+
+      reader.readAsText(event.target.files[0]);
     }
+  },
+  data: function data() {
+    return {
+      geojson: null
+    };
   }
 });
 
@@ -118,11 +550,16 @@ __webpack_require__.r(__webpack_exports__);
 var DEFAULT_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 var DEFAULT_ATTRIBUTION = '<a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>';
 var DEFAULT_CENTER = [0, 0];
-console.log('area');
+var polygonOption = {
+  fillColor: '#f03',
+  fillOpacity: 0.5
+};
+var mapDiv = null;
+var polygon = null;
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: "MapPolygon",
   mixins: [laravel_nova__WEBPACK_IMPORTED_MODULE_0__.FormField, laravel_nova__WEBPACK_IMPORTED_MODULE_0__.HandlesValidationErrors],
-  props: ['field', 'edit'],
+  props: ['field', 'geojson'],
   data: function data() {
     return {
       mapRef: "mapContainer-".concat(Math.floor(Math.random() * 10000 + 10)),
@@ -138,7 +575,7 @@ console.log('area');
 
         var center = (_ref = (_this$field$center = _this.field.center) !== null && _this$field$center !== void 0 ? _this$field$center : _this.center) !== null && _ref !== void 0 ? _ref : DEFAULT_CENTER;
         var area = _this.field.area;
-        var mapDiv = leaflet__WEBPACK_IMPORTED_MODULE_2___default().map(_this.mapRef).setView(center, 13);
+        mapDiv = leaflet__WEBPACK_IMPORTED_MODULE_2___default().map(_this.mapRef).setView(center, 13);
         var myZoom = {
           start: mapDiv.getZoom(),
           end: mapDiv.getZoom()
@@ -149,34 +586,24 @@ console.log('area');
           minZoom: 11,
           id: "mapbox/streets-v11"
         }).addTo(mapDiv);
-        var polygonOption = {
-          fillColor: '#f03',
-          fillOpacity: 0.5
-        };
-        var polygon = leaflet__WEBPACK_IMPORTED_MODULE_2___default().polygon(area, polygonOption).addTo(mapDiv);
+        polygon = leaflet__WEBPACK_IMPORTED_MODULE_2___default().polygon(area, polygonOption).addTo(mapDiv);
         mapDiv.fitBounds(polygon.getBounds());
-
-        if (_this.edit) {
-          mapDiv.on('zoomstart', function () {
-            myZoom.start = mapDiv.getZoom();
-          });
-          mapDiv.on('zoomend', function () {
-            myZoom.end = mapDiv.getZoom();
-            var diff = myZoom.start - myZoom.end;
-
-            if (diff > 0) {
-              polygon.setRadius(polygon.getRadius() * 2);
-            } else if (diff < 0) {
-              polygon.setRadius(polygon.getRadius() / 2);
-            }
-          });
-        } else {
-          mapDiv.dragging.disable();
-          mapDiv.zoomControl.remove();
-          mapDiv.scrollWheelZoom.disable();
-          mapDiv.doubleClickZoom.disable();
-        }
+        mapDiv.dragging.disable();
+        mapDiv.zoomControl.remove();
+        mapDiv.scrollWheelZoom.disable();
+        mapDiv.doubleClickZoom.disable();
       }, 300);
+    }
+  },
+  watch: {
+    geojson: function geojson(gjson, oldVal) {
+      // watch it
+      mapDiv.removeLayer(polygon);
+
+      if (gjson != null && gjson.features != null && gjson.features[0] != null && gjson.features[0].geometry != null && gjson.features[0].geometry.coordinates != null) {
+        polygon = leaflet__WEBPACK_IMPORTED_MODULE_2___default().geoJSON(gjson, polygonOption).addTo(mapDiv);
+        mapDiv.fitBounds(polygon.getBounds());
+      }
     }
   },
   mounted: function mounted() {
@@ -242,6 +669,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
 
 var _hoisted_1 = ["id", "placeholder"];
+var _hoisted_2 = {
+  key: 0,
+  "class": "my-2 text-danger"
+};
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_wm_map_multi_polygon = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("wm-map-multi-polygon");
 
@@ -258,16 +689,19 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         placeholder: $props.field.name,
         onChange: _cache[0] || (_cache[0] = function () {
           return $options.previewFiles && $options.previewFiles.apply($options, arguments);
-        })
+        }),
+        accept: ".geojson,.gpx,.kml"
       }, null, 42
       /* CLASS, PROPS, HYDRATE_EVENTS */
-      , _hoisted_1), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_wm_map_multi_polygon, {
+      , _hoisted_1), _ctx.hasError ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_2, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(_ctx.firstError), 1
+      /* TEXT */
+      )) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_wm_map_multi_polygon, {
         field: $props.field,
-        edit: true,
-        attribution: _ctx.attribution
+        attribution: _ctx.attribution,
+        geojson: $data.geojson
       }, null, 8
       /* PROPS */
-      , ["field", "attribution"])];
+      , ["field", "attribution", "geojson"])];
     }),
     _: 1
     /* STABLE */
@@ -15932,6 +16366,200 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/process/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
 /***/ "./node_modules/leaflet/dist/leaflet.css":
 /*!***********************************************!*\
   !*** ./node_modules/leaflet/dist/leaflet.css ***!
@@ -16276,13 +16904,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _DetailField_vue_vue_type_template_id_0224618e__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./DetailField.vue?vue&type=template&id=0224618e */ "./resources/js/components/DetailField.vue?vue&type=template&id=0224618e");
 /* harmony import */ var _DetailField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./DetailField.vue?vue&type=script&lang=js */ "./resources/js/components/DetailField.vue?vue&type=script&lang=js");
-/* harmony import */ var _Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
+/* harmony import */ var _Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
 
 
 
 
 ;
-const __exports__ = /*#__PURE__*/(0,_Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_DetailField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_DetailField_vue_vue_type_template_id_0224618e__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/DetailField.vue"]])
+const __exports__ = /*#__PURE__*/(0,_Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_DetailField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_DetailField_vue_vue_type_template_id_0224618e__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/DetailField.vue"]])
 /* hot reload */
 if (false) {}
 
@@ -16304,13 +16932,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _FormField_vue_vue_type_template_id_c023248a__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FormField.vue?vue&type=template&id=c023248a */ "./resources/js/components/FormField.vue?vue&type=template&id=c023248a");
 /* harmony import */ var _FormField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./FormField.vue?vue&type=script&lang=js */ "./resources/js/components/FormField.vue?vue&type=script&lang=js");
-/* harmony import */ var _Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
+/* harmony import */ var _Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
 
 
 
 
 ;
-const __exports__ = /*#__PURE__*/(0,_Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_FormField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_FormField_vue_vue_type_template_id_c023248a__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/FormField.vue"]])
+const __exports__ = /*#__PURE__*/(0,_Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_FormField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_FormField_vue_vue_type_template_id_c023248a__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/FormField.vue"]])
 /* hot reload */
 if (false) {}
 
@@ -16332,13 +16960,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _IndexField_vue_vue_type_template_id_9e63f81a__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./IndexField.vue?vue&type=template&id=9e63f81a */ "./resources/js/components/IndexField.vue?vue&type=template&id=9e63f81a");
 /* harmony import */ var _IndexField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./IndexField.vue?vue&type=script&lang=js */ "./resources/js/components/IndexField.vue?vue&type=script&lang=js");
-/* harmony import */ var _Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
+/* harmony import */ var _Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
 
 
 
 
 ;
-const __exports__ = /*#__PURE__*/(0,_Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_IndexField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_IndexField_vue_vue_type_template_id_9e63f81a__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/IndexField.vue"]])
+const __exports__ = /*#__PURE__*/(0,_Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_IndexField_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_IndexField_vue_vue_type_template_id_9e63f81a__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/IndexField.vue"]])
 /* hot reload */
 if (false) {}
 
@@ -16360,13 +16988,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _MapComponent_vue_vue_type_template_id_2f302b28__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./MapComponent.vue?vue&type=template&id=2f302b28 */ "./resources/js/components/MapComponent.vue?vue&type=template&id=2f302b28");
 /* harmony import */ var _MapComponent_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MapComponent.vue?vue&type=script&lang=js */ "./resources/js/components/MapComponent.vue?vue&type=script&lang=js");
-/* harmony import */ var _Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
+/* harmony import */ var _Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
 
 
 
 
 ;
-const __exports__ = /*#__PURE__*/(0,_Users_Pedram_code_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_MapComponent_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_MapComponent_vue_vue_type_template_id_2f302b28__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/MapComponent.vue"]])
+const __exports__ = /*#__PURE__*/(0,_Users_bongiu_Documents_laravel_portapporta_nova_components_MapMultiPolygon_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_2__["default"])(_MapComponent_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_MapComponent_vue_vue_type_template_id_2f302b28__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"resources/js/components/MapComponent.vue"]])
 /* hot reload */
 if (false) {}
 
@@ -29552,6 +30180,16 @@ module.exports = Vue;
 
 /***/ }),
 
+/***/ "?b2cc":
+/*!************************!*\
+  !*** xmldom (ignored) ***!
+  \************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
 /***/ "?649e":
 /*!********************************!*\
   !*** ./util.inspect (ignored) ***!
@@ -29569,7 +30207,7 @@ module.exports = Vue;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"Promise based HTTP client for the browser and node.js","main":"index.js","scripts":{"test":"grunt test","start":"node ./sandbox/server.js","build":"NODE_ENV=production grunt build","preversion":"npm test","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json","postversion":"git push && git push --tags","examples":"node ./examples/server.js","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","fix":"eslint --fix lib/**/*.js"},"repository":{"type":"git","url":"https://github.com/axios/axios.git"},"keywords":["xhr","http","ajax","promise","node"],"author":"Matt Zabriskie","license":"MIT","bugs":{"url":"https://github.com/axios/axios/issues"},"homepage":"https://axios-http.com","devDependencies":{"coveralls":"^3.0.0","es6-promise":"^4.2.4","grunt":"^1.3.0","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.1.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^23.0.0","grunt-karma":"^4.0.0","grunt-mocha-test":"^0.13.3","grunt-ts":"^6.0.0-beta.19","grunt-webpack":"^4.0.2","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^6.3.2","karma-chrome-launcher":"^3.1.0","karma-firefox-launcher":"^2.1.0","karma-jasmine":"^1.1.1","karma-jasmine-ajax":"^0.1.13","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^4.3.6","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.8","karma-webpack":"^4.0.2","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","mocha":"^8.2.1","sinon":"^4.5.0","terser-webpack-plugin":"^4.2.3","typescript":"^4.0.5","url-search-params":"^0.10.0","webpack":"^4.44.2","webpack-dev-server":"^3.11.0"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"jsdelivr":"dist/axios.min.js","unpkg":"dist/axios.min.js","typings":"./index.d.ts","dependencies":{"follow-redirects":"^1.14.0"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}]}');
+module.exports = JSON.parse('{"_args":[["axios@0.21.4","/Users/bongiu/Documents/laravel/portapporta/vendor/laravel/nova"]],"_from":"axios@0.21.4","_id":"axios@0.21.4","_inBundle":false,"_integrity":"sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==","_location":"/axios","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"axios@0.21.4","name":"axios","escapedName":"axios","rawSpec":"0.21.4","saveSpec":null,"fetchSpec":"0.21.4"},"_requiredBy":["#DEV:/","/@inertiajs/inertia","/form-backend-validation","/laravel-vapor","/localtunnel"],"_resolved":"https://registry.npmjs.org/axios/-/axios-0.21.4.tgz","_spec":"0.21.4","_where":"/Users/bongiu/Documents/laravel/portapporta/vendor/laravel/nova","author":{"name":"Matt Zabriskie"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"bugs":{"url":"https://github.com/axios/axios/issues"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}],"dependencies":{"follow-redirects":"^1.14.0"},"description":"Promise based HTTP client for the browser and node.js","devDependencies":{"coveralls":"^3.0.0","es6-promise":"^4.2.4","grunt":"^1.3.0","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.1.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^23.0.0","grunt-karma":"^4.0.0","grunt-mocha-test":"^0.13.3","grunt-ts":"^6.0.0-beta.19","grunt-webpack":"^4.0.2","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^6.3.2","karma-chrome-launcher":"^3.1.0","karma-firefox-launcher":"^2.1.0","karma-jasmine":"^1.1.1","karma-jasmine-ajax":"^0.1.13","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^4.3.6","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.8","karma-webpack":"^4.0.2","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","mocha":"^8.2.1","sinon":"^4.5.0","terser-webpack-plugin":"^4.2.3","typescript":"^4.0.5","url-search-params":"^0.10.0","webpack":"^4.44.2","webpack-dev-server":"^3.11.0"},"homepage":"https://axios-http.com","jsdelivr":"dist/axios.min.js","keywords":["xhr","http","ajax","promise","node"],"license":"MIT","main":"index.js","name":"axios","repository":{"type":"git","url":"git+https://github.com/axios/axios.git"},"scripts":{"build":"NODE_ENV=production grunt build","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","examples":"node ./examples/server.js","fix":"eslint --fix lib/**/*.js","postversion":"git push && git push --tags","preversion":"npm test","start":"node ./sandbox/server.js","test":"grunt test","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json"},"typings":"./index.d.ts","unpkg":"dist/axios.min.js","version":"0.21.4"}');
 
 /***/ })
 

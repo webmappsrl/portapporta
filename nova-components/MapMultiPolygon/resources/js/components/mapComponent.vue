@@ -12,23 +12,28 @@ import L from "leaflet";
 const DEFAULT_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const DEFAULT_ATTRIBUTION = '<a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>';
 const DEFAULT_CENTER = [0, 0];
-console.log('area');
+const polygonOption = {
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+};
+let mapDiv = null;
+let polygon = null;
 export default {
     name: "MapPolygon",
     mixins: [FormField, HandlesValidationErrors],
-    props: ['field', 'edit'],
-    data() { 
-        return { 
-            mapRef: `mapContainer-${Math.floor(Math.random() * 10000 + 10)}` ,
-            uploadFileContainer : 'uploadFileContainer'
-        } 
+    props: ['field', 'geojson'],
+    data() {
+        return {
+            mapRef: `mapContainer-${Math.floor(Math.random() * 10000 + 10)}`,
+            uploadFileContainer: 'uploadFileContainer',
+        }
     },
     methods: {
         initMap() {
             setTimeout(() => {
                 const center = this.field.center ?? this.center ?? DEFAULT_CENTER;
                 const area = this.field.area;
-                const mapDiv = L.map(this.mapRef).setView(center, 13);
+                mapDiv = L.map(this.mapRef).setView(center, 13);
                 const myZoom = {
                     start: mapDiv.getZoom(),
                     end: mapDiv.getZoom()
@@ -43,33 +48,25 @@ export default {
                         id: "mapbox/streets-v11",
                     }
                 ).addTo(mapDiv);
-                var polygonOption = {
-                    fillColor: '#f03',
-                    fillOpacity: 0.5,
-                };
-                var polygon = L.polygon(area,polygonOption).addTo(mapDiv);
+
+                polygon = L.polygon(area, polygonOption).addTo(mapDiv);
                 mapDiv.fitBounds(polygon.getBounds());
-                if (this.edit) {
-                    mapDiv.on('zoomstart', function () {
-                        myZoom.start = mapDiv.getZoom();
-                    });
-                    mapDiv.on('zoomend', function () {
-                        myZoom.end = mapDiv.getZoom();
-                        var diff = myZoom.start - myZoom.end;
-                        if (diff > 0) {
-                            polygon.setRadius(polygon.getRadius() * 2);
-                        } else if (diff < 0) {
-                            polygon.setRadius(polygon.getRadius() / 2);
-                        }
-                    });
-                } else {
-                    mapDiv.dragging.disable();
-                    mapDiv.zoomControl.remove()
-                    mapDiv.scrollWheelZoom.disable();
-                    mapDiv.doubleClickZoom.disable();
-                }
+
+                mapDiv.dragging.disable();
+                mapDiv.zoomControl.remove()
+                mapDiv.scrollWheelZoom.disable();
+                mapDiv.doubleClickZoom.disable();
             }, 300);
 
+        }
+    },
+    watch: {
+        geojson: (gjson, oldVal) => { // watch it
+            mapDiv.removeLayer(polygon);
+            if (gjson != null && gjson.features != null && gjson.features[0] != null && gjson.features[0].geometry != null && gjson.features[0].geometry.coordinates != null) {
+                polygon = L.geoJSON(gjson, polygonOption).addTo(mapDiv);
+                mapDiv.fitBounds(polygon.getBounds());
+            }
         }
     },
     mounted() {
