@@ -1,5 +1,5 @@
 <template>
-  <wm-map class="index-view" :field="field" :edit=false></wm-map>
+  <wm-map-multi-polygon class="index-view" :field="field" :edit=false></wm-map-multi-polygon>
 </template>
 <script>
 export default {

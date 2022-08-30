@@ -1,1 +1,9 @@
-.wm-map{height:400px;width:600px}.index-view .wm-map{height:100px;width:300px}
+/* Nova Field CSS */
+.wm-map {
+width:600px;
+height: 400px;
+}
+.index-view .wm-map  {
+    height: 100px;
+    width: 300px;
+}

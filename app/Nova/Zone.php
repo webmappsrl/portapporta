@@ -64,7 +64,6 @@ class Zone extends Resource
                 'center' => ["42", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
                 'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'
-
             ]),
             
             Text::make('Position', function () {
