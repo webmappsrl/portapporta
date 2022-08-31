@@ -10,6 +10,7 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Wm\MapPoint\MapPoint;
 
 class User extends Resource
 {
@@ -64,31 +65,34 @@ class User extends Resource
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
 
+            Text::make('Company', function () {
+                if (!is_null($this->zone_id)) {
+                    return $this->zone->company->name;
+                }
+                return 'ND';
+            })->onlyOnDetail(),
+            MapPoint::make('location')->withMeta([
+                'center' => ["42", "10"],
 
-                Text::make('Company',function () {
-                    if(!is_null($this->zone_id)) {
-                        return $this->zone->company->name;
-                    }
-                    return 'ND';
-                })->onlyOnDetail(),
+            ]),
+            Text::make('Zone', function () {
+                if (!is_null($this->zone_id)) {
+                    return $this->zone->label;
+                }
+                return 'ND';
+            })->onlyOnDetail(),
 
-                Text::make('Zone',function () {
-                    if(!is_null($this->zone_id)) {
-                        return $this->zone->label;
-                    }
-                    return 'ND';
-                })->onlyOnDetail(),
-                Text::make('User Type',function () {
-                    if(!is_null($this->user_type_id)) {
-                        return $this->userType->label;
-                    }
-                    return 'ND';
-                })->onlyOnDetail(),
+            Text::make('User Type', function () {
+                if (!is_null($this->user_type_id)) {
+                    return $this->userType->label;
+                }
+                return 'ND';
+            })->onlyOnDetail(),
             //BelongsTo::make('Zone')->onlyOnDetail(),
 
             //BelongsTo::make('User Type')->onlyOnDetail(),
 
-            ];
+        ];
     }
 
     /**
@@ -135,7 +139,7 @@ class User extends Resource
         return [];
     }
 
-        /**
+    /**
      * Hides the resource from menu it its not admin@webmapp.it.
      *
      * @param  \Illuminate\Http\Request  $request
