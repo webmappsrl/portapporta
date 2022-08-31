@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
-class exportEmailUsersFromApiEsa extends Command
+class fixUserLocation extends Command
 {
     /**
      * The name and signature of the console command.
