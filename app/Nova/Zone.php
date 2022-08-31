@@ -3,10 +3,12 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Wm\MapMultiPolygon\MapMultiPolygon;
 
 class Zone extends Resource
 {
@@ -43,11 +45,15 @@ class Zone extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [ 
+        return [
             ID::make()->sortable(),
             Text::make('label'),
             Text::make('comune'),
             Text::make('url'),
+            MapMultiPolygon::make('geometry')->withMeta([
+                'center' => ['42.795977075', '10.326813853'],
+                'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
+            ]),
             BelongsToMany::make('UserTypes'),
         ];
     }

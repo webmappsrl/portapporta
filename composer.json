@@ -19,7 +19,8 @@
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
         "spatie/laravel-translatable": "^6.0",
-        "wm/map-point": "*"
+        "wm/map-point": "*",
+        "wm/map-multi-polygon": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -76,6 +77,10 @@
         {
             "type": "path",
             "url": "./nova-components/MapPoint"
+        },
+        {
+            "type": "path",
+            "url": "./nova-components/MapMultiPolygon"
         }
     ]
 }
