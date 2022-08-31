@@ -58,7 +58,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     if ($user->location != null) {
         $geometry = $user->location;
         $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
-        $user->location = [$g->coordinates[0], $g->coordinates[1]];
+        $user->location = [$g->coordinates[1], $g->coordinates[0]];
     }
 
     return $user;

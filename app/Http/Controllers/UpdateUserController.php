@@ -38,7 +38,7 @@ class UpdateUserController extends Controller
             if ($request->has('zone_id') && $request->has('user_type_id') && $request->has('location') && $numberOfFields === 3) {
                 $user->zone_id = $request->zone_id;
                 $user->user_type_id = $request->user_type_id;
-                $user->location = DB::select("SELECT ST_GeomFromText('POINT(" . $request->location[0] . " " . $request->location[1] . " )') as g")[0]->g;
+                $user->location = DB::select("SELECT ST_GeomFromText('POINT(" . $request->location[1] . " " . $request->location[0] . " )') as g")[0]->g;
                 $user->save();
                 $success['user'] =  $user;
                 $success['user']['location'] = $this->getLocation($user);
@@ -70,6 +70,6 @@ class UpdateUserController extends Controller
     {
         $g = json_decode(DB::select("SELECT st_asgeojson('$user->location') as g")[0]->g);
 
-        return [$g->coordinates[0], $g->coordinates[1]];
+        return [$g->coordinates[1], $g->coordinates[0]];
     }
 }
