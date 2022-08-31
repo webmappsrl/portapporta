@@ -9,7 +9,9 @@
         "prod": "npm run production",
         "production": "mix --production",
         "build-map-point": "cd nova-components/MapPoint && npm run dev",
-        "build-map-point-prod": "cd nova-components/MapPoint && npm run prod"
+        "build-map-point-prod": "cd nova-components/MapPoint && npm run prod",
+        "build-map-multi-polygon": "cd nova-components/MapMultiPolygon && npm run dev",
+        "build-map-multi-polygon-prod": "cd nova-components/MapMultiPolygon && npm run prod"
     },
     "devDependencies": {
         "@vue/compiler-sfc": "^3.2.37",
