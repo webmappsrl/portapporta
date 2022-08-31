@@ -23,20 +23,23 @@ export default {
   props: ['field'],
   methods: {
     fill(formData) {
+      let geometry = null;
       try {
-        const geometry = this.geojson.features[0].geometry;
+        geometry = this.geojson.features[0].geometry;
       } catch (error) {
         console.error(error);
       }
-      if (geometry.type === 'Polygon') {
-        geometry.type = 'MultiPolygon'
-        geometry.coordinates = [geometry.coordinates]
+      if (geometry != null) {
+        if (geometry.type === 'Polygon') {
+          geometry.type = 'MultiPolygon'
+          geometry.coordinates = [geometry.coordinates]
+        }
+        formData.append(this.field.attribute, JSON.stringify(geometry))
       }
-      formData.append(this.field.attribute, JSON.stringify(geometry))
     },
     previewFiles(event) {
-      var reader = new FileReader();
-      let fileName = event.target.files[0].name;
+      const reader = new FileReader();
+      let fileName = event.target.files[0].name || '';
       reader.onload = (event) => {
         let res = event.target.result;
         if (fileName.indexOf('gpx') > -1) {

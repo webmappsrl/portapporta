@@ -51,7 +51,7 @@ class Zone extends Resource
             Text::make('comune'),
             Text::make('url'),
             MapMultiPolygon::make('geometry')->withMeta([
-                'center' => ["42", "10"],
+                'center' => ['42.795977075', '10.326813853'],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
             ]),
             BelongsToMany::make('UserTypes'),

@@ -27,8 +27,10 @@ class MapMultiPolygon extends Field
     {
         parent::resolve($resource, $attribute = null);
         $this->zone = $this->geometryToGeojson($this->value);
-        $this->withMeta(['geojson' => $this->zone['geojson']]);
-        $this->withMeta(['center' => $this->zone['center']]);
+        if (!is_null($this->zone)) {
+            $this->withMeta(['geojson' => $this->zone['geojson']]);
+            $this->withMeta(['center' => $this->zone['center']]);
+        }
     }
     /**
      * Hydrate the given attribute on the model based on the incoming request.
@@ -52,12 +54,11 @@ class MapMultiPolygon extends Field
 
     public function geometryToGeojson($geometry)
     {
-        $coords = [];
+        $coords = null;
         if (!is_null($geometry)) {
             $g = DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g;
             $c = json_decode(DB::select("SELECT st_asgeojson(ST_Centroid('$geometry')) as g")[0]->g);
             $coords['geojson'] = $g;
-            // g->coordinates == [lon,lat] we needs inverted order
             $coords['center'] = [$c->coordinates[1], $c->coordinates[0]];
         }
         return $coords;

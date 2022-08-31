@@ -34,10 +34,6 @@ export default {
                 const center = this.field.center ?? this.center ?? DEFAULT_CENTER;
                 const polygonGeojson = this.field.geojson;
                 mapDiv = L.map(this.mapRef).setView(center, 13);
-                const myZoom = {
-                    start: mapDiv.getZoom(),
-                    end: mapDiv.getZoom()
-                };
 
                 L.tileLayer(
                     this.field.tiles ?? DEFAULT_TILES,
@@ -49,10 +45,12 @@ export default {
                     }
                 ).addTo(mapDiv);
 
-                polygon = L.geoJson(JSON.parse(polygonGeojson), {
-                    style: polygonOption
-                }).addTo(mapDiv);
-                mapDiv.fitBounds(polygon.getBounds());
+                if (polygonGeojson != null) {
+                    polygon = L.geoJson(JSON.parse(polygonGeojson), {
+                        style: polygonOption
+                    }).addTo(mapDiv);
+                    mapDiv.fitBounds(polygon.getBounds());
+                }
 
                 mapDiv.dragging.disable();
                 mapDiv.zoomControl.remove()
@@ -62,9 +60,11 @@ export default {
         }
     },
     watch: {
-        geojson: (gjson, oldVal) => {
-            mapDiv.removeLayer(polygon);
-            if (gjson != null && gjson.features != null && gjson.features[0] != null && gjson.features[0].geometry != null && gjson.features[0].geometry.coordinates != null) {
+        geojson: (gjson) => {
+            if (polygon != null) {
+                mapDiv.removeLayer(polygon);
+            }
+            if (gjson != null) {
                 polygon = L.geoJSON(gjson, polygonOption).addTo(mapDiv);
                 mapDiv.fitBounds(polygon.getBounds());
             }

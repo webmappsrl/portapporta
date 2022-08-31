@@ -1,7 +1,7 @@
 <template>
   <PanelItem :index="index" :field="field">
     <template #value>
-      <wm-map-multi-polygon :field="field" :edit=false></wm-map-multi-polygon>
+      <wm-map-multi-polygon :field="field"></wm-map-multi-polygon>
     </template>
   </PanelItem>
 </template>
