@@ -45,7 +45,7 @@ class TicketController extends Controller
             $geometry = $item['geometry'];
             $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
             unset($item['geometry']);
-            $item['location'] = [$g->coordinates[0], $g->coordinates[1]];
+            $item['location'] = [$g->coordinates[1], $g->coordinates[0]];
         }
         return $item;
     }
@@ -88,8 +88,8 @@ class TicketController extends Controller
             $ticket->image = $request->image;
         }
         if ($request->exists('location')) {
-            $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
-        
+            $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[1]} {$request->location[0]})') as g;")))[0]->g;
+
             // Curl request to get the feature information from external source
             $lat = $request->location[0];
             $lon = $request->location[1];
@@ -97,10 +97,10 @@ class TicketController extends Controller
             $response = $this->curlRequest($url);
 
             if ($response) {
-                if (array_key_exists('display_name',$response)) {
+                if (array_key_exists('display_name', $response)) {
                     $ticket->location_address = $response['display_name'];
                 }
-                if (array_key_exists('error',$response)) {
+                if (array_key_exists('error', $response)) {
                     $ticket->location_address = $response['error'];
                 }
             }
@@ -111,8 +111,8 @@ class TicketController extends Controller
         if ($res) {
             $company = Company::find($request->id);
             if ($company->ticket_email) {
-                foreach (explode(',',$company->ticket_email) as $recipient) {
-                    Mail::to($recipient)->send(new TicketCreated($ticket,$company));
+                foreach (explode(',', $company->ticket_email) as $recipient) {
+                    Mail::to($recipient)->send(new TicketCreated($ticket, $company));
                 }
             }
         }
