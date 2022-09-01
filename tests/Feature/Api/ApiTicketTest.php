@@ -94,6 +94,10 @@ class ApiTicketTest extends TestCase
      * note?: string;
      * phone?:string
      * }
+     * 
+     * NOTA BENE:
+     * IL FRONTEND PASSA LE COORDINATE SECONDO LO STANDARD LEAFLET [LAT,LNG] => [Y,X]
+     * NEL DB SALVIAMO I POINT SECONDO LO STANDARD POSTGIS [LNG,LAT] => [X,Y]
      */
 
     /** @test */
@@ -103,7 +107,7 @@ class ApiTicketTest extends TestCase
         $company = Company::factory()->create();
         $trash_type = TrashType::factory()->create(['company_id' => $company->id]);
         $user = User::factory()->create();
-        $location = [$this->faker->longitude(), $this->faker->latitude()];
+        $location = [42, 10];
         $note = $this->faker->sentence(100);
         $phone = $this->faker->phoneNumber();
 
@@ -131,7 +135,7 @@ class ApiTicketTest extends TestCase
 
             $this->assertEquals($user->id, $data_out['user_id']);
             $this->assertEquals($trash_type->id, $data_out['trash_type_id']);
-            $this->assertEquals(DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$location[0]} {$location[1]})') as g;"))[0]->g, $data_out['geometry']);
+            $this->assertEquals((DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$location[1]} {$location[0]})') as g;")))[0]->g, $data_out['geometry']);
             $this->assertEquals($note, $data_out['note']);
             $this->assertEquals($phone, $data_out['phone']);
 
@@ -144,8 +148,8 @@ class ApiTicketTest extends TestCase
             $this->assertEquals($phone, $ticket->phone);
 
             $geojson = json_decode(DB::select(DB::raw("SELECT ST_AsGeoJson('{$ticket->geometry}') as g"))[0]->g);
-            $this->assertEquals($location[0], $geojson->coordinates[0]);
-            $this->assertEquals($location[1], $geojson->coordinates[1]);
+            $this->assertEquals($location[0], $geojson->coordinates[1]);
+            $this->assertEquals($location[1], $geojson->coordinates[0]);
         }
     }
 
