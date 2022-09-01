@@ -12,6 +12,7 @@ use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Query\Search\SearchableRelation;
+use Wm\MapPoint\MapPoint;
 
 class Ticket extends Resource
 {
@@ -43,7 +44,7 @@ class Ticket extends Resource
             new SearchableRelation('user', 'email')
         ];
     }
-        /**
+    /**
      * Build an "index" query for the given resource.
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
@@ -69,21 +70,16 @@ class Ticket extends Resource
             Text::make('ticket_type'),
             BelongsTo::make('trash_type'),
             BelongsTo::make('User'),
-            Text::make('User Email',function (){
+            Text::make('User Email', function () {
                 return $this->user->email;
             })->onlyOnDetail(),
             DateTime::make(__('Created At'), 'created_at')->sortable(),
             Text::make('phone'),
-            Text::make('Location',function() {
-                if(!is_null($this->geometry)) {
-                    $g = json_decode(DB::select("SELECT st_asgeojson('{$this->geometry}') as g")[0]->g);
-                    return "<a href='http://www.google.com/maps/place/{$g->coordinates[0]},{$g->coordinates[1]}' target='_blank'>({$g->coordinates[0]},{$g->coordinates[1]})</a>";
-                }
-            })->onlyOnDetail()->asHtml(),
-            Text::make('Location Address','location_address'),
+            MapPoint::make('geometry'),
+            Text::make('Location Address', 'location_address'),
             Textarea::make('note')->alwaysShow()->onlyOnDetail(),
-            Text::make('image',function(){
-                return '<img src="'.$this->image.'" />';
+            Text::make('image', function () {
+                return '<img src="' . $this->image . '" />';
             })->asHtml()->onlyOnDetail()
         ];
     }
