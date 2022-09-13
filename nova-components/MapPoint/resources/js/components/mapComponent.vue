@@ -11,7 +11,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 const DEFAULT_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const DEFAULT_ATTRIBUTION = '<a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>';
-const DEFAULT_CENTER = [0, 0];
+const DEFAULT_CENTER = [42, 12];
 export default {
     name: "Map",
     mixins: [FormField, HandlesValidationErrors],
@@ -20,7 +20,13 @@ export default {
     methods: {
         initMap() {
             setTimeout(() => {
-                const center = this.field.latlng ?? this.center ?? DEFAULT_CENTER;
+                if (this.field.latlng !== undefined && this.field.latlng.length != 0) {
+                    var center = this.field.latlng;
+                } else if (this.field.center !== undefined && this.field.latlng.center != 0) {
+                    var center = this.field.center;
+                } else {
+                    var center = DEFAULT_CENTER;
+                }
                 const mapDiv = L.map(this.mapRef).setView(center, 13);
                 const myZoom = {
                     start: mapDiv.getZoom(),
@@ -32,7 +38,7 @@ export default {
                     {
                         attribution: this.field.attribution ?? DEFAULT_ATTRIBUTION,
                         maxZoom: 15,
-                        minZoom: 11,
+                        minZoom: 8,
                         id: "mapbox/streets-v11",
                     }
                 ).addTo(mapDiv);
