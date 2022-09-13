@@ -68,7 +68,7 @@ class WasteCollectionCenter extends Resource
             Text::make('marker_size')->hideFromIndex(),
             Text::make('website')->hideFromIndex(),
             MapPoint::make('geometry')->withMeta([
-                'center' => ["42", "10"],
+                'center' => ["43", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
                 'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'
 

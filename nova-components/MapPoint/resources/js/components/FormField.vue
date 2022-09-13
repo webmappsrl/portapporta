@@ -17,7 +17,9 @@ export default {
       this.latlng = value;
     },
     fill(formData) {
-      formData.append(this.field.attribute, this.latlng);
+      if (this.latlng !== undefined && this.latlng.length != 0) {
+        formData.append(this.field.attribute, this.latlng);
+      }
     }
   }
 };
