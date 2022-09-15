@@ -70,10 +70,8 @@ class WasteCollectionCenter extends Resource
             MapPoint::make('geometry')->withMeta([
                 'center' => ["43", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
-                'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png',
-                'minZoom' => 8,
-                'maxZoom' => 17,
-                'defaultZoom' => 13
+                'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png'
+
             ]),
             // Text::make('picture_url')->hideFromIndex(),
 
