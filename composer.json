@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "datomatic/nova-markdown-tui": "^1.2",
         "eminiarts/nova-tabs": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
         "imumz/leaflet-map": "^1.1",
@@ -19,8 +20,9 @@
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
         "spatie/laravel-translatable": "^6.0",
+        "wm/map-multi-polygon": "*",
         "wm/map-point": "*",
-        "wm/map-multi-polygon": "*"
+        "ynacorp/nova-swatches": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
