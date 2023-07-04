@@ -14,6 +14,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Datomatic\NovaMarkdownTui\Enums\EditorType;
+use Laravel\Nova\Fields\Textarea;
 
 class Company extends Resource
 {
@@ -149,7 +150,7 @@ class Company extends Resource
                 ->initialEditType(EditorType::WYSIWYG)
                 ->hideFromIndex(),
 
-            Text::make('Variables', 'css_variables')
+            Textarea::make('Variables', 'css_variables')
                 ->help('go to "https://ionicframework.com/docs/theming/color-generator" to generate the variables by simply customize the colors and copy the generated variables here')
                 ->hidefromIndex(),
 
