@@ -58,18 +58,20 @@ class Company extends Resource
                 ->hideWhenUpdating()
                 ->help('Must be prefixed with "it.webmapp.{sku}"')
                 ->rules(['required', 'starts_with:it.webmapp']),
-            Text::make(__('Play Store link (android)'), 'android_store_link')->resolveUsing(function ($value, $resource, $attribute) use ($androidLink) {
-                if (!$androidLink) {
-                    return '';
-                }
-                return '<a class="link-default" target="_blank" href="' . $androidLink . '">App Link</a>';
-            })->asHtml(),
-            Text::make(__('App Store link (iOS)'), 'ios_store_link')->resolveUsing(function ($value, $resource, $attribute) use ($iosLink) {
-                if (!$iosLink) {
-                    return '';
-                }
-                return '<a class="link-default" target="_blank" href="' . $iosLink . '">App Link</a>';
-            })->asHtml(),
+            Text::make(__('Play Store link (android)'), 'android_store_link')
+                ->displayUsing(function ($value, $resource, $attribute) use ($androidLink) {
+                    if (!$androidLink) {
+                        return '';
+                    }
+                    return '<a class="link-default" target="_blank" href="' . $androidLink . '">App Link</a>';
+                })->asHtml(),
+            Text::make(__('App Store link (iOS)'), 'ios_store_link')
+                ->displayUsing(function ($value, $resource, $attribute) use ($iosLink) {
+                    if (!$iosLink) {
+                        return '';
+                    }
+                    return '<a class="link-default" target="_blank" href="' . $iosLink . '">App Link</a>';
+                })->asHtml(),
             Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
             new Panel('Company API', $this->apiPanel()),
             new Panel('Company Resources', $this->companyResources()),
