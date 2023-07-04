@@ -38,6 +38,11 @@ To install the project you will need to:
 
 `php artisan migrate`
 
+If you already have a database backup file, you can run the following command:
+```sh
+ createdb -U postgres [database_name] && psql -U postgres -d [database_name] -f path/to/your/file.sql
+```
+
 - run the project in a local environment
 
 `php artisan serve`
