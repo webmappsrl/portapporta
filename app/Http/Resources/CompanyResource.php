@@ -18,14 +18,43 @@ class CompanyResource extends JsonResource
      */
     public function toArray($request)
     {
-        $json = [];
-        $json['id'] = $this->id;
-        $json['name'] = $this->name;
-        if ($this->icon)
-            $json['resources']['icon'] = url(Storage::url($this->icon));
-        if ($this->splash)
-            $json['resources']['splash'] = url(Storage::url($this->splash));
-        
+        $json = [
+            'id' => $this->id,
+            'name' => $this->name,
+        ];
+
+        if (!empty($this->sku)) {
+            $json['sku'] = $this->sku;
+        }
+
+        $resources = [];
+
+        if ($this->icon) {
+            $resources['icon'] = url(Storage::url($this->icon));
+        }
+
+        if ($this->splash) {
+            $resources['splash'] = url(Storage::url($this->splash));
+        }
+
+        if (!empty($this->font)) {
+            $resources['font'] = $this->font;
+        }
+
+        if (!empty($this->header)) {
+            $resources['header'] = $this->header;
+        }
+
+        if (!empty($this->footer)) {
+            $resources['footer'] = $this->footer;
+        }
+
+        if (!empty($this->css_variables)) {
+            $resources['variables'] = $this->css_variables;
+        }
+
+        $json['resources'] = $resources;
+
         return $json;
     }
 }
