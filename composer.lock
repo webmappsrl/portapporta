@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0887795bbd8aa46839bd997175a93467",
+    "content-hash": "764e7ee0435f7fbfbfaa3e508ec264d6",
     "packages": [
         {
             "name": "brick/math",
@@ -6879,51 +6879,6 @@
             "transport-options": {
                 "relative": true
             }
-        },
-        {
-            "name": "ynacorp/nova-swatches",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ynacorp/nova-swatches.git",
-                "reference": "bb02ca3d8c7afba7b046c89f76cd9b163ce3aaf3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ynacorp/nova-swatches/zipball/bb02ca3d8c7afba7b046c89f76cd9b163ce3aaf3",
-                "reference": "bb02ca3d8c7afba7b046c89f76cd9b163ce3aaf3",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Yna\\NovaSwatches\\FieldServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Yna\\NovaSwatches\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "A beautiful color picking field for Laravel Nova.",
-            "keywords": [
-                "laravel",
-                "nova"
-            ],
-            "support": {
-                "issues": "https://github.com/ynacorp/nova-swatches/issues",
-                "source": "https://github.com/ynacorp/nova-swatches/tree/v1.0.0"
-            },
-            "time": "2020-04-02T17:01:37+00:00"
         }
     ],
     "packages-dev": [

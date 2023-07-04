@@ -21,8 +21,7 @@
         "laravel/tinker": "^2.7",
         "spatie/laravel-translatable": "^6.0",
         "wm/map-multi-polygon": "*",
-        "wm/map-point": "*",
-        "ynacorp/nova-swatches": "^1.0"
+        "wm/map-point": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

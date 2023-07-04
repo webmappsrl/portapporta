@@ -2,17 +2,18 @@
 
 namespace App\Nova;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\File;
-use Laravel\Nova\Fields\Image;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Http\Requests\NovaRequest;
+use App\Enums\Fonts;
 use Laravel\Nova\Panel;
+use Laravel\Nova\Fields\ID;
+use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Color;
+use Laravel\Nova\Fields\Image;
+use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\BelongsTo;
+use Datomatic\NovaMarkdownTui\MarkdownTui;
+use Laravel\Nova\Http\Requests\NovaRequest;
+use Datomatic\NovaMarkdownTui\Enums\EditorType;
 
 class Company extends Resource
 {
@@ -53,6 +54,10 @@ class Company extends Resource
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
             BelongsTo::make('User')->nullable(),
+            Text::make('sku')
+                ->hideWhenUpdating()
+                ->help('Must be prefixed with "it.webmapp.{sku}"')
+                ->rules(['required', 'starts_with:it.webmapp']),
             Text::make(__('Play Store link (android)'), 'android_store_link')->resolveUsing(function ($value, $resource, $attribute) use ($androidLink) {
                 if (!$androidLink) {
                     return '';
@@ -134,6 +139,29 @@ class Company extends Resource
                 ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500]))
                 ->hideFromIndex()
                 ->disableDownload(),
+
+            MarkdownTui::make(__('Header'), 'header')
+                ->initialEditType(EditorType::WYSIWYG),
+
+            MarkdownTui::make(__('Footer'), 'footer')
+                ->initialEditType(EditorType::WYSIWYG)
+                ->hideFromIndex(),
+
+            Text::make('Variables', 'css_variables')
+                ->help('go to "https://ionicframework.com/docs/theming/color-generator" to generate the variables by simply customize the colors and copy the generated variables here')
+                ->hidefromIndex(),
+
+            Select::make('Font')
+                ->options(Fonts::toArray())
+                ->displayUsingLabels()
+                ->hideFromIndex(),
+
+            Color::make('Primary Color', 'primary_color')
+                ->hideFromIndex(),
+
+            Color::make('Secondary Color', 'secondary_color')
+                ->hideFromIndex(),
+
         ];
     }
 
