@@ -47,19 +47,32 @@ class Company extends Resource
      */
     public function fields(Request $request)
     {
+        $androidLink = $this->android_store_link;
+        $iosLink = $this->ios_store_link;
         return [
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
             BelongsTo::make('User')->nullable(),
-            Text::make(__('Play Store link (android)'), 'android_store_link'),
-            Text::make(__('App Store link (iOS)'), 'ios_store_link'),
+            Text::make(__('Play Store link (android)'), 'android_store_link')->resolveUsing(function ($value, $resource, $attribute) use ($androidLink) {
+                if (!$androidLink) {
+                    return '';
+                }
+                return '<a class="link-default" target="_blank" href="' . $androidLink . '">App Link</a>';
+            })->asHtml(),
+            Text::make(__('App Store link (iOS)'), 'ios_store_link')->resolveUsing(function ($value, $resource, $attribute) use ($iosLink) {
+                if (!$iosLink) {
+                    return '';
+                }
+                return '<a class="link-default" target="_blank" href="' . $iosLink . '">App Link</a>';
+            })->asHtml(),
             Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
-            new Panel('Company API',$this->apiPanel()),
-            new Panel('Company Resources',$this->companyResources()),
+            new Panel('Company API', $this->apiPanel()),
+            new Panel('Company Resources', $this->companyResources()),
         ];
     }
 
-    public function apiPanel() {
+    public function apiPanel()
+    {
         $apis = [
             'CONFIG' => 'company.config.json',
             'USER TYPES' => 'company.user_types.json',
@@ -68,16 +81,17 @@ class Company extends Resource
             'WASTE COLLECTION CENTER' => 'company.waste_collection_centers.geojson',
         ];
         $fields = [];
-        foreach($apis as $label => $route) {
-            $fields[] =  Text::make($label,function () use ($route) {
-                $url = route($route,['id'=>$this->id]);
+        foreach ($apis as $label => $route) {
+            $fields[] =  Text::make($label, function () use ($route) {
+                $url = route($route, ['id' => $this->id]);
                 return "<a href='$url' target='_blank'>$url</a>";
             })->asHtml()->onlyOnDetail();
         }
         return $fields;
     }
 
-    public function companyResources() {
+    public function companyResources()
+    {
         return [
             Image::make(__('Icon'), 'icon')
                 ->rules('image', 'mimes:png', 'dimensions: width=1024,height=1024')
