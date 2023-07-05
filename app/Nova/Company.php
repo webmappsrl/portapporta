@@ -151,7 +151,7 @@ class Company extends Resource
                 ->hideFromIndex(),
 
             Textarea::make('Variables', 'css_variables')
-                ->help('go to "https://ionicframework.com/docs/theming/color-generator" to generate the variables by simply customize the colors and copy the generated variables here')
+                ->help('go to <a traget="_blank" href="https://ionicframework.com/docs/theming/color-generator">Color Generator</a> to generate the variables by simply customize the colors and copy the generated variables here')
                 ->hidefromIndex(),
 
             Select::make('Font')
