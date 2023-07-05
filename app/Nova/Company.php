@@ -102,7 +102,7 @@ class Company extends Resource
     {
         return [
             Image::make(__('Icon'), 'icon')
-                ->rules('image', 'mimes:png', 'dimensions: width=1024,height=1024')
+                ->rules('image', 'mimes:png')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->storeAs(function () {
@@ -142,6 +142,24 @@ class Company extends Resource
                 ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500]))
                 ->hideFromIndex()
                 ->disableDownload(),
+
+            Image::make(__('Header image'), 'header_image')
+                ->rules('image', 'mimes:png', 'dimensions:width=1024,height=500')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->storeAs(function () {
+                    return 'header_image.png';
+                })
+                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500])),
+
+            Image::make(__('Footer image'), 'footer_image')
+                ->rules('image', 'mimes:png')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->storeAs(function () {
+                    return 'footer_image.png';
+                })
+                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500])),
 
             MarkdownTui::make(__('Header'), 'header')
                 ->initialEditType(EditorType::WYSIWYG),
