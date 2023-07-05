@@ -22,6 +22,8 @@ return new class extends Migration
                 ->string('footer_image')
                 ->nullable()
                 ->after('footer');
+
+            $table->string('app_icon')->nullable();
         });
     }
 
@@ -36,6 +38,7 @@ return new class extends Migration
             $table->dropColumn([
                 'header_image',
                 'footer_image',
+                'app_icon',
             ]);
         });
     }

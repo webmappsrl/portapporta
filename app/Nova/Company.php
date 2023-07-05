@@ -10,11 +10,11 @@ use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Color;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Fields\BelongsTo;
 use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Datomatic\NovaMarkdownTui\Enums\EditorType;
-use Laravel\Nova\Fields\Textarea;
+use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
 
 class Company extends Resource
 {
@@ -100,17 +100,27 @@ class Company extends Resource
 
     public function companyResources()
     {
+        $path = 'storage/resources/' . $this->model()->id;
+        $iconUrl = url($path . '/icon.png');
+        $splashUrl = url($path . '/splash.png');
+        $iconSmallUrl = url($path . '/icon_small.png');
+        $featureImageUrl = url($path . '/feature_image.png');
+        $headerImageUrl = url($path . '/header_image.png');
+        $footerImageUrl = url($path . '/footer_image.png');
+        $appIconUrl = url($path . '/app_icon.png');
+
         return [
             Image::make(__('Icon'), 'icon')
-                ->rules('image', 'mimes:png')
+                ->rules('image', 'mimes:png', 'dimensions:width=1024,height=1024')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->storeAs(function () {
                     return 'icon.png';
                 })
-                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 1024]))
+                ->help(__('Required size is :widthx:heightpx. Once the image is uploaded, you can find it at this Link:  <a href="' . $iconUrl . '" target="_blank">' . $iconUrl . '</a>', ['width' => 1024, 'height' => 1024]))
                 ->hideFromIndex()
                 ->disableDownload(),
+
             Image::make(__('Splash image'), 'splash')
                 ->rules('image', 'mimes:png', 'dimensions:width=2732,height=2732')
                 ->disk('public')
@@ -118,9 +128,10 @@ class Company extends Resource
                 ->storeAs(function () {
                     return 'splash.png';
                 })
-                ->help(__('Required size is :widthx:heightpx', ['width' => 2732, 'height' => 2732]))
+                ->help(__('Required size is :widthx:heightpx. Once the image is uploaded, you can find it at this Link:  <a href="' . $splashUrl . '" target="_blank">' . $splashUrl . '</a>', ['width' => 2732, 'height' => 2732]))
                 ->hideFromIndex()
                 ->disableDownload(),
+
             Image::make(__('Icon small'), 'icon_small')
                 ->rules('image', 'mimes:png', 'dimensions:width=512,height=512')
                 ->disk('public')
@@ -128,7 +139,7 @@ class Company extends Resource
                 ->storeAs(function () {
                     return 'icon_small.png';
                 })
-                ->help(__('Required size is :widthx:heightpx', ['width' => 512, 'height' => 512]))
+                ->help(__('Required size is :widthx:heightpx. Once the image is uploaded, you can find it at this Link:  <a href="' . $iconSmallUrl . '" target="_blank">' . $iconSmallUrl . '</a>', ['width' => 512, 'height' => 512]))
                 ->hideFromIndex()
                 ->disableDownload(),
 
@@ -139,34 +150,49 @@ class Company extends Resource
                 ->storeAs(function () {
                     return 'feature_image.png';
                 })
-                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500]))
+                ->help(__('Required size is :widthx:heightpx. Once the image is uploaded, you can find it at this Link:  <a href="' . $featureImageUrl . '" target="_blank">' . $featureImageUrl . '</a>', ['width' => 1024, 'height' => 500]))
                 ->hideFromIndex()
                 ->disableDownload(),
 
             Image::make(__('Header image'), 'header_image')
-                ->rules('image', 'mimes:png', 'dimensions:width=1024,height=500')
+                ->rules('image')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->storeAs(function () {
                     return 'header_image.png';
                 })
-                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500])),
+                ->help(__('Once the image is uploaded, you can find it at this Link:  <a href="' . $headerImageUrl . '" target="_blank">' . $headerImageUrl . '</a>'))
+                ->hideFromIndex()
+                ->disableDownload(),
 
             Image::make(__('Footer image'), 'footer_image')
-                ->rules('image', 'mimes:png')
+                ->rules('image')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->storeAs(function () {
                     return 'footer_image.png';
                 })
-                ->help(__('Required size is :widthx:heightpx', ['width' => 1024, 'height' => 500])),
+                ->help(__('Once the image is uploaded, you can find it at this Link:  <a href="' . $footerImageUrl . '" target="_blank">' . $footerImageUrl . '</a>'))
+                ->hideFromIndex()
+                ->disableDownload(),
 
-            MarkdownTui::make(__('Header'), 'header')
-                ->initialEditType(EditorType::WYSIWYG),
+            Image::make(__('App icon'), 'app_icon')
+                ->rules('image')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->hideFromIndex()
+                ->disableDownload()
+                ->help(__('Once the image is uploaded, you can find it at this Link:  <a href="' . $appIconUrl . '" target="_blank">' . $appIconUrl . '</a>'))
+                ->storeAs(function () {
+                    return 'app_icon.png';
+                }),
 
-            MarkdownTui::make(__('Footer'), 'footer')
-                ->initialEditType(EditorType::WYSIWYG)
-                ->hideFromIndex(),
+            NovaTinymce5Editor::make(('Header'), 'header')
+                ->options(['toolbar' => ['undo redo | align | link | code'], 'plugins' => ['link code']]),
+
+            NovaTinymce5Editor::make(('Footer'), 'footer')
+                ->options(['toolbar' => ['undo redo | align | link | code'], 'plugins' => ['link code']]),
+
 
             Textarea::make('Variables', 'css_variables')
                 ->help('go to <a traget="_blank" href="https://ionicframework.com/docs/theming/color-generator">Color Generator</a> to generate the variables by simply customize the colors and copy the generated variables here')
