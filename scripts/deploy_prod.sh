@@ -18,6 +18,7 @@ rm `ls -t | awk 'NR>10'` -f
 cd ~/portapporta
 
 # Pull the latest version of the app
+cd /var/www/html/portapporta
 git pull origin main
 
 # Install composer dependencies
