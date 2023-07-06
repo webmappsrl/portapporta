@@ -14,11 +14,11 @@
         "imumz/leaflet-map": "^1.1",
         "jenssegers/agent": "^2.6",
         "kongulov/nova-tab-translatable": "^2.0",
-        "kraftbit/nova-tinymce5-editor": "^1.0",
         "laravel/framework": "^9.2",
         "laravel/nova": "~4.0",
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
+        "murdercode/nova4-tinymce-editor": "^1.0",
         "spatie/laravel-translatable": "^6.0",
         "wm/map-multi-polygon": "*",
         "wm/map-point": "*"

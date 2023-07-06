@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dbba575352ce25f7f92effd976a96bb9",
+    "content-hash": "d2580acba3ff20225515f3f45595e243",
     "packages": [
         {
             "name": "brick/math",
@@ -1744,51 +1744,6 @@
             "time": "2023-02-06T07:18:32+00:00"
         },
         {
-            "name": "kraftbit/nova-tinymce5-editor",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Kraftbit/nova-tinymce5-editor.git",
-                "reference": "b00ff482dffcbdb425b775f17e69012edab8bf58"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Kraftbit/nova-tinymce5-editor/zipball/b00ff482dffcbdb425b775f17e69012edab8bf58",
-                "reference": "b00ff482dffcbdb425b775f17e69012edab8bf58",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Kraftbit\\NovaTinymce5Editor\\FieldServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Kraftbit\\NovaTinymce5Editor\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "A Laravel Nova field.",
-            "keywords": [
-                "laravel",
-                "nova"
-            ],
-            "support": {
-                "issues": "https://github.com/Kraftbit/nova-tinymce5-editor/issues",
-                "source": "https://github.com/Kraftbit/nova-tinymce5-editor/tree/v1.0.0"
-            },
-            "time": "2020-09-21T15:07:16+00:00"
-        },
-        {
             "name": "laravel/framework",
             "version": "v9.52.10",
             "source": {
@@ -2904,6 +2859,59 @@
                 }
             ],
             "time": "2023-02-06T13:44:46+00:00"
+        },
+        {
+            "name": "murdercode/nova4-tinymce-editor",
+            "version": "v1.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/murdercode/Nova4-TinymceEditor.git",
+                "reference": "f881198cfffc87bf13ef19fee6b14faf54436020"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/murdercode/Nova4-TinymceEditor/zipball/f881198cfffc87bf13ef19fee6b14faf54436020",
+                "reference": "f881198cfffc87bf13ef19fee6b14faf54436020",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/nova": "^4.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.2",
+                "nunomaduro/larastan": "^2.0",
+                "orchestra/testbench": "^8.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Murdercode\\TinymceEditor\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Murdercode\\TinymceEditor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Boost your Laravel Nova with the TinyMCE editor.",
+            "keywords": [
+                "editor",
+                "laravel",
+                "nova",
+                "tinymce"
+            ],
+            "support": {
+                "issues": "https://github.com/murdercode/Nova4-TinymceEditor/issues",
+                "source": "https://github.com/murdercode/Nova4-TinymceEditor/tree/v1.0.6"
+            },
+            "time": "2023-06-16T15:12:59+00:00"
         },
         {
             "name": "nesbot/carbon",
