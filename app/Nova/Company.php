@@ -110,6 +110,7 @@ class Company extends Resource
         $headerImageUrl = url($path . '/header_image.png');
         $footerImageUrl = url($path . '/footer_image.png');
         $appIconUrl = url($path . '/app_icon.png');
+        $logoIconUrl = url($path . '/logo.png');
 
         return [
             Image::make(__('Icon'), 'icon')
@@ -157,7 +158,7 @@ class Company extends Resource
                 ->disableDownload(),
 
             Image::make(__('Header image'), 'header_image')
-                ->rules('image')
+                ->rules('image', 'mimes:png')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->storeAs(function () {
@@ -168,7 +169,7 @@ class Company extends Resource
                 ->disableDownload(),
 
             Image::make(__('Footer image'), 'footer_image')
-                ->rules('image')
+                ->rules('image', 'mimes:png')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->storeAs(function () {
@@ -179,7 +180,7 @@ class Company extends Resource
                 ->disableDownload(),
 
             Image::make(__('App icon'), 'app_icon')
-                ->rules('image')
+                ->rules('image', 'mimes:png')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->hideFromIndex()
@@ -188,6 +189,18 @@ class Company extends Resource
                 ->storeAs(function () {
                     return 'app_icon.png';
                 }),
+
+            Image::make('Logo', 'logo')
+                ->rules('image', 'mimes:png')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->hideFromIndex()
+                ->disableDownload()
+                ->help(__('Once the image is uploaded, you can find it at this Link:  <a href="' . $logoIconUrl . '" target="_blank">' . $logoIconUrl . '</a>'))
+                ->storeAs(function () {
+                    return 'logo.png';
+                }),
+
 
             // TinymceEditor::make(__('Header'), 'header')
             //     ->hideFromIndex(),

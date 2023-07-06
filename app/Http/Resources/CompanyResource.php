@@ -53,6 +53,14 @@ class CompanyResource extends JsonResource
             $resources['variables'] = $this->css_variables;
         }
 
+        if (!empty($this->app_icon)) {
+            $resources['app_icon'] = $this->app_icon;
+        }
+
+        if (!empty($this->logo)) {
+            $resources['logo'] = $this->logo;
+        }
+
         $json['resources'] = $resources;
 
         return $json;
