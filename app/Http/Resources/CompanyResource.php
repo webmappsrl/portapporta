@@ -42,11 +42,11 @@ class CompanyResource extends JsonResource
         }
 
         if (!empty($this->header_image)) {
-            $resources['header_image'] = $this->header_image;
+            $resources['header_image'] = url(Storage::url($this->header_image));
         }
 
         if (!empty($this->footer_image)) {
-            $resources['footer_image'] = $this->footer_image;
+            $resources['footer_image'] = url(Storage::url($this->footer_image));
         }
 
         if (!empty($this->css_variables)) {
@@ -54,11 +54,11 @@ class CompanyResource extends JsonResource
         }
 
         if (!empty($this->app_icon)) {
-            $resources['app_icon'] = $this->app_icon;
+            $resources['app_icon'] = url(Storage::url($this->app_icon));
         }
 
         if (!empty($this->logo)) {
-            $resources['logo'] = $this->logo;
+            $resources['logo'] = url(Storage::url($this->logo));
         }
 
         $json['resources'] = $resources;
