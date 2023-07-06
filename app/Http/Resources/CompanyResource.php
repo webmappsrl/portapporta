@@ -41,12 +41,12 @@ class CompanyResource extends JsonResource
             $resources['font'] = $this->font;
         }
 
-        if (!empty($this->header)) {
-            $resources['header'] = $this->header;
+        if (!empty($this->header_image)) {
+            $resources['header_image'] = $this->header_image;
         }
 
-        if (!empty($this->footer)) {
-            $resources['footer'] = $this->footer;
+        if (!empty($this->footer_image)) {
+            $resources['footer_image'] = $this->footer_image;
         }
 
         if (!empty($this->css_variables)) {
