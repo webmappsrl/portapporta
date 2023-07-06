@@ -189,11 +189,11 @@ class Company extends Resource
                     return 'app_icon.png';
                 }),
 
-            TinymceEditor::make(__('Header'), 'header')
-                ->hideFromIndex(),
+            // TinymceEditor::make(__('Header'), 'header')
+            //     ->hideFromIndex(),
 
-            TinymceEditor::make(__('Footer'), 'footer')
-                ->hideFromIndex(),
+            // TinymceEditor::make(__('Footer'), 'footer')
+            //     ->hideFromIndex(),
 
             Textarea::make('Variables', 'css_variables')
                 ->help('go to <a traget="_blank" href="https://ionicframework.com/docs/theming/color-generator">Color Generator</a> to generate the variables by simply customize the colors and copy the generated variables here')
