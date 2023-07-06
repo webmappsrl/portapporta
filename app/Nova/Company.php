@@ -7,6 +7,7 @@ use Laravel\Nova\Panel;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Fields\Color;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Select;
@@ -14,6 +15,7 @@ use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Fields\BelongsTo;
 use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Murdercode\TinymceEditor\TinymceEditor;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
 
 class Company extends Resource
@@ -58,7 +60,7 @@ class Company extends Resource
             Text::make('sku')
                 ->hideWhenUpdating()
                 ->help('Must be prefixed with "it.webmapp.{sku}"')
-                ->rules(['required', 'starts_with:it.webmapp']),
+                ->rules(['required', 'regex:/^it.webmapp.[a-z0-9]+$/', 'unique:companies,sku']),
             Text::make(__('Play Store link (android)'), 'android_store_link')
                 ->displayUsing(function ($value, $resource, $attribute) use ($androidLink) {
                     if (!$androidLink) {
@@ -187,12 +189,11 @@ class Company extends Resource
                     return 'app_icon.png';
                 }),
 
-            NovaTinymce5Editor::make(('Header'), 'header')
-                ->options(['toolbar' => ['undo redo | align | link | code'], 'plugins' => ['link code']]),
+            TinymceEditor::make(__('Header'), 'header')
+                ->hideFromIndex(),
 
-            NovaTinymce5Editor::make(('Footer'), 'footer')
-                ->options(['toolbar' => ['undo redo | align | link | code'], 'plugins' => ['link code']]),
-
+            TinymceEditor::make(__('Footer'), 'footer')
+                ->hideFromIndex(),
 
             Textarea::make('Variables', 'css_variables')
                 ->help('go to <a traget="_blank" href="https://ionicframework.com/docs/theming/color-generator">Color Generator</a> to generate the variables by simply customize the colors and copy the generated variables here')
