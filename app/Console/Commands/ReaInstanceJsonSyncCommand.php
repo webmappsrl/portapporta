@@ -394,15 +394,15 @@ class ReaInstanceJsonSyncCommand extends Command
                     $params['stop_date'] = $date;
                 }
             }
-            $syncedCalendar = Calendar::create([
-                'name' => $calendarName,
-                'company_id' => $company_id,
-                'user_type_id' => $userType->id,
-                'start_date' => $params['start_date'],
-                'stop_date' => $params['stop_date'],
-            ]);
-
-            $syncedCalendar->zone()->sync($zone_obg->id, false);
+            $syncedCalendar = Calendar::updateOrCreate(
+                [
+                    'name' => $calendarName,
+                    'zone_id' => $zone_obg->id,
+                    'user_type_id' => $userType->id,
+                    'company_id' => $company_id
+                ],
+                $params
+            );
         }
     }
 }

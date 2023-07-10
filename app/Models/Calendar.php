@@ -21,6 +21,7 @@ class Calendar extends Model
         'user_type_id',
         'start_date',
         'stop_date',
+        'company_id',
     ];
 
     /**
