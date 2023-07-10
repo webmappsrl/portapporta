@@ -2,16 +2,17 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use App\Models\Zone;
 use App\Models\Waste;
 use App\Models\Calendar;
 use App\Models\UserType;
 use App\Models\TrashType;
+use App\Models\CalendarItem;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Models\WasteCollectionCenter;
 use App\Providers\CurlServiceProvider;
-use Carbon\Carbon;
 
 class ReaInstanceJsonSyncCommand extends Command
 {
@@ -332,7 +333,9 @@ class ReaInstanceJsonSyncCommand extends Command
                 if (array_key_exists('url', $zone)) {
                     $params['url'] = $zone['url'];
                 }
-                $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('" . json_encode($coordinate_array[$zone['id']]) . ",4326')) As wkt")[0]->wkt;
+                if (array_key_exists($zone['id'], $coordinate_array)) {
+                    $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('" . json_encode($coordinate_array[$zone['id']]) . ",4326')) As wkt")[0]->wkt;
+                }
                 $params['company_id'] = $company_id;
 
                 $zone_obg = Zone::updateOrCreate(
@@ -375,6 +378,7 @@ class ReaInstanceJsonSyncCommand extends Command
 
         $calendarName = $zone_obg->label . ' (' . $slug . ')';
         $params = [];
+        $calendarItems = [];
 
         foreach ($response as $items) {
             foreach ($items as $calendar) {
@@ -393,6 +397,11 @@ class ReaInstanceJsonSyncCommand extends Command
                     $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
                     $params['stop_date'] = $date;
                 }
+                if (array_key_exists('calendars', $calendar)) {
+                    foreach ($calendar['calendars'] as $calendarItem) {
+                        $calendarItems[] = $calendarItem;
+                    }
+                }
             }
             $syncedCalendar = Calendar::updateOrCreate(
                 [
@@ -404,5 +413,44 @@ class ReaInstanceJsonSyncCommand extends Command
                 $params
             );
         }
+        if (count($calendarItems) > 0) {
+            foreach ($calendarItems as $calendarItem) {
+                $this->syncCalendarioItem($calendarItem, $syncedCalendar);
+            }
+        }
+    }
+    protected function syncCalendarioItem($calendarItem, $syncedCalendar)
+    {
+        $params = [];
+        $trashTypesSlugs = [];
+
+        if (array_key_exists('start', $calendarItem)) {
+            $params['start_time'] = $calendarItem['start'];
+        }
+        if (array_key_exists('end', $calendarItem)) {
+            $params['stop_time'] = $calendarItem['end'];
+        }
+        foreach ($calendarItem['services'] as $service => $days) {
+            $trashType = TrashType::where('slug', $service)->first();
+            if ($trashType) {
+                array_push($trashTypesSlugs, $trashType->slug);
+            }
+        }
+        $params['calendar_id'] = $syncedCalendar->id;
+        $trashTypes = TrashType::where('slug', $trashTypesSlugs)->get();
+        $trashTypesIds = [];
+        foreach ($trashTypes as $trashType) {
+            array_push($trashTypesIds, $trashType->id);
+        }
+        CalendarItem::updateOrCreate(
+            [
+                'calendar_id' => $syncedCalendar->id,
+                'start_time' => $params['start_time'],
+                'stop_time' => $params['stop_time'],
+                'day_of_week' => '1', //hardcoded for testing
+                'frequency' => 'weekly' //hardcoded for testing
+            ],
+            $params
+        )->trashTypes()->sync($trashTypesIds, false);
     }
 }

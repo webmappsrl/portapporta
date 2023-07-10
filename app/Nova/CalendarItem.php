@@ -41,7 +41,7 @@ class CalendarItem extends Resource
      */
     public static function searchableColumns()
     {
-        return [new SearchableRelation('calendar', 'name'),new SearchableRelation('trashTypes', 'name')];
+        return [new SearchableRelation('calendar', 'name'), new SearchableRelation('trashTypes', 'name')];
     }
 
     /**
@@ -68,25 +68,25 @@ class CalendarItem extends Resource
         return [
             ID::make()->sortable(),
             BelongsTo::make('Calendar'),
-            Text::make('Trash Types',function(){
-                if ($this->trashTypes->count() >0) {
+            Text::make('Trash Types', function () {
+                if ($this->trashTypes->count() > 0) {
                     $out = "<ul>\n";
-                    foreach($this->trashTypes as $item) {
+                    foreach ($this->trashTypes as $item) {
                         $out .= "  <li>{$item->name}</li>\n";
                     }
-                    $out.= "</ul>\n";
+                    $out .= "</ul>\n";
                     return $out;
                 }
                 return 'ND';
             })->asHtml(),
             Select::make('day_of_week')->options([
-                0 => 'Sun',
                 1 => 'Mon',
-                2 => 'Tue' ,
+                2 => 'Tue',
                 3 => 'Wed',
                 4 => 'Thu',
                 5 => 'Fri',
                 6 => 'Sat',
+                7 => 'Sun',
             ])->displayUsingLabels(),
             Select::make('frequency')->options([
                 'weekly' => 'weekly',
@@ -96,7 +96,7 @@ class CalendarItem extends Resource
             Text::make('stop_time'),
 
             BelongsToMany::make('TrashTypes'),
-       ];
+        ];
     }
 
     /**
@@ -143,7 +143,7 @@ class CalendarItem extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new CalendarItemAdvancedReplicateAction($this->start_time,$this->stop_time))->onlyInline(),
+            (new CalendarItemAdvancedReplicateAction($this->start_time, $this->stop_time))->onlyInline(),
         ];
     }
 }
