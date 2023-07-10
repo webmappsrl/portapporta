@@ -15,6 +15,14 @@ class Calendar extends Model
         'stop_date' => 'date:Y-m-d',
     ];
 
+    protected $fillable = [
+        'name',
+        'zone_id',
+        'user_type_id',
+        'start_date',
+        'stop_date',
+    ];
+
     /**
      * The "booted" method of the model.
      *
@@ -29,20 +37,23 @@ class Calendar extends Model
         }
     }
 
-    public function calendarItems() {
+    public function calendarItems()
+    {
         return $this->hasMany(CalendarItem::class);
     }
 
-    public function company() {
+    public function company()
+    {
         return $this->belongsTo(Company::class);
     }
 
-    public function zone() {
+    public function zone()
+    {
         return $this->belongsTo(Zone::class);
     }
 
-    public function userType() {
+    public function userType()
+    {
         return $this->belongsTo(UserType::class);
     }
-        
 }

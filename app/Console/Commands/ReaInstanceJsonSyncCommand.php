@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Zone;
 use App\Models\Waste;
 use App\Models\Calendar;
 use App\Models\UserType;
@@ -10,6 +11,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Models\WasteCollectionCenter;
 use App\Providers\CurlServiceProvider;
+use Carbon\Carbon;
 
 class ReaInstanceJsonSyncCommand extends Command
 {
@@ -271,7 +273,9 @@ class ReaInstanceJsonSyncCommand extends Command
                     try {
                         $trashType = TrashType::where('company_id', $company_id)
                             ->where('slug', $waste['category'])->get();
-                        $params['trash_type_id'] = $trashType[0]->id;
+                        if (count($trashType) > 0) {
+                            $params['trash_type_id'] = $trashType[0]->id;
+                        }
                     } catch (Exception $e) {
                         Log::error('TrashType relation not found: ' . json_encode($waste) . ' ' . $e->getMessage());
                         continue;
@@ -339,9 +343,9 @@ class ReaInstanceJsonSyncCommand extends Command
                     $params
                 );
 
-                if (array_key_exists('type', $zone)) {
+                if (array_key_exists('types', $zone)) {
                     $zones = [];
-                    foreach ($zone['type'] as $z) {
+                    foreach ($zone['types'] as $z) {
                         $userType = UserType::where('company_id', $company_id)
                             ->where('slug', $z)->get();
                         array_push($zones, $userType[0]->id);
@@ -349,9 +353,10 @@ class ReaInstanceJsonSyncCommand extends Command
                     $zone_obg->userTypes()->sync($zones, false);
                 }
 
-                if ($zone_obj->userTypes()->count() > 0) {
-                    foreach ($zone_obj->userTypes as $userType) {
-                        $this->syncCalendario($userType->slug);
+                if (count($zone_obg->userTypes) > 0) {
+                    foreach ($zone_obg->userTypes as $userType) {
+                        $slug = $userType->slug;
+                        $this->syncCalendario($slug, $endpoint, $userType, $zone_obg, $company_id);
                     }
                 }
             }
@@ -360,7 +365,7 @@ class ReaInstanceJsonSyncCommand extends Command
         }
     }
 
-    protected function syncCalendario($slug)
+    protected function syncCalendario($slug, $endpoint, $userType, $zone_obg, $company_id)
     {
         // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
@@ -368,8 +373,36 @@ class ReaInstanceJsonSyncCommand extends Command
         $track_obj = $curl->exec($url);
         $response = json_decode($track_obj, true);
 
-        foreach ($response as $calendar) {
-            Calendar::updateOrCreate();
+        $calendarName = $zone_obg->label . ' (' . $slug . ')';
+        $params = [];
+
+        foreach ($response as $items) {
+            foreach ($items as $calendar) {
+                if (array_key_exists('start', $calendar)) {
+                    //convert string to date
+                    $dateString = $calendar['start'];
+                    $currentYear = Carbon::now()->year;
+                    $dateStringWithYear = $currentYear . '-' . $dateString;
+                    $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
+                    $params['start_date'] = $date;
+                };
+                if (array_key_exists('end', $calendar)) {
+                    $dateString = $calendar['end'];
+                    $currentYear = Carbon::now()->year;
+                    $dateStringWithYear = $currentYear . '-' . $dateString;
+                    $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
+                    $params['stop_date'] = $date;
+                }
+            }
+            $syncedCalendar = Calendar::create([
+                'name' => $calendarName,
+                'company_id' => $company_id,
+                'user_type_id' => $userType->id,
+                'start_date' => $params['start_date'],
+                'stop_date' => $params['stop_date'],
+            ]);
+
+            $syncedCalendar->zone()->sync($zone_obg->id, false);
         }
     }
 }
