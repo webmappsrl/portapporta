@@ -422,35 +422,115 @@ class ReaInstanceJsonSyncCommand extends Command
     protected function syncCalendarioItem($calendarItem, $syncedCalendar)
     {
         $params = [];
-        $trashTypesSlugs = [];
+        $trashTypes = [];
+        $frequency = 'weekly';
 
         if (array_key_exists('start', $calendarItem)) {
-            $params['start_time'] = $calendarItem['start'];
+            $startTime = $calendarItem['start'];
         }
         if (array_key_exists('end', $calendarItem)) {
-            $params['stop_time'] = $calendarItem['end'];
+            $stopTime = $calendarItem['end'];
         }
-        foreach ($calendarItem['services'] as $service => $days) {
-            $trashType = TrashType::where('slug', $service)->first();
-            if ($trashType) {
-                array_push($trashTypesSlugs, $trashType->slug);
-            }
+        foreach ($calendarItem['services'] as $service => $serviceData) {
+            //if the ['days'] key does not exist, and instead a ['baseDate'] and ['frequency'] keys are found, 
+            if (array_key_exists('baseDate', $serviceData) && array_key_exists('frequency', $serviceData)) {
+                //take the date value from 'basedate'and get the real day from the date
+                $dateDay = Carbon::createFromFormat('Y-m-d', $serviceData['baseDate'])->format('l');
+                //convert the day to a number but monday should be 0 and sunday 6
+                $dateDay = Carbon::parse($dateDay)->dayOfWeekIso - 1;
+                //set the 'frequency' to biweekly if the ['frequency'] value is '14'
+                if ($serviceData['frequency'] == 14) {
+                    $frequency = 'biweekly';
+                }
+
+                foreach ($serviceData as $date) {
+                    $item = [
+                        'start_time' => $startTime,
+                        'stop_time' => $stopTime,
+                        'day_of_week' => $dateDay,
+                        'services' => [],
+                        'frequency' => $frequency,
+                    ];
+                    foreach ($calendarItem['services'] as $otherService => $otherServiceData) {
+                        if (array_key_exists('baseDate', $otherServiceData) && array_key_exists('frequency', $otherServiceData)) {
+                            if ($otherServiceData['baseDate'] == $date) {
+                                array_push($item['services'], $otherService);
+                            }
+                        }
+                    }
+                    $params = $item;
+
+                    //get the trashtypes from the $params['services']
+                    foreach ($params['services'] as $service) {
+                        $trashType = TrashType::where('company_id', $syncedCalendar->company_id)
+                            ->where('slug', $service)->get();
+                        array_push($trashTypes, $trashType[0]);
+                    }
+                    //delete the $params['services'] from the params
+                    unset($params['services']);
+
+                    $newCalendarItem = CalendarItem::updateOrCreate(
+                        [
+                            'calendar_id' => $syncedCalendar->id,
+                        ],
+                        $params
+                    );
+                    //attach every trashtype in the array to the newcalendaritem
+                    foreach ($trashTypes as $trashType) {
+                        $newCalendarItem->trashTypes()->attach($trashType->id);
+                    };
+                }
+            } else
+                foreach ($serviceData['days'] as $day) {
+                    $item = [
+                        'start_time' => $startTime,
+                        'stop_time' => $stopTime,
+                        'day_of_week' => $day,
+                        'services' => [],
+                        'frequency' => $frequency,
+                    ];
+                    foreach ($calendarItem['services'] as $otherService => $otherServiceData) {
+                        if (array_key_exists('days', $otherServiceData)) {
+                            if (in_array($day, $otherServiceData['days'])) {
+                                array_push($item['services'], $otherService);
+                            }
+                        } //if the ['days'] key does not exist, and instead a ['baseDate'] and ['frequency'] keys are found, 
+                        else if (array_key_exists('baseDate', $otherServiceData) && array_key_exists('frequency', $otherServiceData)) {
+                            //take the date value from 'basedate'and get the real day from the date
+                            $dateDay = Carbon::createFromFormat('Y-m-d', $otherServiceData['baseDate'])->format('l');
+                            //convert the day to a number eg monday=0, tuesday=1 etc
+                            $dateDay = Carbon::parse($dateDay)->dayOfWeekIso - 1;
+                            //assign the day to 'day_of_week'
+                            $item['day_of_week'] = $dateDay;
+                            //set the 'frequency' in $item to biweekly if the ['frequency'] value is '14'
+                            if ($otherServiceData['frequency'] == 14) {
+                                $item['frequency'] = 'biweekly';
+                            }
+                        }
+                    }
+                    $params = $item;
+
+                    //get the trashtypes from the $params['services']
+                    foreach ($params['services'] as $service) {
+                        $trashType = TrashType::where('company_id', $syncedCalendar->company_id)
+                            ->where('slug', $service)->get();
+                        array_push($trashTypes, $trashType[0]);
+                    }
+                    //delete the $params['services'] from the params
+                    unset($params['services']);
+
+
+                    $newCalendarItem = CalendarItem::updateOrCreate(
+                        [
+                            'calendar_id' => $syncedCalendar->id,
+                        ],
+                        $params
+                    );
+                    //attach every trashtype in the array to the newcalendaritem
+                    foreach ($trashTypes as $trashType) {
+                        $newCalendarItem->trashTypes()->attach($trashType->id);
+                    };
+                }
         }
-        $params['calendar_id'] = $syncedCalendar->id;
-        $trashTypes = TrashType::where('slug', $trashTypesSlugs)->get();
-        $trashTypesIds = [];
-        foreach ($trashTypes as $trashType) {
-            array_push($trashTypesIds, $trashType->id);
-        }
-        CalendarItem::updateOrCreate(
-            [
-                'calendar_id' => $syncedCalendar->id,
-                'start_time' => $params['start_time'],
-                'stop_time' => $params['stop_time'],
-                'day_of_week' => '1', //hardcoded for testing
-                'frequency' => 'weekly' //hardcoded for testing
-            ],
-            $params
-        )->trashTypes()->sync($trashTypesIds, false);
     }
 }
