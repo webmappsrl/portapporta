@@ -309,7 +309,6 @@ class ReaInstanceJsonSyncCommand extends Command
         $coordinate_array = [];
         try {
             foreach ($response['features'] as $zone) {
-                // $coordinate_array[$zone['properties']['id']] = $zone['geometry'];
                 $coordinate_array[$zone['properties']['id']] = array(
                     "type" => "MultiPolygon",
                     "coordinates" => $zone['geometry']['coordinates']
@@ -377,25 +376,25 @@ class ReaInstanceJsonSyncCommand extends Command
         $response = json_decode($track_obj, true);
 
         $calendarName = $zone_obg->label . ' (' . $slug . ')';
-        $params = [];
+        $params = [
+            'zone_id' => $zone_obg->id,
+            'user_type_id' => $userType->id,
+            'company_id' => $company_id,
+            'name' => $calendarName,
+        ];
         $calendarItems = [];
+
+        $this->info('calendar: ' . $url . 'for zone: ' . $zone_obg->label . PHP_EOL);
 
         foreach ($response as $items) {
             foreach ($items as $calendar) {
                 if (array_key_exists('start', $calendar)) {
                     //convert string to date
-                    $dateString = $calendar['start'];
-                    $currentYear = Carbon::now()->year;
-                    $dateStringWithYear = $currentYear . '-' . $dateString;
-                    $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
-                    $params['start_date'] = $date;
+                    $this->setStartDate($calendar, $params);
                 };
                 if (array_key_exists('end', $calendar)) {
-                    $dateString = $calendar['end'];
-                    $currentYear = Carbon::now()->year;
-                    $dateStringWithYear = $currentYear . '-' . $dateString;
-                    $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
-                    $params['stop_date'] = $date;
+                    //convert string to date
+                    $this->setStopDate($calendar, $params);
                 }
                 if (array_key_exists('calendars', $calendar)) {
                     foreach ($calendar['calendars'] as $calendarItem) {
@@ -403,27 +402,23 @@ class ReaInstanceJsonSyncCommand extends Command
                     }
                 }
             }
-            $syncedCalendar = Calendar::updateOrCreate(
-                [
-                    'name' => $calendarName,
-                    'zone_id' => $zone_obg->id,
-                    'user_type_id' => $userType->id,
-                    'company_id' => $company_id
-                ],
+            $syncedCalendar = Calendar::create(
                 $params
             );
-        }
-        if (count($calendarItems) > 0) {
-            foreach ($calendarItems as $calendarItem) {
-                $this->syncCalendarioItem($calendarItem, $syncedCalendar);
+            if (count($calendarItems) > 0) {
+                foreach ($calendarItems as $calendarItem) {
+                    $this->syncCalendarioItem($calendarItem, $syncedCalendar);
+                }
             }
         }
     }
     protected function syncCalendarioItem($calendarItem, $syncedCalendar)
     {
-        $params = [];
+        $item = [];
         $trashTypes = [];
         $frequency = 'weekly';
+        $daysOfTheWeek = [0, 1, 2, 3, 4, 5, 6];
+        $servicesByDay = [];
 
         if (array_key_exists('start', $calendarItem)) {
             $startTime = $calendarItem['start'];
@@ -431,106 +426,114 @@ class ReaInstanceJsonSyncCommand extends Command
         if (array_key_exists('end', $calendarItem)) {
             $stopTime = $calendarItem['end'];
         }
+
         foreach ($calendarItem['services'] as $service => $serviceData) {
+
             //if the ['days'] key does not exist, and instead a ['baseDate'] and ['frequency'] keys are found, 
             if (array_key_exists('baseDate', $serviceData) && array_key_exists('frequency', $serviceData)) {
-                //take the date value from 'basedate'and get the real day from the date
-                $dateDay = Carbon::createFromFormat('Y-m-d', $serviceData['baseDate'])->format('l');
-                //convert the day to a number but monday should be 0 and sunday 6
-                $dateDay = Carbon::parse($dateDay)->dayOfWeekIso - 1;
+
+                $dateDay = $this->handleBaseDate($serviceData['baseDate']);
+
                 //set the 'frequency' to biweekly if the ['frequency'] value is '14'
                 if ($serviceData['frequency'] == 14) {
                     $frequency = 'biweekly';
                 }
 
-                foreach ($serviceData as $date) {
+                foreach ($serviceData as $day) {
                     $item = [
+                        'calendar_id' => $syncedCalendar->id,
                         'start_time' => $startTime,
                         'stop_time' => $stopTime,
                         'day_of_week' => $dateDay,
                         'services' => [],
                         'frequency' => $frequency,
                     ];
-                    foreach ($calendarItem['services'] as $otherService => $otherServiceData) {
-                        if (array_key_exists('baseDate', $otherServiceData) && array_key_exists('frequency', $otherServiceData)) {
-                            if ($otherServiceData['baseDate'] == $date) {
-                                array_push($item['services'], $otherService);
-                            }
-                        }
-                    }
-                    $params = $item;
+                    array_push($item['services'], $service);
 
-                    //get the trashtypes from the $params['services']
-                    foreach ($params['services'] as $service) {
-                        $trashType = TrashType::where('company_id', $syncedCalendar->company_id)
-                            ->where('slug', $service)->get();
-                        array_push($trashTypes, $trashType[0]);
-                    }
-                    //delete the $params['services'] from the params
-                    unset($params['services']);
+                    //get the trashtypes from the $item['services']
+                    $trashTypes = $this->getTrashTypes($item, $syncedCalendar);
 
-                    $newCalendarItem = CalendarItem::updateOrCreate(
-                        [
-                            'calendar_id' => $syncedCalendar->id,
-                        ],
-                        $params
-                    );
+                    $newCalendarItem = CalendarItem::create($item);
                     //attach every trashtype in the array to the newcalendaritem
-                    foreach ($trashTypes as $trashType) {
-                        $newCalendarItem->trashTypes()->attach($trashType->id);
-                    };
+                    $newCalendarItem->trashTypes()->sync(collect($trashTypes)->pluck('id')->toArray());
                 }
-            } else
+            }
+            if (array_key_exists('days', $serviceData)) {
                 foreach ($serviceData['days'] as $day) {
-                    $item = [
-                        'start_time' => $startTime,
-                        'stop_time' => $stopTime,
-                        'day_of_week' => $day,
-                        'services' => [],
-                        'frequency' => $frequency,
-                    ];
-                    foreach ($calendarItem['services'] as $otherService => $otherServiceData) {
-                        if (array_key_exists('days', $otherServiceData)) {
-                            if (in_array($day, $otherServiceData['days'])) {
-                                array_push($item['services'], $otherService);
-                            }
-                        } //if the ['days'] key does not exist, and instead a ['baseDate'] and ['frequency'] keys are found, 
-                        else if (array_key_exists('baseDate', $otherServiceData) && array_key_exists('frequency', $otherServiceData)) {
-                            //take the date value from 'basedate'and get the real day from the date
-                            $dateDay = Carbon::createFromFormat('Y-m-d', $otherServiceData['baseDate'])->format('l');
-                            //convert the day to a number eg monday=0, tuesday=1 etc
-                            $dateDay = Carbon::parse($dateDay)->dayOfWeekIso - 1;
-                            //assign the day to 'day_of_week'
-                            $item['day_of_week'] = $dateDay;
-                            //set the 'frequency' in $item to biweekly if the ['frequency'] value is '14'
-                            if ($otherServiceData['frequency'] == 14) {
-                                $item['frequency'] = 'biweekly';
-                            }
-                        }
+                    if ($day == 7) {
+                        $day = 0;
                     }
-                    $params = $item;
-
-                    //get the trashtypes from the $params['services']
-                    foreach ($params['services'] as $service) {
-                        $trashType = TrashType::where('company_id', $syncedCalendar->company_id)
-                            ->where('slug', $service)->get();
-                        array_push($trashTypes, $trashType[0]);
+                    if (!isset($servicesByDay[$day])) {
+                        $servicesByDay[$day] = [];
                     }
-                    //delete the $params['services'] from the params
-                    unset($params['services']);
-
-
-                    $newCalendarItem = CalendarItem::updateOrCreate(
-                        [
-                            'calendar_id' => $syncedCalendar->id,
-                        ],
-                        $params
-                    );
-                    //attach every trashtype in the array to the newcalendaritem
-                    foreach ($trashTypes as $trashType) {
-                        $newCalendarItem->trashTypes()->attach($trashType->id);
-                    };
+                    $servicesByDay[$day][] = $service;
                 }
+            }
         }
+        foreach ($servicesByDay as $serviceByDay) {
+            //if the day of the week is not set in the $servicesByDay array, skip it
+            if (!isset($servicesByDay[$dayOfTheWeek])) {
+                continue;
+            }
+            $item = [
+                'calendar_id' => $syncedCalendar->id,
+                'start_time' => $startTime,
+                'stop_time' => $stopTime,
+                'day_of_week' => $dayOfTheWeek,
+                'services' => $servicesByDay[$dayOfTheWeek] ?? [],
+                'frequency' => $frequency,
+            ];
+
+            $newCalendarItem = CalendarItem::create($item);
+
+            $trashTypes = $this->getTrashTypes($item, $syncedCalendar);
+
+            $newCalendarItem->trashTypes()->sync(collect($trashTypes)->pluck('id')->toArray());
+        }
+
+        //reset the servicesByDay array
+        $servicesByDay = [];
+    }
+
+
+    protected function setStartDate($calendar, &$item)
+    {
+        $dateString = $calendar['start'];
+        $currentYear = Carbon::now()->year;
+        $dateStringWithYear = $currentYear . '-' . $dateString;
+        $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
+        $item['start_date'] = $date;
+    }
+
+    protected function setStopDate($calendar, &$params)
+    {
+        $dateString = $calendar['end'];
+        $currentYear = Carbon::now()->year;
+        $dateStringWithYear = $currentYear . '-' . $dateString;
+        $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
+        $params['stop_date'] = $date;
+    }
+
+    protected function getTrashTypes($item, $syncedCalendar)
+    {
+        $slugs = $item['services'];
+
+        foreach ($slugs as $slug) {
+            $trashType = TrashType::where('company_id', $syncedCalendar->company_id)
+                ->where('slug', $slug)->get();
+            $trashTypes[] = $trashType[0];
+        }
+        return $trashTypes;
+    }
+
+    protected function handleBaseDate($baseDate)
+    {
+        $dateDay = Carbon::createFromFormat('Y-m-d', $baseDate)->format('l');
+        $dateDay = Carbon::parse($dateDay)->dayOfWeekIso;
+        if ($dateDay == 7) {
+            $dateDay = 0;
+        }
+
+        return $dateDay;
     }
 }
