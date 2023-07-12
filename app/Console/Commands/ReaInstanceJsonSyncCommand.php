@@ -357,7 +357,7 @@ class ReaInstanceJsonSyncCommand extends Command
 
                 if (count($zone_obg->userTypes) > 0) {
                     foreach ($zone_obg->userTypes as $userType) {
-                        $this->syncCalendario($userType->slug, $endpoint, $userType, $zone_obg, $company_id);
+                        $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
                     }
                 }
             }
@@ -366,7 +366,7 @@ class ReaInstanceJsonSyncCommand extends Command
         }
     }
 
-    protected function syncCalendario($slug, $endpoint, $userType, $zone_obg, $company_id)
+    protected function syncCalendario($slug, $endpoint, $userType, $zone, $zoneObgId, $company_id)
     {
         // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
@@ -375,15 +375,21 @@ class ReaInstanceJsonSyncCommand extends Command
         $response = json_decode($obj, true);
         $calendarItems = [];
 
-        $calendarName = $zone_obg->label . ' (' . $slug . ')';
+        //take only the item from the response with key = zone->id
+        $response = array_filter($response, function ($key) use ($zone) {
+            return $key == $zone['id'];
+        }, ARRAY_FILTER_USE_KEY);
+
+        $calendarName = $zone['label'] . ' (' . $slug . ') ' . $zone['comune'];
         $params = [
-            'zone_id' => $zone_obg->id,
+            'name' => $calendarName,
+            'zone_id' => $zoneObgId,
             'user_type_id' => $userType->id,
             'company_id' => $company_id,
 
         ];
 
-        $this->info('calendar: ' . $url . ' for zone: ' . $zone_obg->label . PHP_EOL);
+        $this->info('calendar: ' . $url . ' for zone: ' . $zone['label'] . PHP_EOL);
 
         foreach ($response as $items) {
             foreach ($items as $calendar) {
@@ -400,13 +406,12 @@ class ReaInstanceJsonSyncCommand extends Command
                         $calendarItems[] = $calendarItem;
                     }
                 }
-            }
-            $syncedCalendar = Calendar::updateOrCreate([
-                'name' => $calendarName,
-
-            ], $params);
-            foreach ($calendarItems as $calendarItem) {
-                $this->syncCalendarioItem($calendarItem, $syncedCalendar);
+                $syncedCalendar = Calendar::factory()->create($params);
+                foreach ($calendarItems as $calendarItem) {
+                    $this->syncCalendarioItem($calendarItem, $syncedCalendar);
+                }
+                //reset the calendarItems array
+                $calendarItems = [];
             }
         }
     }
@@ -432,28 +437,21 @@ class ReaInstanceJsonSyncCommand extends Command
                 $services[] = $service;
                 $dateDay = $this->handleBaseDate($serviceData['baseDate']);
 
-                //set the 'frequency' to biweekly if the ['frequency'] value is '14'
-                if ($serviceData['frequency'] == 14) {
-                    $frequency = 'biweekly';
-                }
+                $item = [
+                    'calendar_id' => $syncedCalendar->id,
+                    'start_time' => $startTime,
+                    'stop_time' => $stopTime,
+                    'day_of_week' => $dateDay,
+                    'frequency' => $serviceData['frequency'] == 14 ? 'biweekly' : 'weekly',
+                    'services' => $services, // initialize the services array
+                ];
 
-                foreach ($serviceData as $day) {
-                    $item = [
-                        'calendar_id' => $syncedCalendar->id,
-                        'start_time' => $startTime,
-                        'stop_time' => $stopTime,
-                        'day_of_week' => $dateDay,
-                        'frequency' => $frequency,
-                    ];
-                    array_push($item['services'], $service);
+                //get the trashtypes from the $item['services']
+                $trashTypes = $this->getTrashTypes($item['services'], $syncedCalendar);
 
-                    //get the trashtypes from the $item['services']
-                    $trashTypes = $this->getTrashTypes($services, $syncedCalendar);
-
-                    $newCalendarItem = CalendarItem::updateOrCreate(['day_of_week' => $dateDay], $item);
-                    //attach every trashtype in the array to the newcalendaritem
-                    $newCalendarItem->trashTypes()->sync(collect($trashTypes)->pluck('id')->toArray());
-                }
+                $newCalendarItem = CalendarItem::create($item);
+                //attach every trashtype in the array to the newcalendaritem
+                $newCalendarItem->trashTypes()->sync(collect($trashTypes)->pluck('id')->toArray());
             }
             if (array_key_exists('days', $serviceData)) {
                 foreach ($serviceData['days'] as $day) {
@@ -478,7 +476,7 @@ class ReaInstanceJsonSyncCommand extends Command
                 'frequency' => $frequency,
             ];
 
-            $newCalendarItem = CalendarItem::updateOrCreate(['day_of_week' => $dayOfWeek], $item);
+            $newCalendarItem = CalendarItem::create($item);
 
             $trashTypes = $this->getTrashTypes($services, $syncedCalendar);
 
