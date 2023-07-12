@@ -47,14 +47,14 @@ class Zone extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('label'),
-            Text::make('comune'),
-            Text::make('url'),
-            MapMultiPolygon::make('geometry')->withMeta([
+            Text::make('Label', 'label'),
+            Text::make('Comune', 'comune'),
+            Text::make('Url', 'url'),
+            MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
             ]),
-            BelongsToMany::make('UserTypes'),
+            BelongsToMany::make('User Types', 'UserTypes'),
         ];
     }
 

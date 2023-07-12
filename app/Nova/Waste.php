@@ -63,10 +63,10 @@ class Waste extends Resource
         $selectedTrashTypeId = $this->model()->trash_type_id;
         return [
             ID::make()->sortable(),
-            Boolean::make('pap'),
-            Boolean::make('delivery'),
-            Boolean::make('collection_center'),
-            BelongsTo::make('trashType'),
+            Boolean::make('PAP', 'pap'),
+            Boolean::make('Delivery', 'delivery'),
+            Boolean::make('Collection Center', 'collection_center'),
+            BelongsTo::make('Trash Type', 'trashType'),
             NovaTabTranslatable::make([
                 Text::make('name')->sortable(),
                 Textarea::make('where'),

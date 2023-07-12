@@ -81,7 +81,7 @@ class CalendarItem extends Resource
                 }
                 return 'ND';
             })->asHtml(),
-            Select::make('day_of_week')->options([
+            Select::make('Day of Week', 'day_of_week')->options([
                 0 => 'Sun',
                 1 => 'Mon',
                 2 => 'Tue',
@@ -90,28 +90,17 @@ class CalendarItem extends Resource
                 5 => 'Fry',
                 6 => 'Sat',
             ])->displayUsingLabels(),
-            Select::make('frequency')->options([
+            Select::make('Frequency', 'frequency')->options([
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ]),
-            // Text::make('base_date')
-            //     ->hideFromIndex()
-            //     ->nullable()
-            //     ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
-            //     ->dependsOn(['frequency'], function (Text $field, NovaRequest $request, FormData $formData) {
-            //         if ($formData->frequency !== 'biweekly') {
-            //             $field->hide();
-            //         } else {
-            //             $field->show()->rules('required');
-            //         }
-            //     }),
-            Date::make('base_date')
+            Date::make('Base Date', 'base_date')
                 ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
                 ->hideFromIndex(),
-            Text::make('start_time'),
-            Text::make('stop_time'),
+            Text::make('Start Time', 'start_time'),
+            Text::make('Stop Time', 'stop_time'),
 
-            BelongsToMany::make('TrashTypes'),
+            BelongsToMany::make('Trash Types', 'TrashTypes'),
         ];
     }
 

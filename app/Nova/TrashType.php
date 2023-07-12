@@ -36,7 +36,7 @@ class TrashType extends Resource
      * @var array
      */
     public static $search = [
-        'name','slug'
+        'name', 'slug'
     ];
 
     /**
@@ -51,10 +51,10 @@ class TrashType extends Resource
             ID::make()->sortable(),
             Text::make('slug')->sortable(),
             Color::make('color'),
-            Boolean::make('show_in_reservation')->hideFromIndex(),
-            Boolean::make('show_in_info')->hideFromIndex(),
-            Boolean::make('show_in_abandonment')->hideFromIndex(),
-            Boolean::make('show_in_report')->hideFromIndex(),
+            Boolean::make('Show in Reservation', 'show_in_reservation')->hideFromIndex(),
+            Boolean::make('Show Info', 'show_in_info')->hideFromIndex(),
+            Boolean::make('Show in Abandonment', 'show_in_abandonment')->hideFromIndex(),
+            Boolean::make('Show in Report', 'show_in_report')->hideFromIndex(),
 
 
             NovaTabTranslatable::make([

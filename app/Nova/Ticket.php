@@ -67,18 +67,18 @@ class Ticket extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('ticket_type'),
-            BelongsTo::make('trash_type'),
+            Text::make('Ticket Type', 'ticket_type'),
+            BelongsTo::make('Trash Type', 'trash_type'),
             BelongsTo::make('User'),
             Text::make('User Email', function () {
                 return $this->user->email;
             })->onlyOnDetail(),
             DateTime::make(__('Created At'), 'created_at')->sortable(),
-            Text::make('phone'),
-            MapPoint::make('geometry'),
+            Text::make('Phone', 'phone'),
+            MapPoint::make('Geometry', 'geometry'),
             Text::make('Location Address', 'location_address'),
-            Textarea::make('note')->alwaysShow()->onlyOnDetail(),
-            Text::make('image', function () {
+            Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail(),
+            Text::make('Image', 'image', function () {
                 return '<img src="' . $this->image . '" />';
             })->asHtml()->onlyOnDetail()
         ];

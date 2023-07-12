@@ -41,7 +41,7 @@ class Calendar extends Resource
         ];
     }
 
-    
+
     /**
      * Build an "index" query for the given resource.
      *
@@ -67,9 +67,9 @@ class Calendar extends Resource
             Text::make('name'),
             BelongsTo::make('zone'),
             BelongsTo::make('userType'),
-            Date::make('start_date'),
-            Date::make('stop_date'),
-            HasMany::make('CalendarItems'),
+            Date::make('Start Date', 'start_date'),
+            Date::make('Stop Date', 'stop_date'),
+            HasMany::make('Calendar Items', 'CalendarItems'),
         ];
     }
 
