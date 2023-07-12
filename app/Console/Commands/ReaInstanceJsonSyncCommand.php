@@ -503,10 +503,15 @@ class ReaInstanceJsonSyncCommand extends Command
 
     protected function setStopDate($calendar)
     {
-        $dateString = $calendar['end'] ?? $calendar['stop'];
+        $dateEndString = $calendar['end'] ?? $calendar['stop'];
+        $dateStartString = $calendar['start'];
         $currentYear = Carbon::now()->year;
-        $dateStringWithYear = $currentYear . '-' . $dateString;
-        $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
+        //if the start_date month is greater than the stop_date month add 1 year to the stop_date
+        if (Carbon::createFromFormat('m-d', $dateStartString)->month > Carbon::createFromFormat('m-d', $dateEndString)->month) {
+            $currentYear = $currentYear + 1;
+        }
+        $dateEndStringWithYear = $currentYear . '-' . $dateEndString;
+        $date = Carbon::createFromFormat('Y-m-d', $dateEndStringWithYear)->format('Y-m-d');
         return $date;
     }
 
