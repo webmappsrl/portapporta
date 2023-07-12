@@ -437,6 +437,9 @@ class ReaInstanceJsonSyncCommand extends Command
                 $services[] = $service;
                 $dateDay = $this->handleBaseDate($serviceData['baseDate']);
 
+                //format $serviceData['baseDate'] to a Carbon date
+                $formattedBaseDate = Carbon::createFromFormat('Y-m-d', $serviceData['baseDate'])->format('Y-m-d');
+
                 $item = [
                     'calendar_id' => $syncedCalendar->id,
                     'start_time' => $startTime,
@@ -444,6 +447,7 @@ class ReaInstanceJsonSyncCommand extends Command
                     'day_of_week' => $dateDay,
                     'frequency' => $serviceData['frequency'] == 14 ? 'biweekly' : 'weekly',
                     'services' => $services, // initialize the services array
+                    'base_date' => $formattedBaseDate
                 ];
 
                 //get the trashtypes from the $item['services']

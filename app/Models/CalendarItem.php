@@ -20,6 +20,10 @@ class CalendarItem extends Model
         'frequency',
         'base_date',
     ];
+
+    protected $casts = [
+        'base_date' => 'date',
+    ];
     use HasFactory;
 
     public function calendar()

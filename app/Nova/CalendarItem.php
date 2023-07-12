@@ -9,6 +9,7 @@ use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\Text;
 use NovaAttachMany\AttachMany;
 use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -93,10 +94,20 @@ class CalendarItem extends Resource
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ]),
+            // Text::make('base_date')
+            //     ->hideFromIndex()
+            //     ->nullable()
+            //     ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
+            //     ->dependsOn(['frequency'], function (Text $field, NovaRequest $request, FormData $formData) {
+            //         if ($formData->frequency !== 'biweekly') {
+            //             $field->hide();
+            //         } else {
+            //             $field->show()->rules('required');
+            //         }
+            //     }),
             Date::make('base_date')
-                ->hideFromIndex()
-                ->nullable()
-                ->help('Only used for biweekly frequency'),
+                ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
+                ->hideFromIndex(),
             Text::make('start_time'),
             Text::make('stop_time'),
 
