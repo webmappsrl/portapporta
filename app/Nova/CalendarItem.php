@@ -3,17 +3,18 @@
 namespace App\Nova;
 
 use App\Models\Company;
-use App\Nova\Actions\CalendarItemAdvancedReplicateAction;
-use App\Nova\Filters\CalendarItemsCalendarFilter;
+use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\Text;
+use NovaAttachMany\AttachMany;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\BelongsToMany;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Select;
-use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use App\Nova\Filters\CalendarItemsCalendarFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
-use NovaAttachMany\AttachMany;
+use App\Nova\Actions\CalendarItemAdvancedReplicateAction;
 
 
 class CalendarItem extends Resource
@@ -92,6 +93,10 @@ class CalendarItem extends Resource
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ]),
+            Date::make('base_date')
+                ->hideFromIndex()
+                ->nullable()
+                ->help('Only used for biweekly frequency'),
             Text::make('start_time'),
             Text::make('stop_time'),
 

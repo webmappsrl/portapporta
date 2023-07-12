@@ -18,6 +18,7 @@ class CalendarItem extends Model
         'company_id',
         'day_of_week',
         'frequency',
+        'base_date',
     ];
     use HasFactory;
 
