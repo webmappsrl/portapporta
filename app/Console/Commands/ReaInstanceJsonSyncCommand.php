@@ -397,7 +397,7 @@ class ReaInstanceJsonSyncCommand extends Command
                     //convert string to date
                     $params['start_date'] =  $this->setStartDate($calendar);
                 };
-                if (array_key_exists('end', $calendar)) {
+                if (array_key_exists('end', $calendar) || array_key_exists('stop', $calendar)) {
                     //convert string to date
                     $params['stop_date'] =  $this->setStopDate($calendar);
                 };
@@ -503,7 +503,7 @@ class ReaInstanceJsonSyncCommand extends Command
 
     protected function setStopDate($calendar)
     {
-        $dateString = $calendar['end'];
+        $dateString = $calendar['end'] ?? $calendar['stop'];
         $currentYear = Carbon::now()->year;
         $dateStringWithYear = $currentYear . '-' . $dateString;
         $date = Carbon::createFromFormat('Y-m-d', $dateStringWithYear)->format('Y-m-d');
