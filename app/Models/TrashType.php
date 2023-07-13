@@ -27,7 +27,8 @@ class TrashType extends Model
         'where',
         'howto',
         'allowed',
-        'notallowed'
+        'notallowed',
+        'color'
     ];
 
     protected $casts = [
@@ -49,15 +50,18 @@ class TrashType extends Model
         }
     }
 
-    public function company(){
+    public function company()
+    {
         return $this->belongsTo(Company::class);
     }
 
-    public function wastes(){
+    public function wastes()
+    {
         return $this->hasMany(Waste::class);
     }
 
-    public function wasteCollectionCenters(){
+    public function wasteCollectionCenters()
+    {
         return $this->belongsToMany(WasteCollectionCenter::class);
     }
 }
