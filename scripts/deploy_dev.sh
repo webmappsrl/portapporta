@@ -15,7 +15,7 @@ composer install  --no-interaction --prefer-dist --optimize-autoloader
 # php artisan nova:install
 
 # Run database migrations
-php artisan migrate:fresh --force --seed
+php artisan migrate
 
 # Clear caches
 php artisan cache:clear
