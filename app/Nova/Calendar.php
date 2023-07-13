@@ -41,7 +41,7 @@ class Calendar extends Resource
         ];
     }
 
-    
+
     /**
      * Build an "index" query for the given resource.
      *
@@ -64,12 +64,18 @@ class Calendar extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('name'),
+            Text::make('name')
+                ->displayUsing(function ($name, $a, $b) {
+                    $wrappedName = wordwrap($name, 50, "\n", true);
+                    $htmlName = str_replace("\n", '<br>', $wrappedName);
+                    return $htmlName;
+                })
+                ->asHtml(),
             BelongsTo::make('zone'),
             BelongsTo::make('userType'),
-            Date::make('start_date'),
-            Date::make('stop_date'),
-            HasMany::make('CalendarItems'),
+            Date::make('Start Date', 'start_date'),
+            Date::make('Stop Date', 'stop_date'),
+            HasMany::make('Calendar Items', 'CalendarItems'),
         ];
     }
 

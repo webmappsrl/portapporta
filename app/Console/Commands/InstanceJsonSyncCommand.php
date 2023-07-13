@@ -300,7 +300,7 @@ class InstanceJsonSyncCommand extends Command
                 // $coordinate_array[$zone['properties']['id']] = $zone['geometry'];
                 $coordinate_array[$zone['properties']['id']] = array(
                     "type" => "MultiPolygon",
-                    "coordinates" => [$zone['geometry']['coordinates']]
+                    "coordinates" => $zone['geometry']['coordinates']
                 );
             }
         } catch (Exception $e) {
@@ -321,6 +321,8 @@ class InstanceJsonSyncCommand extends Command
                 if (array_key_exists('url',$zone)) {
                     $params['url'] = $zone['url'];
                 }
+                $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('".json_encode($coordinate_array[$zone['id']]).",4326')) As wkt")[0]->wkt;
+                $params['company_id'] = $company_id;
 
                 $zone_obg = Zone::updateOrCreate(
                     [

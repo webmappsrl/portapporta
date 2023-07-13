@@ -88,9 +88,10 @@ class User extends Resource
                 }
                 return 'ND';
             })->onlyOnDetail(),
-            //BelongsTo::make('Zone')->onlyOnDetail(),
 
-            //BelongsTo::make('User Type')->onlyOnDetail(),
+            // BelongsTo::make('Zone')->onlyOnForms(),
+
+            // BelongsTo::make('User Type')->onlyOnForms(),
 
         ];
     }

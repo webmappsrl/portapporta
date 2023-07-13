@@ -64,10 +64,10 @@ class WasteCollectionCenter extends Resource
         // $geojson = '{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": '.$geom.'}]}';
         return [
             ID::make()->sortable(),
-            Color::make('marker_color')->hideFromIndex(),
-            Text::make('marker_size')->hideFromIndex(),
-            Text::make('website')->hideFromIndex(),
-            MapPoint::make('geometry')->withMeta([
+            Color::make('Marker Color', 'marker_color')->hideFromIndex(),
+            Text::make('Marker Size', 'marker_size')->hideFromIndex(),
+            Text::make('Website', 'website')->hideFromIndex(),
+            MapPoint::make('Geometry', 'geometry')->withMeta([
                 'center' => ["43", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
                 'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png',

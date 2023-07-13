@@ -54,12 +54,16 @@ class CalendarController extends Controller
                 foreach ($calendar->calendarItems->where('day_of_week', $date->dayOfWeek) as $item) {
                     $p = [];
                     $p['trash_types'] = $item->trashTypes->pluck('id')->toArray();
+                    $p['frequency'] = $item->frequency;
                     $p['start_time'] = str_replace('0:00', '0', $item->start_time);
                     $p['stop_time'] = str_replace('0:00', '0', $item->stop_time);
+                    if ($item->frequency == 'biweekly') {
+                        $p['base_date'] = $item->base_date;
+                    }
                     $data[$date->format('Y-m-d')][] = $p;
                 }
             }
         }
-        return $this->sendResponse($data, 'Ticket created.');
+        return $this->sendResponse($data, 'Calendar created.');
     }
 }
