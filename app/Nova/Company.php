@@ -6,6 +6,7 @@ use App\Enums\Fonts;
 use Laravel\Nova\Panel;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Fields\Color;
@@ -222,6 +223,28 @@ class Company extends Resource
 
             Color::make('Secondary Color', 'secondary_color')
                 ->hideFromIndex(),
+
+            File::make('Push Notification Plist', 'push_notification_plist_url')
+                ->rules('exclude:mimes:php')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->hideFromIndex()
+                ->disableDownload()
+                ->help(__('follow this link: https://capacitorjs.com/docs/guides/push-notifications-firebase'))
+                ->storeAs(function () {
+                    return 'GoogleService-Info.plist';
+                }),
+
+            File::make('Push Notification Json', 'push_notification_json_url')
+                ->rules('mimes:json')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->hideFromIndex()
+                ->disableDownload()
+                ->help(__('follow this link: https://capacitorjs.com/docs/guides/push-notifications-firebase'))
+                ->storeAs(function () {
+                    return 'google-services.json';
+                }),
 
         ];
     }

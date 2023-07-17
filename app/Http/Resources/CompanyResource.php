@@ -61,6 +61,14 @@ class CompanyResource extends JsonResource
             $resources['logo'] = url(Storage::url($this->logo));
         }
 
+        if (!empty($this->push_notification_plist_url)) {
+            $resources['push_notification_plist_url'] = url(Storage::url($this->push_notification_plist_url));
+        }
+
+        if (!empty($this->push_notification_json_url)) {
+            $resources['push_notification_json_url'] = url(Storage::url($this->push_notification_json_url));
+        }
+
         $json['resources'] = $resources;
 
         return $json;
