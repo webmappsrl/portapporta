@@ -225,7 +225,7 @@ class Company extends Resource
                 ->hideFromIndex(),
 
             File::make('Push Notification Plist', 'push_notification_plist_url')
-                ->rules('exclude:mimes:php')
+                // ->rules('exclude:mimes:php')
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->hideFromIndex()
