@@ -18,6 +18,8 @@ use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Murdercode\TinymceEditor\TinymceEditor;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
+use Laravel\Nova\Fields\Number;
+use Wm\MapPoint\MapPoint;
 
 class Company extends Resource
 {
@@ -78,6 +80,7 @@ class Company extends Resource
                 })->asHtml(),
             Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
             new Panel('Company API', $this->apiPanel()),
+            new Panel('Company Location', $this->companyLocation()),
             new Panel('Company Resources', $this->companyResources()),
         ];
     }
@@ -101,6 +104,26 @@ class Company extends Resource
         return $fields;
     }
 
+    public function companyLocation()
+    {
+        return [
+            Number::make('default zoom')
+                ->help('The default zoom of the map, the value can be  min_zoom >= start_zoom >= max_zoom')
+                ->rules('lte:max_zoom', 'gte:min_zoom')
+                ->default('min_zoom'),
+            Number::make('max zoom')
+                ->help('The max zoom of the map')
+                ->default(17),
+            Number::make('min zoom')
+                ->help('The min zoom of the map')
+                ->default(5),
+            MapPoint::make('location')->withMeta([
+                'minZoom' => 5,
+                'maxZoom' => 17,
+                'defaultZoom' => 5
+            ]),
+        ];
+    }
     public function companyResources()
     {
         $path = 'storage/resources/' . $this->model()->id;
