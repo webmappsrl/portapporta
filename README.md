@@ -8,7 +8,7 @@ Laravel is a web application framework with expressive, elegant syntax.
 
 ### 1.1 Prerequisites
 
-To develop this project make sure you have PHP version 8.0.x installed and running on your machine.
+To develop this project make sure you have PHP version 8.1.x installed and running on your machine.
 
 ### 1.2 Installation
 
