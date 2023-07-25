@@ -53,7 +53,10 @@ class User extends Resource
             Text::make('Name')
                 ->sortable()
                 ->rules('required', 'max:255'),
-
+            Text::make('fcm_token')
+                ->sortable()
+                ->rules('required', 'max:255'),
+            Text::make('app_company_id'),
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')

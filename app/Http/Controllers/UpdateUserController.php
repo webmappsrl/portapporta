@@ -45,6 +45,13 @@ class UpdateUserController extends Controller
                 return $this->sendResponse($success, 'location and user type changed successfully.');
             }
 
+            if ($request->has('fcm_token')) {
+                $user->fcm_token = $request->fcm_token;
+                $user->save();
+                $success['user'] =  $user;
+                return $this->sendResponse($success, 'fcm token changed successfully.');
+            }
+
             throw ValidationException::withMessages([
                 'wrong' => ['Something get wrong']
             ]);

@@ -25,7 +25,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'password',
         'zone_id',
         'user_type_id',
-        'location'
+        'location',
+        'fcm_token'
     ];
 
     /**
@@ -69,7 +70,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canImpersonate()
     {
-        if(auth()->user()->id==1) {
+        if (auth()->user()->id == 1) {
             return true;
         }
         return false;
@@ -82,7 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canBeImpersonated()
     {
-        if(Company::where('user_id',$this->id)->count()) {
+        if (Company::where('user_id', $this->id)->count()) {
             return true;
         }
         return false;
