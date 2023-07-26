@@ -130,7 +130,9 @@ class ApiCalendarTest extends TestCase
         ]);
 
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"No calendar matching."}', $response->content());
+        $contentResponse = json_decode($response->content());
+        $this->assertSame(false, $contentResponse->success);
+        $this->assertSame("No calendars matching.", $contentResponse->message);
     }
 
     /** @test */

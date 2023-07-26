@@ -21,7 +21,7 @@ class AuthApiTest extends TestCase
         $this->assertSame('{"success":false,"message":"The name field is required. (and 7 more errors)"}', $response->content());
     }
 
-    public function testRegisterCompanyIdFieldRequired()
+    public function testRegisterAppCompanyIdFieldRequired()
     {
         $response = $this->post('/api/register', [
             'email' => 'team@webmapp.it',
@@ -29,7 +29,7 @@ class AuthApiTest extends TestCase
             'name' => 'myName'
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The company id field is required. (and 6 more errors)"}', $response->content());
+        $this->assertSame('{"success":false,"message":"The app company id field is required. (and 6 more errors)"}', $response->content());
     }
 
 
@@ -39,7 +39,7 @@ class AuthApiTest extends TestCase
             'email' => 'team@webmapp.it',
             'password' => 'webmapp',
             'name' => 'myName',
-            'company_id' => 10
+            'app_company_id' => 10
 
         ]);
         $this->assertSame(400, $response->status());
@@ -51,7 +51,7 @@ class AuthApiTest extends TestCase
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
             'name' => 'myName',
-            'company_id' => 10
+            'app_company_id' => 10
         ]);
         $this->assertSame(400, $response->status());
         $this->assertSame('{"success":false,"message":"The password confirmation does not match. (and 4 more errors)"}', $response->content());
@@ -68,7 +68,7 @@ class AuthApiTest extends TestCase
             'password' => 'webmappwebmapp',
             'password_confirmation' => 'webmappwebmapp',
             'name' => 'myName',
-            'company_id' => 10,
+            'app_company_id' => 10,
             'zone_id' => $z->id,
             'user_type_id' => $u->id,
             'location' => [10, 45],
