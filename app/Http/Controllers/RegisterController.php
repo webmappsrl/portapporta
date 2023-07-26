@@ -16,7 +16,7 @@ class RegisterController extends Controller
         try {
             $request->validate([
                 'name' => ['required'],
-                'company_id' => ['required'],
+                'app_company_id' => ['required'],
                 'email' => ['required', 'email', 'unique:users'],
                 'password' => ['required', 'min:8', 'confirmed'],
                 'password_confirmation' => ['required'],
@@ -36,6 +36,7 @@ class RegisterController extends Controller
             'zone_id' => $request->zone_id,
             'user_type_id' => $request->user_type_id,
             'location' => DB::select("SELECT ST_GeomFromText('POINT(" . $request->location[0] . " " . $request->location[1] . " )') as g")[0]->g,
+            'app_company_id' => $request->app_company_id,
         ]);
 
         $success['token'] =  $user->createToken('access_token')->plainTextToken;
