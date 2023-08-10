@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Nova\Auth\Impersonatable;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
@@ -51,7 +52,10 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasOne(Company::class);
     }
-
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class);
+    }
     public function userType()
     {
         return $this->belongsTo(UserType::class);
@@ -69,7 +73,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canImpersonate()
     {
-        if(auth()->user()->id==1) {
+        if (auth()->user()->id == 1) {
             return true;
         }
         return false;
@@ -82,7 +86,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canBeImpersonated()
     {
-        if(Company::where('user_id',$this->id)->count()) {
+        if (Company::where('user_id', $this->id)->count()) {
             return true;
         }
         return false;

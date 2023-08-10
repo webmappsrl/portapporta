@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateAddressRequest;
+use App\Http\Controllers\AddressController;
 use App\Models\User;
+use App\Models\Address;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class UpdateUserController extends Controller
 {
@@ -23,7 +27,7 @@ class UpdateUserController extends Controller
                 $user->name = $request->name;
                 $user->save();
                 $success['user'] =  $user;
-                $success['user']['location'] = $this->getLocation($user);
+                $success['user']['location'] = $this->getLocationByUser($user);
                 return $this->sendResponse($success, 'user name changed successfully.');
             }
 
@@ -31,7 +35,7 @@ class UpdateUserController extends Controller
                 $user->password = Hash::make($request->password);
                 $user->save();
                 $success['user'] =  $user;
-                $success['user']['location'] = $this->getLocation($user);
+                $success['user']['location'] = $this->getLocationByUser($user);
                 return $this->sendResponse($success, 'password changed successfully.');
             }
 
@@ -41,7 +45,7 @@ class UpdateUserController extends Controller
                 $user->location = DB::select("SELECT ST_GeomFromText('POINT(" . $request->location[1] . " " . $request->location[0] . " )') as g")[0]->g;
                 $user->save();
                 $success['user'] =  $user;
-                $success['user']['location'] = $this->getLocation($user);
+                $success['user']['location'] = $this->getLocationByUser($user);
                 return $this->sendResponse($success, 'location and user type changed successfully.');
             }
 
@@ -53,6 +57,49 @@ class UpdateUserController extends Controller
         }
     }
 
+    public function v1Update(Request $request)
+    {
+        try {
+            $authUser = Auth::user();
+            $changes = [];
+            $user = User::find($authUser->id);
+            $success['user'] =  $user;
+
+            if ($request->has('name')) {
+                $user->name = $request->name;
+                $user->save();
+                $success['user'] =  $user;
+                array_push($changes, 'name');
+            }
+            if ($request->has('addresses')) {
+                Log::info($request->addresses);
+                foreach ($request->addresses as $address) {
+                    if (isset($address['id'])) {
+                        $updateAddressRequest = new UpdateAddressRequest();
+                        $updateAddressRequest['id'] =  $address['id'];
+                        $updateAddressRequest['address'] =  $address['address'];
+                        $updateAddressRequest['location'] =  $address['location'];
+                        (new AddressController)->update($updateAddressRequest);
+                    } else {
+                        $createAddressRequest = new UpdateAddressRequest();
+                        $createAddressRequest['address'] =  $address['address'];
+                        $createAddressRequest['location'] =  $address['location'];
+                        (new AddressController)->create($createAddressRequest);
+                    }
+                    array_push($changes, 'addresses');
+                }
+                $user->addresses;
+            }
+
+            return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
+
+            throw ValidationException::withMessages([
+                'wrong' => ['Something get wrong']
+            ]);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+    }
     public function delete(Request $request)
     {
         try {
@@ -65,11 +112,36 @@ class UpdateUserController extends Controller
         $success['user'] =  $user;
         return $this->sendResponse($success, 'user deleted successfully');
     }
-
-    private  function getLocation($user)
+    private  function getLocationByUser($user)
     {
-        $g = json_decode(DB::select("SELECT st_asgeojson('$user->location') as g")[0]->g);
+        return $this->getLocation($user->location);
+    }
+    private  function getLocation($location)
+    {
+        $g = json_decode(DB::select("SELECT st_asgeojson('$location') as g")[0]->g);
 
-        return [$g->coordinates[1], $g->coordinates[0]];
+        return [$g->coordinates[0], $g->coordinates[1]];
+    }
+    public function get(Request $request)
+    {
+        $user = $request->user();
+        $query = Address::where('user_id', $user->id)->get();
+        $addresses = collect($query)->map(function ($address, $key) {
+            $address->location = $this->getLocation($address->location);
+            return $address;
+        });
+        $user->addresses = json_decode($addresses);
+        if ($user->location != null) {
+            $geometry = $user->location;
+            $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
+            $user->location = [$g->coordinates[1], $g->coordinates[0]];
+        }
+
+        return $user;
+    }
+
+    private function getGeometryFromLocation($location)
+    {
+        return DB::select("SELECT ST_GeomFromText('POINT(" . $location[1] . " " . $location[0] . " )') as g")[0]->g;
     }
 }

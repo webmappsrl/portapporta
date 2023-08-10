@@ -30,9 +30,7 @@ class TicketController extends Controller
             ->where('user_id', Auth::user()->id)
             ->orderBy('created_at', 'desc')
             ->get()
-            ->toArray())->map(function ($item) {
-            return $this->iterator($item);
-        });
+            ->toArray());
 
 
 
@@ -122,6 +120,70 @@ class TicketController extends Controller
     }
 
     /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function v1store(Request $request)
+    {
+        // Auth::user();
+        try {
+            $request->validate([
+                'ticket_type' => [
+                    'required',
+                    Rule::in(['reservation', 'info', 'abandonment', 'report']),
+                ],
+            ]);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+
+        // Create Ticket
+        $ticket = new Ticket();
+        $ticket->ticket_type = $request->ticket_type;
+        $ticket->company_id = $request->id;
+        $ticket->user_id = Auth::user()->id;
+        if ($request->exists('trash_type_id')) {
+            $ticket->trash_type_id = $request->trash_type_id;
+        }
+        if ($request->exists('address_id')) {
+            $ticket->address_id = $request->address_id;
+        }
+        if ($request->exists('missed_withdraw_date')) {
+            $ticket->missed_withdraw_date = $request->missed_withdraw_date;
+        }
+        if ($request->exists('note')) {
+            $ticket->note = $request->note;
+        }
+        if ($request->exists('phone')) {
+            $ticket->phone = $request->phone;
+        }
+        if ($request->exists('image')) {
+            $ticket->image = $request->image;
+        }
+        if ($request->exists('location')) {
+            $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
+        }
+        if ($request->exists('location_address')) {
+            $ticket->location_address = $request->location_address;
+        }
+        $res = $ticket->save();
+
+        // Send a notification email to company for the newly created ticket
+        if ($res) {
+            $company = Company::find($request->id);
+            if ($company->ticket_email) {
+                foreach (explode(',', $company->ticket_email) as $recipient) {
+                    Mail::to($recipient)->send(new TicketCreated($ticket, $company));
+                }
+            }
+        }
+
+        // Response
+        return $this->sendResponse($ticket, 'Ticket created.');
+    }
+    /**
      * Display the specified resource.
      *
      * @param  \App\Models\Ticket  $ticket
@@ -153,5 +215,16 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         //
+    }
+
+    private function _geometryToLatLon($geometry)
+    {
+        $coords = [];
+        if (!is_null($geometry)) {
+            // g->coordinates == [lon,lat] we needs inverted order
+            $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
+            $coords = [$g->coordinates[1], $g->coordinates[0]];
+        }
+        return $coords;
     }
 }
