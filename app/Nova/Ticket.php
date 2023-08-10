@@ -99,7 +99,7 @@ class Ticket extends Resource
     private function _reportFields(&$fields)
     {
         $fields[] = Text::make('Report date', 'missed_withdraw_date')->onlyOnDetail();
-        $fields[] = Text::make('Trash Type', 'trash_type', function () {
+        $fields[] = Text::make('Trash Type', 'trash_type', function () { // TODO: use belongsTo
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
         })->onlyOnDetail();

@@ -50,7 +50,7 @@ class AddressController extends Controller
                 $zoneData['avalaible_user_types'] = $avalaibleUserTypes;
                 $zoneData['addresses'] = $zoneAddresses->map(function ($address) {
                     $addressData = $address->toArray();
-                    unset($addressData['location']); // Rimuovi il campo 'location' dall'oggetto address
+                    $addressData['location'] = $this->getLocationFromGeometry($addressData['location']);
                     unset($addressData['zone']);
                     unset($addressData['user_id']);
                     unset($addressData['created_at']);
@@ -84,6 +84,7 @@ class AddressController extends Controller
                     'user_id' => $authUser->id,
                     'address' => $request->address,
                     'zone_id' => $request->zone_id,
+                    'user_type_id' => $request->user_type_id,
                     'location' => $this->getGeometryFromLocation($request->location)
                 ]);
                 $address->location = $request->location;
@@ -216,5 +217,12 @@ class AddressController extends Controller
     private function getGeometryFromLocation($location)
     {
         return DB::select("SELECT ST_GeomFromText('POINT(" . $location[0] . " " . $location[1] . " )') as g")[0]->g;
+    }
+
+    private  function getLocationFromGeometry($location)
+    {
+        $g = json_decode(DB::select("SELECT st_asgeojson('$location') as g")[0]->g);
+
+        return [$g->coordinates[0], $g->coordinates[1]];
     }
 }
