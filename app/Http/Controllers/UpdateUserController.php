@@ -63,13 +63,26 @@ class UpdateUserController extends Controller
             $authUser = Auth::user();
             $changes = [];
             $user = User::find($authUser->id);
-            $success['user'] =  $user;
 
             if ($request->has('name')) {
                 $user->name = $request->name;
-                $user->save();
-                $success['user'] =  $user;
                 array_push($changes, 'name');
+            }
+            if ($request->has('email')) {
+                $user->email = $request->email;
+                array_push($changes, 'email');
+            }
+            if ($request->has('user_code')) {
+                $user->user_code = $request->user_code;
+                array_push($changes, 'user_code');
+            }
+            if ($request->has('fiscal_code')) {
+                $user->fiscal_code = $request->fiscal_code;
+                array_push($changes, 'fiscal_code');
+            }
+            if ($request->has('phone_number')) {
+                $user->phone_number = $request->phone_number;
+                array_push($changes, 'phone_number');
             }
             if ($request->has('addresses')) {
                 Log::info($request->addresses);
@@ -90,7 +103,8 @@ class UpdateUserController extends Controller
                 }
                 $user->addresses;
             }
-
+            $user->save();
+            $success['user'] =  $user;
             return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
 
             throw ValidationException::withMessages([
