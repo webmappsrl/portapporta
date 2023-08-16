@@ -33,7 +33,6 @@ class ApiTicketListTest extends TestCase
         );
         $response = $this->get("api/c/{$company->id}/tickets", []);
         $this->assertSame(200, $response->status());
-
     }
 
     /** @test */
@@ -52,11 +51,10 @@ class ApiTicketListTest extends TestCase
         $response = $this->get("api/c/{$company->id}/tickets", []);
         $this->assertSame(200, $response->status());
         $j = $response->json();
-        $this->assertArrayHasKey('data',$j);
+        $this->assertArrayHasKey('data', $j);
         $this->assertIsArray($j['data']);
-        $data=$j['data'];
-        $this->assertEquals(0,count($data));
-
+        $data = $j['data'];
+        $this->assertEquals(0, count($data));
     }
 
     /** @test */
@@ -68,27 +66,26 @@ class ApiTicketListTest extends TestCase
         $this->assertSame(403, $response->status());
 
         $user = User::factory()->create();
-        Ticket::factory(10)->create(['user_id'=>$user->id,'company_id'=>$company->id]);
+        Ticket::factory(10)->create(['user_id' => $user->id, 'company_id' => $company->id]);
 
-        Sanctum::actingAs($user,['*']);
+        Sanctum::actingAs($user, ['*']);
         $response = $this->get("api/c/{$company->id}/tickets", []);
         $this->assertSame(200, $response->status());
         $j = $response->json();
-        $this->assertArrayHasKey('data',$j);
+        $this->assertArrayHasKey('data', $j);
         $this->assertIsArray($j['data']);
-        $data=$j['data'];
-        $this->assertEquals(10,count($data));
-        foreach($data as $ticket) {
+        $data = $j['data'];
+        $this->assertEquals(10, count($data));
+        foreach ($data as $ticket) {
             $this->assertIsArray($ticket);
-            $this->assertArrayHasKey('user_id',$ticket);
-            $this->assertArrayHasKey('company_id',$ticket);
-            $this->assertArrayHasKey('trash_type_id',$ticket);
-            $this->assertArrayHasKey('note',$ticket);
-            $this->assertArrayHasKey('phone',$ticket);
-            $this->assertArrayHasKey('location',$ticket);
-            $this->assertArrayHasKey('image',$ticket);
+            $this->assertArrayHasKey('user_id', $ticket);
+            $this->assertArrayHasKey('company_id', $ticket);
+            $this->assertArrayHasKey('trash_type_id', $ticket);
+            $this->assertArrayHasKey('note', $ticket);
+            $this->assertArrayHasKey('phone', $ticket);
+            $this->assertArrayHasKey('location_address', $ticket);
+            $this->assertArrayHasKey('image', $ticket);
         }
-
     }
 
     /** @test */
@@ -100,20 +97,20 @@ class ApiTicketListTest extends TestCase
         $this->assertSame(403, $response->status());
 
         $user = User::factory()->create();
-        $ticket = Ticket::factory()->create(['user_id'=>$user->id,'company_id'=>$company->id]);
+        $ticket = Ticket::factory()->create(['user_id' => $user->id, 'company_id' => $company->id]);
 
-        Sanctum::actingAs($user,['*']);
+        Sanctum::actingAs($user, ['*']);
         $response = $this->get("api/c/{$company->id}/tickets", []);
         $this->assertSame(200, $response->status());
 
         $j = $response->json();
-        $this->assertArrayHasKey('data',$j);
+        $this->assertArrayHasKey('data', $j);
         $this->assertIsArray($j['data']);
-        $data=$j['data'];
-        $this->assertEquals(1,count($data));
+        $data = $j['data'];
+        $this->assertEquals(1, count($data));
 
         $this->assertIsArray($data[0]);
-        $out=$data[0];
+        $out = $data[0];
         foreach ([
             'user_id',
             'company_id',
@@ -122,7 +119,7 @@ class ApiTicketListTest extends TestCase
             'phone',
             'image'
         ] as $field) {
-            $this->assertEquals($ticket->$field,$out[$field]);            
+            $this->assertEquals($ticket->$field, $out[$field]);
         }
 
         // TODO: GEOMETRY (da fare con location)
@@ -130,5 +127,4 @@ class ApiTicketListTest extends TestCase
         // $out_geojson = DB::select("SELECT st_asgeojson('{$out['geometry']}') as g")[0]->g;
         // $this->assertEquals($ticket_geojson,$out_geojson);
     }
-
 }
