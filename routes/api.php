@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
-
+Route::patch('/fcm-token', [LoginController::class, 'updateToken'])->name('fcmToken');
 // NO MIDDLEWARES
 Route::prefix('c')->name('company.')->group(function () {
     Route::get('/{id}/wastes.json', function ($id) {
