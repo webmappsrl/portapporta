@@ -87,9 +87,17 @@ class UpdateUserController extends Controller
                 $user->fiscal_code = $request->fiscal_code;
                 array_push($changes, 'fiscal_code');
             }
+            if ($request->has('fcm_token')) {
+                $user->fiscal_code = $request->fcm_token;
+                array_push($changes, 'fcm_token');
+            }
             if ($request->has('phone_number')) {
                 $user->phone_number = $request->phone_number;
                 array_push($changes, 'phone_number');
+            }
+            if ($request->has('app_company_id')) {
+                $user->phone_number = $request->app_company_id;
+                array_push($changes, 'app_company_id');
             }
             if ($request->has('addresses')) {
                 Log::info($request->addresses);
