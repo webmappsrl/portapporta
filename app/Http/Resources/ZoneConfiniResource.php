@@ -35,6 +35,15 @@ class ZoneConfiniResource extends JsonResource
 
                 if (count($z->userTypes) > 0) {
                     $item['properties']['types'] = $z->userTypes->pluck('id')->toArray();
+                    $avalaibleUserTypes = $z->userTypes->map(function ($userType) {
+                        unset($userType['created_at']);
+                        unset($userType['updated_at']);
+                        unset($userType['company_id']);
+                        unset($userType['slug']);
+                        unset($userType['pivot']);
+                        return $userType;
+                    });
+                    $item['properties']['availableUserTypes'] = $avalaibleUserTypes;
                 }
                 $features[] = $item;
             }

@@ -9,11 +9,17 @@ class Ticket extends Model
 {
     use HasFactory;
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function trashType() {
+    public function trashType()
+    {
         return $this->belongsTo(TrashType::class);
+    }
+    public function address()
+    {
+        return $this->belongsTo(Address::class);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
@@ -106,18 +107,9 @@ Route::prefix('v1')->group(function () {
     });
 
     // AUTH
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-        $user = $request->user();
-        if ($user->location != null) {
-            $geometry = $user->location;
-            $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
-            $user->location = [$g->coordinates[1], $g->coordinates[0]];
-        }
+    Route::middleware('auth:sanctum')->get('/user', [UpdateUserController::class, 'get']);
 
-        return $user;
-    });
-
-    Route::middleware('auth:sanctum')->post('/user', [UpdateUserController::class, 'update']);
+    Route::middleware('auth:sanctum')->post('/user', [UpdateUserController::class, 'v1Update']);
 
     Route::middleware('auth:sanctum')->get('/delete', [UpdateUserController::class, 'delete']);
 
@@ -126,11 +118,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}/config.json', function ($id) {
             return new CompanyResource(Company::findOrFail($id));
         });
-        Route::post('/{id}/ticket', [TicketController::class, 'store']);
-        Route::get('/{id}/calendar', [CalendarController::class, 'index']);
+        Route::post('/{id}/ticket', [TicketController::class, 'v1store']);
+        Route::get('/{id}/calendar', [CalendarController::class, 'v1index']);
         Route::get('/{id}/tickets', [TicketController::class, 'index']);
     });
-
+    Route::middleware('auth:sanctum')->get('/address/delete/{id}', [AddressController::class, 'destroy']);
+    Route::middleware('auth:sanctum')->post('/address/update', [AddressController::class, 'update']);
+    Route::middleware('auth:sanctum')->post('/address/create', [AddressController::class, 'create']);
+    Route::middleware('auth:sanctum')->get('/address/index', [AddressController::class, 'index']);
     Route::get('email/resend', [VerificationController::class, 'resend']);
     Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->middleware('signed');
 });

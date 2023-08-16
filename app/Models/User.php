@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Nova\Auth\Impersonatable;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
@@ -23,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'name',
         'email',
         'password',
+        'phone_number',
         'zone_id',
         'user_type_id',
         'location',
@@ -52,7 +54,10 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasOne(Company::class);
     }
-
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class);
+    }
     public function userType()
     {
         return $this->belongsTo(UserType::class);
