@@ -43,8 +43,8 @@ class ProcessPushNotification implements ShouldQueue
             $fcmTokens =  User::whereNotNull('fcm_token')->where('app_company_id', $this->pushNotification->company_id)->pluck('fcm_token')->toArray();
             Log::info("token numbers: " . json_encode($fcmTokens));
             Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($fcmTokens);
-            $this->pushNotification->save();
             $this->pushNotification->status = true;
+            $this->pushNotification->save();
             Log::info("push notification status: {$this->pushNotification->status}");
         } catch (\Exception $e) {
             Log::info("push error" . $e->getMessage());
