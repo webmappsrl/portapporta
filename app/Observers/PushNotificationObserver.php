@@ -18,7 +18,7 @@ class PushNotificationObserver
     {
         Log::info("created on: {$pushNotification->created_at}");
         $user = auth()->user();
-        $pushNotification->company_id = $user->app_company_id;
+        $pushNotification->company_id = $user->company->id;
         $pushNotification->save();
         // Metti in coda la job per la data prestabilita
         ProcessPushNotification::dispatch($pushNotification)
