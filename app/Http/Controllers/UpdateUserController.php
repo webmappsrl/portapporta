@@ -88,7 +88,7 @@ class UpdateUserController extends Controller
                 array_push($changes, 'fiscal_code');
             }
             if ($request->has('fcm_token')) {
-                $user->fiscal_code = $request->fcm_token;
+                $user->fcm_token = $request->fcm_token;
                 array_push($changes, 'fcm_token');
             }
             if ($request->has('phone_number')) {
