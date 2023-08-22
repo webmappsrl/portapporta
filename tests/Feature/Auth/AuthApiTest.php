@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Company;
 use App\Models\UserType;
 use App\Models\Zone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,13 +63,14 @@ class AuthApiTest extends TestCase
     {
         $z = Zone::factory()->create();
         $u = UserType::factory()->create();
+        $c = Company::factory()->create();
 
         $response = $this->post('/api/register', [
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
             'password_confirmation' => 'webmappwebmapp',
             'name' => 'myName',
-            'app_company_id' => 10,
+            'app_company_id' => $c->id,
             'zone_id' => $z->id,
             'user_type_id' => $u->id,
             'location' => [10, 45],
