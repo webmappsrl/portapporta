@@ -54,7 +54,7 @@ class AuthApiTest extends TestCase
             'app_company_id' => 10
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The password confirmation does not match. (and 1 more errors)"}', $response->content());
+        $this->assertSame('{"success":false,"message":"The password confirmation does not match. (and 1 more error)"}', $response->content());
     }
 
     // TODO: remove email send
