@@ -53,8 +53,7 @@ class User extends Resource
                 ->sortable()
                 ->rules('required', 'max:255'),
             Text::make('fcm_token')
-                ->sortable()
-                ->rules('required', 'max:255'),
+                ->sortable()->onlyOnForms(),
             Text::make('app_company_id'),
             Text::make('Email')
                 ->sortable()
@@ -79,26 +78,7 @@ class User extends Resource
                 }
                 return 'ND';
             })->onlyOnDetail(),
-            MapPoint::make('location')->withMeta([
-                'center' => ["42", "10"],
-            ]),
-            Text::make('Zone', function () {
-                if (!is_null($this->zone_id)) {
-                    return $this->zone->label;
-                }
-                return 'ND';
-            })->onlyOnDetail(),
-            Text::make('User Type', function () {
-                if (!is_null($this->user_type_id)) {
-                    return $this->userType->label;
-                }
-                return 'ND';
-            })->onlyOnDetail(),
             HasMany::make('Addresses')
-            // BelongsTo::make('Zone')->onlyOnForms(),
-
-            // BelongsTo::make('User Type')->onlyOnForms(),
-
         ];
     }
 

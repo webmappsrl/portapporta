@@ -28,7 +28,10 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'zone_id',
         'user_type_id',
         'location',
-        'fcm_token'
+        'fcm_token',
+        'app_company_id',
+        'fiscal_code',
+        'user_code'
     ];
 
     /**
@@ -58,15 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasMany(Address::class);
     }
-    public function userType()
-    {
-        return $this->belongsTo(UserType::class);
-    }
 
-    public function zone()
-    {
-        return $this->belongsTo(Zone::class);
-    }
 
     /**
      * Determine if the user can impersonate another user.
