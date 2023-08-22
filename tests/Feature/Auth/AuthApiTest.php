@@ -18,7 +18,7 @@ class AuthApiTest extends TestCase
             'password' => 'webmapp'
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The name field is required. (and 7 more errors)"}', $response->content());
+        $this->assertSame('{"success":false,"message":"The name field is required. (and 4 more errors)"}', $response->content());
     }
 
     public function testRegisterAppCompanyIdFieldRequired()
@@ -29,7 +29,7 @@ class AuthApiTest extends TestCase
             'name' => 'myName'
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The app company id field is required. (and 6 more errors)"}', $response->content());
+        $this->assertSame('{"success":false,"message":"The app company id field is required. (and 3 more errors)"}', $response->content());
     }
 
 
@@ -43,7 +43,7 @@ class AuthApiTest extends TestCase
 
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The password must be at least 8 characters. (and 5 more errors)"}', $response->content());
+        $this->assertSame('{"success":false,"message":"The password must be at least 8 characters. (and 2 more errors)"}', $response->content());
     }
     public function testRegisterPasswordConfirmationDoesNotMatchNoField()
     {
@@ -54,7 +54,7 @@ class AuthApiTest extends TestCase
             'app_company_id' => 10
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The password confirmation does not match. (and 4 more errors)"}', $response->content());
+        $this->assertSame('{"success":false,"message":"The password confirmation does not match. (and 1 more errors)"}', $response->content());
     }
 
     // TODO: remove email send
