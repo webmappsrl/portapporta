@@ -72,6 +72,7 @@ class AuthApiTest extends TestCase
             'zone_id' => $z->id,
             'user_type_id' => $u->id,
             'location' => [10, 45],
+            'address' => 'via da qua',
         ]);
         $this->assertSame(200, $response->status());
         $content = json_decode($response->content());
