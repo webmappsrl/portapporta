@@ -89,7 +89,7 @@ class AuthApiTest extends TestCase
             'password' => 'test'
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The provided credentials are incorrect."}', $response->content());
+        $this->assertSame('{"success":false,"message":"Le credenziali inserite non sono corrette."}', $response->content());
     }
 
     public function testLoginSuccess()
@@ -99,6 +99,6 @@ class AuthApiTest extends TestCase
             'password' => 'webmappwebmapp',
         ]);
         $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"The provided credentials are incorrect."}', $response->content());
+        $this->assertSame('{"success":false,"message":"Le credenziali inserite non sono corrette."}', $response->content());
     }
 }

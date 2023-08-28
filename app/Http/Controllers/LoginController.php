@@ -28,7 +28,7 @@ class LoginController extends Controller
             }
 
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.']
+                'email' => ['Le credenziali inserite non sono corrette.']
             ]);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage());
