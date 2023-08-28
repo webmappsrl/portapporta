@@ -118,6 +118,10 @@ class UpdateUserController extends Controller
                 }
                 $user->addresses;
             }
+            if ($request->has('password') && $request->has('password_confirmation')) {
+                $user->password = Hash::make($request->password);
+                array_push($changes, 'password');
+            }
             $user->save();
             $success['user'] =  $user;
             return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
