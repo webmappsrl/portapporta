@@ -73,7 +73,7 @@ class User extends Resource
             Text::make('User code')
                 ->rules('nullable', 'max:16', 'unique:users,user_code'),
             Text::make('Company', function () {
-                if (!is_null($this->zone_id)) {
+                if (!is_null($this->zone_id) && !is_null($this->zone)) {
                     return $this->zone->company->name;
                 }
                 return 'ND';
