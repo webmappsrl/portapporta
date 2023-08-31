@@ -82,6 +82,9 @@ class CompanyResource extends JsonResource
             $g = json_decode(DB::select("SELECT st_asgeojson('$this->location') as g")[0]->g);
             $resources['location'] = [$g->coordinates[1], $g->coordinates[0]];
         }
+        if (!empty($this->company_page)) {
+            $resources['company_page'] = $this->company_page;
+        }
 
         $json['resources'] = $resources;
 
