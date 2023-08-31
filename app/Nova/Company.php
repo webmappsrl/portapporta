@@ -21,6 +21,7 @@ use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Murdercode\TinymceEditor\TinymceEditor;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
+use Illuminate\Database\Eloquent\Model;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
 
 class Company extends Resource
@@ -370,5 +371,17 @@ class Company extends Resource
             return false;
         }
         return true;
+    }
+
+    public static function afterCreate(NovaRequest $request, Model $model)
+    {
+        //this function is called after the creation of the model and parse the content field to get the image url if exists and update the media in the featured-image collection
+        $model->updateMediaCollections();
+    }
+
+    public static function afterUpdate(NovaRequest $request, Model $model)
+    {
+        //this function is called after the update of the model and parse the content field to get the image url if exists and update the media in the featured-image collection
+        $model->updateMediaCollections();
     }
 }

@@ -71,4 +71,30 @@ class Company extends Model implements HasMedia
         $this->addMediaCollection('content-images')
             ->acceptsMimeTypes($acceptedMimeTypes);
     }
+
+    /**
+     * update the media collections for the model
+     * @return void
+     */
+
+    public function updateMediaCollections(): void
+    {
+        $content = $this->company_page;
+        $imgUrls = [];
+
+        //if an img tag exists in the content field get the src attribute
+        if (preg_match_all('/<img.+src=[\'"](?P<src>.+?)[\'"].*>/i', $content, $images)) {
+            $imgUrls = $images['src'];
+
+            foreach ($imgUrls as $imgUrl) {
+                $this->addMediaFromUrl($imgUrl)->toMediaCollection('content-images');
+            }
+        }
+        //else if no img tag exists in the content field delete the media from the content-images collection
+        else {
+            if (count($this->getMedia('content-images')) > 0) {
+                $this->clearMediaCollection('content-images');
+            }
+        }
+    }
 }
