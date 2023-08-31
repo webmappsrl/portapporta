@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "ebess/advanced-nova-media-library": "^4.1",
         "eminiarts/nova-tabs": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
         "imumz/leaflet-map": "^1.1",
@@ -19,7 +20,9 @@
         "laravel/nova": "~4.0",
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
+        "manogi/nova-tiptap": "^3.2",
         "murdercode/nova4-tinymce-editor": "^1.0",
+        "spatie/laravel-medialibrary": "^10.0.0",
         "spatie/laravel-translatable": "^6.0",
         "wm/map-multi-polygon": "*",
         "wm/map-point": "*"
