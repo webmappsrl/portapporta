@@ -4,6 +4,8 @@ namespace App\Nova;
 
 use App\Enums\Fonts;
 use Laravel\Nova\Panel;
+use Manogi\Tiptap\Tiptap;
+use Wm\MapPoint\MapPoint;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\File;
@@ -11,15 +13,15 @@ use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Fields\Color;
 use Laravel\Nova\Fields\Image;
+use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Fields\BelongsTo;
 use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Murdercode\TinymceEditor\TinymceEditor;
+use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
-use Laravel\Nova\Fields\Number;
-use Wm\MapPoint\MapPoint;
 
 class Company extends Resource
 {
@@ -82,6 +84,7 @@ class Company extends Resource
             new Panel('Company API', $this->apiPanel()),
             new Panel('Company Location', $this->companyLocation()),
             new Panel('Company Resources', $this->companyResources()),
+            new Panel('Company Panel', $this->companyPage()),
         ];
     }
 
@@ -226,12 +229,6 @@ class Company extends Resource
                 }),
 
 
-            // TinymceEditor::make(__('Header'), 'header')
-            //     ->hideFromIndex(),
-
-            // TinymceEditor::make(__('Footer'), 'footer')
-            //     ->hideFromIndex(),
-
             Textarea::make('Variables', 'css_variables')
                 ->help('go to <a traget="_blank" href="https://ionicframework.com/docs/theming/color-generator">Color Generator</a> to generate the variables by simply customize the colors and copy the generated variables here')
                 ->hidefromIndex(),
@@ -269,6 +266,50 @@ class Company extends Resource
                     return 'google-services.json';
                 }),
 
+        ];
+    }
+
+    public function companyPage()
+    {
+        $allButtons = [
+            'heading',
+            '|',
+            'italic',
+            'bold',
+            '|',
+            'link',
+            'code',
+            'strike',
+            'underline',
+            'highlight',
+            '|',
+            'bulletList',
+            'orderedList',
+            'br',
+            'codeBlock',
+            'blockquote',
+            '|',
+            'horizontalRule',
+            'hardBreak',
+            '|',
+            'table',
+            '|',
+            'image',
+            '|',
+            'textAlign',
+            '|',
+            'rtl',
+            '|',
+            'history',
+            '|',
+            'editHtml',
+        ];
+        return [
+            Tiptap::make('Company Page', 'company_page')
+                ->buttons($allButtons)
+                ->hideFromIndex()
+                ->help('You can use HTML tags to format the content. Please insert image only by external link.'),
+            Images::make('Images', 'content-images')
         ];
     }
 

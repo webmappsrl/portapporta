@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Company extends Model
+class Company extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     /**
      * creates a sha1 from the uploaded file name with the original file extension
@@ -16,35 +18,57 @@ class Company extends Model
      * @param [type] $file
      * @return string
      */
-    public function get_file_name_extension($file) {
+    public function get_file_name_extension($file)
+    {
         return sha1($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
     }
 
-    public function trashTypes(){
+    public function trashTypes()
+    {
         return $this->hasMany(TrashType::class);
     }
-    
-    public function wastes(){
+
+    public function wastes()
+    {
         return $this->hasMany(Waste::class);
     }
-    
-    public function wasteCollectionCenters(){
+
+    public function wasteCollectionCenters()
+    {
         return $this->hasMany(WasteCollectionCenter::class);
     }
-    
-    public function userTypes(){
+
+    public function userTypes()
+    {
         return $this->hasMany(UserType::class);
     }
-    
-    public function zones(){
+
+    public function zones()
+    {
         return $this->hasMany(Zone::class);
     }
-    
-    public function user(){
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function calendars(){
+    public function calendars()
+    {
         return $this->hasMany(Calendar::class);
+    }
+
+    /**
+     * Registering media collections for spaties media library
+     * @return void
+     *
+     * @see https://spatie.be/docs/laravel-medialibrary/v10/working-with-media-collections/defining-media-collections
+     */
+    public function registerMediaCollections(): void
+    {
+        $acceptedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+
+        $this->addMediaCollection('content-images')
+            ->acceptsMimeTypes($acceptedMimeTypes);
     }
 }
