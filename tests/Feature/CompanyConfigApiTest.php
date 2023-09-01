@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class CompanyConfigApiTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
     /**
      *@test
      *
@@ -19,9 +19,11 @@ class CompanyConfigApiTest extends TestCase
      */
     public function it_returns_status_200()
     {
-        //get the admin user that can access the api
-        $user = User::where('email', 'admin@webmapp.it')->first();
-
+        // SETUP DB
+        $c = Company::factory()->create();
+        $user = User::factory()->create(
+            ['email' => 'test@webmapp.it', 'app_company_id' => $c->id]
+        );
         //access the api as the admin user
         $response = $this->actingAs($user)->get('/api/c/1/config.json');
 
@@ -34,9 +36,12 @@ class CompanyConfigApiTest extends TestCase
      */
     public function it_returns_the_company_config()
     {
-        //get the admin user that can access the api
-        $user = User::where('email', 'admin@webmapp.it')->first();
-        $company = Company::find(1);
+
+        // SETUP DB
+        $company = Company::factory()->create();
+        $user = User::factory()->create(
+            ['email' => 'test@webmapp.it', 'app_company_id' => $company->id]
+        );
 
         //access the api as the admin user
         $response = $this->actingAs($user)->getJson('/api/c/' . $company->id . '/config.json');
