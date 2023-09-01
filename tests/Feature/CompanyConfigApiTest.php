@@ -25,7 +25,7 @@ class CompanyConfigApiTest extends TestCase
             ['email' => 'test@webmapp.it', 'app_company_id' => $c->id]
         );
         //access the api as the admin user
-        $response = $this->actingAs($user)->get('/api/c/1/config.json');
+        $response = $this->actingAs($user)->get('/api/c/' . $c->id . '/config.json');
 
         //check if the response is ok
         $response->assertStatus(200);
