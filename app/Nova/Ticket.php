@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use App\Models\TrashType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
@@ -44,6 +45,7 @@ class Ticket extends Resource
             new SearchableRelation('user', 'email')
         ];
     }
+
     /**
      * Build an "index" query for the given resource.
      *
@@ -56,7 +58,6 @@ class Ticket extends Resource
         return $query->where('company_id', $request->user()->company->id);
     }
 
-
     /**
      * Get the fields displayed by the resource.
      *
@@ -65,23 +66,100 @@ class Ticket extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [
-            ID::make()->sortable(),
-            Text::make('ticket_type'),
-            BelongsTo::make('trash_type'),
-            BelongsTo::make('User'),
-            Text::make('User Email', function () {
-                return $this->user->email;
-            })->onlyOnDetail(),
-            DateTime::make(__('Created At'), 'created_at')->sortable(),
-            Text::make('phone'),
-            MapPoint::make('geometry'),
-            Text::make('Location Address', 'location_address'),
-            Textarea::make('note')->alwaysShow()->onlyOnDetail(),
-            Text::make('image', function () {
-                return '<img src="' . $this->image . '" />';
-            })->asHtml()->onlyOnDetail()
-        ];
+        $fields = [];
+        $this->_headerFields($fields);
+        switch ($this->ticket_type) {
+            case 'report':
+                $this->_reportFields($fields);
+                break;
+            case 'reservation':
+                $this->_reservationFields($fields);
+                break;
+            case 'abandonment':
+                $this->_abandonmentFields($fields);
+                break;
+            case 'info':
+                $this->_infoFields($fields);
+                break;
+        }
+        return $fields;
+    }
+
+    private function _headerFields(&$fields)
+    {
+        // $fields[] = ID::make()->sortable();
+        $fields[] = Text::make('Ticket Type', 'ticket_type')->sortable();
+        $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable();
+        $fields[] = BelongsTo::make('User');
+        $fields[] = Text::make('User Email', function () {
+            return $this->user->email;
+        })->onlyOnDetail();
+    }
+
+    private function _reportFields(&$fields)
+    {
+        $fields[] = Text::make('Report date', 'missed_withdraw_date')->onlyOnDetail();
+        $fields[] = Text::make('Trash Type', 'trash_type', function () { // TODO: use belongsTo
+            $trashType = TrashType::find($this->trash_type_id);
+            return $trashType->name;
+        })->onlyOnDetail();
+        $fields[] = Text::make('zone', function () {
+            return $this->address->zone->label;
+        })->onlyOnDetail();
+        $fields[] = Text::make('user address', function () {
+            return $this->address->address;
+        })->onlyOnDetail();
+        $fields[] = MapPoint::make('Location', 'location', function () {
+            return $this->address->location;
+        })->withMeta([
+            'defaultZoom' => 13
+        ])->onlyOnDetail();
+        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Text::make('Image', 'image', function () {
+            return '<img src="' . $this->image . '" />';
+        })->asHtml()->onlyOnDetail();
+        return $fields;
+    }
+
+    private function _reservationFields(&$fields)
+    {
+        $fields[] = Text::make('Trash Type', 'trash_type', function () {
+            $trashType = TrashType::find($this->trash_type_id);
+            return $trashType->name;
+        })->onlyOnDetail();
+        $fields[] = Text::make('address', function () {
+            return $this->location_address;
+        })->onlyOnDetail();
+        $fields[] = MapPoint::make('Location', 'location', function () {
+            return $this->geometry;
+        })->withMeta([
+            'defaultZoom' => 13
+        ])->onlyOnDetail();
+        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Text::make('Image', 'image', function () {
+            return '<img src="' . $this->image . '" />';
+        })->asHtml()->onlyOnDetail();
+    }
+
+    private function _abandonmentFields(&$fields)
+    {
+        $fields[] = Text::make('address', function () {
+            return $this->location_address;
+        })->onlyOnDetail();
+        $fields[] = MapPoint::make('Location', 'location', function () {
+            return $this->geometry;
+        })->withMeta([
+            'defaultZoom' => 13
+        ])->onlyOnDetail();
+        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Text::make('Image', 'image', function () {
+            return '<img src="' . $this->image . '" />';
+        })->asHtml()->onlyOnDetail();
+    }
+
+    private function _infoFields(&$fields)
+    {
+        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
     }
 
     /**

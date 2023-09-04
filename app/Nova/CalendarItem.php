@@ -3,17 +3,19 @@
 namespace App\Nova;
 
 use App\Models\Company;
-use App\Nova\Actions\CalendarItemAdvancedReplicateAction;
-use App\Nova\Filters\CalendarItemsCalendarFilter;
+use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\Text;
+use NovaAttachMany\AttachMany;
+use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\FormData;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\BelongsToMany;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Select;
-use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use App\Nova\Filters\CalendarItemsCalendarFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
-use NovaAttachMany\AttachMany;
+use App\Nova\Actions\CalendarItemAdvancedReplicateAction;
 
 
 class CalendarItem extends Resource
@@ -41,7 +43,7 @@ class CalendarItem extends Resource
      */
     public static function searchableColumns()
     {
-        return [new SearchableRelation('calendar', 'name'),new SearchableRelation('trashTypes', 'name')];
+        return [new SearchableRelation('calendar', 'name'), new SearchableRelation('trashTypes', 'name')];
     }
 
     /**
@@ -68,35 +70,38 @@ class CalendarItem extends Resource
         return [
             ID::make()->sortable(),
             BelongsTo::make('Calendar'),
-            Text::make('Trash Types',function(){
-                if ($this->trashTypes->count() >0) {
+            Text::make('Trash Types', function () {
+                if ($this->trashTypes->count() > 0) {
                     $out = "<ul>\n";
-                    foreach($this->trashTypes as $item) {
+                    foreach ($this->trashTypes as $item) {
                         $out .= "  <li>{$item->name}</li>\n";
                     }
-                    $out.= "</ul>\n";
+                    $out .= "</ul>\n";
                     return $out;
                 }
                 return 'ND';
             })->asHtml(),
-            Select::make('day_of_week')->options([
+            Select::make('Day of Week', 'day_of_week')->options([
                 0 => 'Sun',
                 1 => 'Mon',
-                2 => 'Tue' ,
+                2 => 'Tue',
                 3 => 'Wed',
                 4 => 'Thu',
-                5 => 'Fri',
+                5 => 'Fry',
                 6 => 'Sat',
             ])->displayUsingLabels(),
-            Select::make('frequency')->options([
+            Select::make('Frequency', 'frequency')->options([
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ]),
-            Text::make('start_time'),
-            Text::make('stop_time'),
+            Date::make('Base Date', 'base_date')
+                ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
+                ->hideFromIndex(),
+            Text::make('Start Time', 'start_time'),
+            Text::make('Stop Time', 'stop_time'),
 
-            BelongsToMany::make('TrashTypes'),
-       ];
+            BelongsToMany::make('Trash Types', 'TrashTypes'),
+        ];
     }
 
     /**
@@ -143,7 +148,7 @@ class CalendarItem extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new CalendarItemAdvancedReplicateAction($this->start_time,$this->stop_time))->onlyInline(),
+            (new CalendarItemAdvancedReplicateAction($this->start_time, $this->stop_time))->onlyInline(),
         ];
     }
 }

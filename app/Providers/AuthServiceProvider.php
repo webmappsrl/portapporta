@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Zone;
+use App\Models\Company;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -27,18 +27,17 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
         VerifyEmail::toMailUsing(function ($notifiable, $url) {
-            $zone = Zone::find($notifiable['zone_id'])->first();
-            $company = strtoupper($zone->company->name);
+            $company = Company::find($notifiable['app_company_id']);
             $user_name = $notifiable['name'];
             return (new MailMessage)
-                ->from('noreply@webmapp.it', "PortAPPorta-$company")
-                ->subject("Conferma email - APP PortAPPorta-$company")
+                ->from('noreply@webmapp.it', "PortAPPorta-$company->name")
+                ->subject("Conferma email - APP PortAPPorta-$company->name")
                 ->greeting("Salve, $user_name")
-                ->line("Riceve questa email perché è stata effettuata una registrazione sulla APP PortAPPorta-$company con il suo indirizzo email")
+                ->line("Riceve questa email perché è stata effettuata una registrazione sulla APP PortAPPorta-$company->name con il suo indirizzo email")
                 ->line("Per completare le registrazione faccia click sul pulsante qui sotto che permette di verificare il suo indirizzo email")
                 ->action('verifica indirizzo email', $url)
                 ->line("Se non ha effettuato lei la registrazione, ignori questa email")
-                ->salutation("Grazie, il TEAM di PortAPPorta-$company");
+                ->salutation("Grazie, il TEAM di PortAPPorta-$company->name");
         });
         //
     }

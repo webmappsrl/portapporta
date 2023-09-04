@@ -4,18 +4,24 @@ namespace App\Nova;
 
 use App\Enums\Fonts;
 use Laravel\Nova\Panel;
+use Manogi\Tiptap\Tiptap;
+use Wm\MapPoint\MapPoint;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Fields\Color;
 use Laravel\Nova\Fields\Image;
+use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Fields\BelongsTo;
 use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Murdercode\TinymceEditor\TinymceEditor;
+use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
+use Illuminate\Database\Eloquent\Model;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
 
 class Company extends Resource
@@ -77,7 +83,9 @@ class Company extends Resource
                 })->asHtml(),
             Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
             new Panel('Company API', $this->apiPanel()),
+            new Panel('Company Location', $this->companyLocation()),
             new Panel('Company Resources', $this->companyResources()),
+            new Panel('Company Panel', $this->companyPage()),
         ];
     }
 
@@ -100,6 +108,26 @@ class Company extends Resource
         return $fields;
     }
 
+    public function companyLocation()
+    {
+        return [
+            Number::make('default zoom')
+                ->help('The default zoom of the map, the value can be  min_zoom >= start_zoom >= max_zoom')
+                ->rules('lte:max_zoom', 'gte:min_zoom')
+                ->default('min_zoom'),
+            Number::make('max zoom')
+                ->help('The max zoom of the map')
+                ->default(17),
+            Number::make('min zoom')
+                ->help('The min zoom of the map')
+                ->default(5),
+            MapPoint::make('location')->withMeta([
+                'minZoom' => 5,
+                'maxZoom' => 17,
+                'defaultZoom' => 5
+            ]),
+        ];
+    }
     public function companyResources()
     {
         $path = 'storage/resources/' . $this->model()->id;
@@ -202,12 +230,6 @@ class Company extends Resource
                 }),
 
 
-            // TinymceEditor::make(__('Header'), 'header')
-            //     ->hideFromIndex(),
-
-            // TinymceEditor::make(__('Footer'), 'footer')
-            //     ->hideFromIndex(),
-
             Textarea::make('Variables', 'css_variables')
                 ->help('go to <a traget="_blank" href="https://ionicframework.com/docs/theming/color-generator">Color Generator</a> to generate the variables by simply customize the colors and copy the generated variables here')
                 ->hidefromIndex(),
@@ -223,6 +245,72 @@ class Company extends Resource
             Color::make('Secondary Color', 'secondary_color')
                 ->hideFromIndex(),
 
+            File::make('Push Notification Plist', 'push_notification_plist_url')
+                // ->rules('exclude:mimes:php')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->hideFromIndex()
+                ->disableDownload()
+                ->help(__('follow this <a href="https://capacitorjs.com/docs/guides/push-notifications-firebase" target="_blank">link</a>'))
+                ->storeAs(function () {
+                    return 'GoogleService-Info.plist';
+                }),
+
+            File::make('Push Notification Json', 'push_notification_json_url')
+                ->rules('mimes:json')
+                ->disk('public')
+                ->path('resources/' . $this->model()->id)
+                ->hideFromIndex()
+                ->disableDownload()
+                ->help(__('follow this <a href="https://capacitorjs.com/docs/guides/push-notifications-firebase" target="_blank">link</a>'))
+                ->storeAs(function () {
+                    return 'google-services.json';
+                }),
+
+        ];
+    }
+
+    public function companyPage()
+    {
+        $allButtons = [
+            'heading',
+            '|',
+            'italic',
+            'bold',
+            '|',
+            'link',
+            'code',
+            'strike',
+            'underline',
+            'highlight',
+            '|',
+            'bulletList',
+            'orderedList',
+            'br',
+            'codeBlock',
+            'blockquote',
+            '|',
+            'horizontalRule',
+            'hardBreak',
+            '|',
+            'table',
+            '|',
+            'image',
+            '|',
+            'textAlign',
+            '|',
+            'rtl',
+            '|',
+            'history',
+            '|',
+            'editHtml',
+        ];
+        return [
+            Tiptap::make('Company Page', 'company_page')
+                ->buttons($allButtons)
+                ->hideFromIndex()
+                ->help('You can use HTML tags to format the content. Please insert image only by external link.'),
+            Images::make('Images', 'content-images')
         ];
     }
 
@@ -283,5 +371,17 @@ class Company extends Resource
             return false;
         }
         return true;
+    }
+
+    public static function afterCreate(NovaRequest $request, Model $model)
+    {
+        //this function is called after the creation of the model and parse the content field to get the image url if exists and update the media in the featured-image collection
+        $model->updateMediaCollections();
+    }
+
+    public static function afterUpdate(NovaRequest $request, Model $model)
+    {
+        //this function is called after the update of the model and parse the content field to get the image url if exists and update the media in the featured-image collection
+        $model->updateMediaCollections();
     }
 }
