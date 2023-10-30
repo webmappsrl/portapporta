@@ -16,14 +16,14 @@ use Illuminate\Support\Facades\Log;
 use App\Models\WasteCollectionCenter;
 use App\Providers\CurlServiceProvider;
 
-class ReaInstanceJsonSyncCommand extends Command
+class ErsuInstanceJsonSyncCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'pap:reasync {company_id : e.g. 3 (for rea)} {endpoint : e.g. http://apirea.webmapp.it/}';
+    protected $signature = 'pap:ersusync {company_id : e.g. 1 (for ersu)} {endpoint : e.g. http://apiersu.netseven.it/}';
 
     /**
      * The console command description.
