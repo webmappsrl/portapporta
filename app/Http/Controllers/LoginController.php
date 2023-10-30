@@ -23,6 +23,7 @@ class LoginController extends Controller
                 $success['token'] =  $user->createToken('access_token')->plainTextToken;
                 $success['name'] =  $user->name;
                 $success['email_verified_at'] =  $user->email_verified_at;
+                $success['user'] = $user;
 
                 return $this->sendResponse($success, 'User login successfully.');
             }
