@@ -10,6 +10,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\Zone;
 
 class CalendarController extends Controller
 {
@@ -164,6 +165,7 @@ class CalendarController extends Controller
             }
             $elem['address'] = $address;
             $elem['calendar'] = $data;
+            $elem['calendar']['zone'] = Zone::find($address['zone_id']);
 
             array_push($res, $elem);
         }
