@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\Zone;
+use App\Models\UserType;
 
 class CalendarController extends Controller
 {
@@ -165,6 +166,7 @@ class CalendarController extends Controller
             }
             $elem['address'] = $address;
             $elem['address']['zone'] = Zone::find($address['zone_id']);
+            $elem['address']['user_type'] = UserType::find($address['user_type_id']);
             $elem['calendar'] = $data;
 
             array_push($res, $elem);
