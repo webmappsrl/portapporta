@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\WasteCollectionCenter;
 use App\Providers\CurlServiceProvider;
 
-class ErsuInstanceJsonSyncCommand extends Command
+class AsmiuInstanceJsonSyncCommand extends Command
 {
     /**
      * The name and signature of the console command.

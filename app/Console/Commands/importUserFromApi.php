@@ -10,10 +10,12 @@ use App\Providers\CurlServiceProvider;
 //  
 
 /**
- * import esa:
- * php artisan import:user http://apiesa.netseven.it/users.json
+ * ersu api = apiersu.netseven.it/users.json
+ * asmiu api = apiasmiu.webmapp.it/users.json 
+ * rea api = apirea.webmapp.it/users.json
+ * esa api = apiesa.netseven.it/users.json
  */
-class importUserFromApiEsa extends Command
+class importUserFromApi extends Command
 {
     /**
      * The name and signature of the console command.
@@ -36,9 +38,7 @@ class importUserFromApiEsa extends Command
      */
     public function handle()
     {
-        //ersu api = apiersu.netseven.it/users.json
-        //asmiu api = apiasmiu.webmapp.it/users.json 
-        //rea api = apirea.webmapp.it/users.json
+
 
         $skyppedUsers = [];
 
@@ -52,6 +52,7 @@ class importUserFromApiEsa extends Command
             return 0;
         }
         try {
+            $this->info("importing users from " . $url);
             $userProgressBar = $this->output->createProgressBar(count($response));
             foreach ($response as $email => $user) {
                 $userDB = User::where('email', $email)->first();
