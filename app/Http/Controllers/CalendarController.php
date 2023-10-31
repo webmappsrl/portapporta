@@ -164,8 +164,8 @@ class CalendarController extends Controller
                 }
             }
             $elem['address'] = $address;
+            $elem['address']['zone'] = Zone::find($address['zone_id']);
             $elem['calendar'] = $data;
-            $elem['calendar']['zone'] = Zone::find($address['zone_id']);
 
             array_push($res, $elem);
         }
