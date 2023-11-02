@@ -10,10 +10,10 @@ use App\Providers\CurlServiceProvider;
 //  
 
 /**
- * ersu api = apiersu.netseven.it/users.json
- * asmiu api = apiasmiu.webmapp.it/users.json 
- * rea api = apirea.webmapp.it/users.json
- * esa api = apiesa.netseven.it/users.json
+ * ersu api = apiersu.netseven.it/users.json id 1
+ * asmiu api = apiasmiu.webmapp.it/users.json id 2
+ * rea api = apirea.webmapp.it/users.json id 3
+ * esa api = apiesa.netseven.it/users.json id 4
  */
 class importUserFromApi extends Command
 {
@@ -22,7 +22,7 @@ class importUserFromApi extends Command
      *
      * @var string
      */
-    protected $signature = 'import:users {url}';
+    protected $signature = 'import:users {url} {company_id}';
 
     /**
      * The console command description.
@@ -38,7 +38,6 @@ class importUserFromApi extends Command
      */
     public function handle()
     {
-
 
         $skyppedUsers = [];
 
@@ -66,6 +65,7 @@ class importUserFromApi extends Command
                             'name' => $email,
                             'email' => $email,
                             'password' => bcrypt($user['code']),
+                            'app_company_id' => $this->argument('company_id'),
                         ]);
                         $usr->email_verified_at = \Carbon\Carbon::parse($user['created_at'])->format('Y-m-d h:m:s');
                         $usr->save();
@@ -83,40 +83,4 @@ class importUserFromApi extends Command
         $this->info(PHP_EOL . "import completed");
         return 1;
     }
-
-
-
-
-
-
-
-
-    //     foreach ($users as $email => $user) {
-    //         $userDB = User::where('email', $email)->first();
-    //         if (!is_null($userDB)) {
-    //             $msg = $email . ": SKIPPED already exist.";
-    //             array_push($skyppedUsers,  $msg);
-    //         } else {
-    //             try {
-    //                 $usr = User::create([
-    //                     'name' => $email,
-    //                     'email' => $email,
-    //                     'password' => bcrypt($user['code']),
-    //                 ]);
-    //                 $usr->email_verified_at = \Carbon\Carbon::parse($user['created_at'])->format('Y-m-d h:m:s');
-    //                 $usr->save();
-    //                 Log::info("user with " . $email . " ADDED.");
-    //             } catch (Exception $e) {
-    //                 array_push($skyppedUsers, "user with email: " . $email . "ERROR " . $e);
-    //             }
-    //         }
-    //     }
-    //     if (count($skyppedUsers) > 0) {
-    //         Log::info("the following user are skipped:");
-    //         foreach ($skyppedUsers as $skyppedUser) {
-    //             Log::info($skyppedUser);
-    //         }
-    //     }
-    //     return 0;
-    // }
 }
