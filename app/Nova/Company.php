@@ -62,7 +62,7 @@ class Company extends Resource
         return [
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
-            BelongsTo::make('User')->nullable(),
+            BelongsTo::make('User')->nullable()->searchable(),
             Text::make('sku')
                 ->hideWhenUpdating()
                 ->help('Must be prefixed with "it.webmapp.{sku}"')
@@ -81,7 +81,19 @@ class Company extends Resource
                     }
                     return '<a class="link-default" target="_blank" href="' . $iosLink . '">App Link</a>';
                 })->asHtml(),
-            Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
+            Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.')->hideFromIndex(),
+            Text::make(__('Ticket E-mails'), function () {
+                $emails = $this->ticket_email;
+                if (!$emails) {
+                    return '';
+                }
+                $emails = explode(',', $emails);
+                $html = '';
+                foreach ($emails as $email) {
+                    $html .= $email . '<br>';
+                }
+                return $html;
+            })->asHtml()->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.')->onlyOnIndex(),
             new Panel('Company API', $this->apiPanel()),
             new Panel('Company Location', $this->companyLocation()),
             new Panel('Company Resources', $this->companyResources()),
