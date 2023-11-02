@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,16 @@ class LoginController extends Controller
                 $success['token'] =  $user->createToken('access_token')->plainTextToken;
                 $success['name'] =  $user->name;
                 $success['email_verified_at'] =  $user->email_verified_at;
+                $query = Address::where('user_id', $user->id)->get();
+                $addresses = collect($query)->map(function ($address, $key) {
+                    $address->location = $this->getLocation($address->location);
+                    return $address;
+                });
+
+                if (!$addresses->isEmpty()) {
+                    $user->addresses = json_decode($addresses);
+                }
+
                 $success['user'] = $user;
 
                 return $this->sendResponse($success, 'User login successfully.');
