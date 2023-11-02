@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -50,5 +51,12 @@ class LoginController extends Controller
     public function logout()
     {
         Auth::logout();
+    }
+
+    public function getLocation($location)
+    {
+        $g = json_decode(DB::select("SELECT st_asgeojson('$location') as g")[0]->g);
+
+        return [$g->coordinates[0], $g->coordinates[1]];
     }
 }

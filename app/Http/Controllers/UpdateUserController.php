@@ -107,12 +107,12 @@ class UpdateUserController extends Controller
                         $updateAddressRequest['id'] =  $address['id'];
                         $updateAddressRequest['address'] =  $address['address'];
                         $updateAddressRequest['location'] =  $address['location'];
-                        (new AddressController)->update($updateAddressRequest);
+                        (new AddressController())->update($updateAddressRequest);
                     } else {
                         $createAddressRequest = new UpdateAddressRequest();
                         $createAddressRequest['address'] =  $address['address'];
                         $createAddressRequest['location'] =  $address['location'];
-                        (new AddressController)->create($createAddressRequest);
+                        (new AddressController())->create($createAddressRequest);
                     }
                     array_push($changes, 'addresses');
                 }
@@ -145,11 +145,11 @@ class UpdateUserController extends Controller
         $success['user'] =  $user;
         return $this->sendResponse($success, 'user deleted successfully');
     }
-    private  function getLocationByUser($user)
+    private function getLocationByUser($user)
     {
         return $this->getLocation($user->location);
     }
-    private  function getLocation($location)
+    public function getLocation($location)
     {
         $g = json_decode(DB::select("SELECT st_asgeojson('$location') as g")[0]->g);
 
