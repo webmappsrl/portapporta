@@ -143,8 +143,20 @@ class CalendarController extends Controller
                         foreach ($currentCalendar->calendarItems->where('day_of_week', $currentDay->dayOfWeek) as $item) {
                             $p = [];
                             $p['trash_types'] = collect($item->trashTypes->toArray())->map(function ($trashType) {
-                                $trashType["allowed"] = $trashType["allowed"]["it"];
-                                $trashType["notallowed"] = $trashType["notallowed"]["it"];
+                                if (isset($trashType["allowed"]) && $trashType["allowed"] !== null) {
+                                    // $trashType["allowed"] esiste ed è non-null, quindi possiamo procedere
+                                    $trashType["allowed"]  = $trashType["allowed"]["it"];
+                                } else {
+                                    // $trashType["allowed"] è null o non impostato, gestisci l'errore o imposta un valore di default
+                                    $trashType["allowed"] = "";
+                                }
+                                if (isset($trashType["notallowed"]) && $trashType["notallowed"] !== null) {
+                                    // $trashType["allowed"] esiste ed è non-null, quindi possiamo procedere
+                                    $trashType["notallowed"]  = $trashType["notallowed"]["it"];
+                                } else {
+                                    // $trashType["allowed"] è null o non impostato, gestisci l'errore o imposta un valore di default
+                                    $trashType["notallowed"] = "";
+                                }
                                 return $trashType;
                             });
                             $p['frequency'] = $item->frequency;
