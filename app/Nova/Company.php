@@ -23,6 +23,7 @@ use Murdercode\TinymceEditor\TinymceEditor;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Database\Eloquent\Model;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
+use Laravel\Nova\Fields\HasMany;
 
 class Company extends Resource
 {
@@ -63,6 +64,7 @@ class Company extends Resource
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
             BelongsTo::make('User')->nullable()->searchable(),
+            HasMany::make('Company Admins', 'companyAdmins', User::class),
             Text::make('sku')
                 ->hideWhenUpdating()
                 ->help('Must be prefixed with "it.webmapp.{sku}"')
