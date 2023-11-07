@@ -18,7 +18,7 @@ class AddressPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -30,7 +30,7 @@ class AddressPolicy
      */
     public function view(User $user, Address $address)
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -41,7 +41,7 @@ class AddressPolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -53,7 +53,7 @@ class AddressPolicy
      */
     public function update(User $user, Address $address)
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -65,7 +65,7 @@ class AddressPolicy
      */
     public function delete(User $user, Address $address)
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
