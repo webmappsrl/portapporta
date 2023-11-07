@@ -53,6 +53,13 @@ class Company extends Model implements HasMedia
         return $this->belongsTo(User::class);
     }
 
+    public function companyAdmins()
+    {
+        return $this->hasMany(User::class)->whereHas('roles', function ($query) {
+            $query->where('name', 'company_admin');
+        });
+    }
+
     public function calendars()
     {
         return $this->hasMany(Calendar::class);

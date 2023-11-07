@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use Laravel\Nova\Fields\BelongsTo;
@@ -55,6 +56,15 @@ class User extends Resource
             Text::make('fcm_token')
                 ->sortable()->onlyOnForms(),
             Text::make('app_company_id'),
+            BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
+                ->nullable()
+                ->onlyOnDetail(),
+            BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
+                ->nullable()
+                ->onlyOnForms()->canSee(function ($request) {
+                    return $request->user()->hasRole('super_admin');
+                }),
+
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
@@ -139,5 +149,19 @@ class User extends Resource
             return false;
         }
         return true;
+    }
+
+    public static function afterCreate(NovaRequest $request, Model $model)
+    {
+        if ($model->company_id) {
+            $model->assignRole('company_admin');
+        }
+    }
+
+    public static function afterUpdate(NovaRequest $request, Model $model)
+    {
+        if ($model->company_id) {
+            $model->assignRole('company_admin');
+        }
     }
 }
