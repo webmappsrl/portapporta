@@ -35,17 +35,10 @@ return [
         'super_admin' => [
             'manage_users',
             'manage_companies',
-            'manage_trash_types',
-            'manage_wastes',
-            'manage_waste_collection_centers',
-            'manage_user_types',
-            'manage_zones',
-            'manage_calendars',
-            'manage_tickets',
-            'manage_roles_and_permissions',
+            'manage_address',
+            'manage_roles_and_permissions'
         ],
         'company_admin' => [
-            'manage_companies',
             'manage_trash_types',
             'manage_wastes',
             'manage_waste_collection_centers',
