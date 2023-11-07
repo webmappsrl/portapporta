@@ -17,7 +17,7 @@ class UserPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->hasPermissionTo('manage_users');
+        return $user->hasRole('super_admin');
     }
 
     /**
@@ -29,7 +29,8 @@ class UserPolicy
      */
     public function view(User $user, User $user_mod)
     {
-        return $user->hasPermissionTo('manage_users');
+        return $user->hasPermissionTo('manage_users')
+            || $user->id == auth()->user()->id;
     }
 
     /**

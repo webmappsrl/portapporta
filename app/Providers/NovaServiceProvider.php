@@ -80,7 +80,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
      */
     public function tools()
     {
-        return [];
+        return [
+            \Vyuldashev\NovaPermission\NovaPermissionTool::make()->canSee(function ($request) {
+                return $request->user()->hasRole('super_admin');
+            }),
+        ];
     }
 
     /**

@@ -20,6 +20,11 @@ class RoleAndPermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        //reset all roles for the users
+        User::all()->each(function ($user) {
+            $user->syncRoles([]);
+        });
+
         //create roles
         if (!Role::where('name', 'super_admin')->exists()) {
             $superAdminRole = Role::create(['name' => 'super_admin']);
@@ -62,7 +67,7 @@ class RoleAndPermissionSeeder extends Seeder
             $companyAdminRole->givePermissionTo($permission);
         }
         //assign role to user company admin
-        $companyAdmins = User::where('app_company_id', '!=', null)->get();
+        $companyAdmins = User::where('company_id', '!=', null)->get();
 
         foreach ($companyAdmins as $companyAdmin) {
             $companyAdmin->assignRole($companyAdminRole);
