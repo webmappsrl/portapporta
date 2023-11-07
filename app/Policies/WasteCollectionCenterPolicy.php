@@ -18,10 +18,7 @@ class WasteCollectionCenterPolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return false;
-        }
-        return true;
+        return $user->hasRole('company_admin');
     }
 
     /**
@@ -35,7 +32,7 @@ class WasteCollectionCenterPolicy
     {
         if ($wasteCollectionCenter->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -48,7 +45,7 @@ class WasteCollectionCenterPolicy
      */
     public function create(User $user)
     {
-        return true;
+        return !$user->hasRole('contributor');
     }
 
     /**
@@ -62,7 +59,7 @@ class WasteCollectionCenterPolicy
     {
         if ($wasteCollectionCenter->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -78,7 +75,7 @@ class WasteCollectionCenterPolicy
     {
         if ($wasteCollectionCenter->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -94,7 +91,7 @@ class WasteCollectionCenterPolicy
     {
         if ($wasteCollectionCenter->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -110,7 +107,7 @@ class WasteCollectionCenterPolicy
     {
         if ($wasteCollectionCenter->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }

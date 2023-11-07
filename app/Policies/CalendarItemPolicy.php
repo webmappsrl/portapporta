@@ -18,11 +18,7 @@ class CalendarItemPolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return false;
-        }
-
-        return true;
+        return $user->hasRole('company_admin');
     }
 
     /**
@@ -36,7 +32,7 @@ class CalendarItemPolicy
     {
         if ($calendar_item->calendar->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -49,7 +45,7 @@ class CalendarItemPolicy
      */
     public function create(User $user)
     {
-        return true;
+        return !$user->hasRole('contributor');
     }
 
     /**
@@ -63,7 +59,7 @@ class CalendarItemPolicy
     {
         if ($calendar_item->calendar->company->id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -79,7 +75,7 @@ class CalendarItemPolicy
     {
         if ($calendar_item->calendar->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -95,7 +91,7 @@ class CalendarItemPolicy
     {
         if ($calendar_item->calendar->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -111,7 +107,7 @@ class CalendarItemPolicy
     {
         if ($calendar_item->calendar->company_id == $user->company->id) {
             return true;
-        } 
+        }
 
         return false;
     }
