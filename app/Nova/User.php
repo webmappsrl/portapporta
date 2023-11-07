@@ -84,9 +84,13 @@ class User extends Resource
                 ->creationRules('unique:users,phone_number')
                 ->updateRules('unique:users,phone_number,{{resourceId}}'),
             Text::make('Fiscal code')
-                ->rules('nullable', 'max:16', 'unique:users,fiscal_code'),
+                ->rules('nullable', 'max:16')
+                ->creationRules('unique:users,fiscal_code')
+                ->updateRules('unique:users,fiscal_code,{{resourceId}}'),
             Text::make('User code')
-                ->rules('nullable', 'max:16', 'unique:users,user_code'),
+                ->rules('nullable', 'max:16')
+                ->creationRules('unique:users,user_code')
+                ->updateRules('unique:users,user_code,{{resourceId}}'),
             Text::make('Company', function () {
                 if (!is_null($this->zone_id) && !is_null($this->zone)) {
                     return $this->zone->company->name;
