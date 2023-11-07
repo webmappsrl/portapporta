@@ -10,10 +10,11 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Nova\Auth\Impersonatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
-    use HasApiTokens, HasFactory, Notifiable, Impersonatable;
+    use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
