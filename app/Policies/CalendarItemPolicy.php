@@ -18,7 +18,7 @@ class CalendarItemPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->hasRole('company_admin');
+        return $user->can('manage_calendars');
     }
 
     /**
