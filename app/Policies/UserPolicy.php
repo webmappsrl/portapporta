@@ -17,11 +17,7 @@ class UserPolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasRole('super_admin');
     }
 
     /**
@@ -33,11 +29,7 @@ class UserPolicy
      */
     public function view(User $user, User $user_mod)
     {
-        if($user->email=='admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasRole('super_admin');
     }
 
     /**
@@ -48,11 +40,7 @@ class UserPolicy
      */
     public function create(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasRole('super_admin');
     }
 
     /**
@@ -64,11 +52,7 @@ class UserPolicy
      */
     public function update(User $user, User $user_mod)
     {
-        if($user->email=='admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasRole('super_admin');
     }
 
     /**
@@ -80,11 +64,7 @@ class UserPolicy
      */
     public function delete(User $user, User $user_mod)
     {
-        if($user->email=='admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasRole('super_admin');
     }
 
     /**
