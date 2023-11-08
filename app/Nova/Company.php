@@ -63,7 +63,16 @@ class Company extends Resource
         return [
             ID::make(__('ID'), 'id')->sortable(),
             Text::make('name'),
-            BelongsTo::make('User')->nullable()->searchable(),
+            Text::make('Admins', function ($request) {
+                $admins = $this->companyAdmins;
+                $html = '';
+                foreach ($admins as $admin) {
+                    $html .= '<a style="color:#44b3d6;" href=/resources/users/' . $admin->id . '>' . $admin->name . '</a><br>';
+                }
+                return $html;
+            })->asHtml()
+                ->hideWhenCreating()
+                ->hideWhenUpdating(),
             HasMany::make('Company Admins', 'companyAdmins', User::class),
             Text::make('sku')
                 ->hideWhenUpdating()

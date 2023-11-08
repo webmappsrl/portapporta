@@ -174,7 +174,7 @@ class User extends Resource
             $model->app_company_id = $model->company_id;
         } else {
             $model->removeRole('company_admin');
-            $model->app_company_id = null;
+            $model->assignRole('contributor');
         }
         $model->save();
     }
@@ -189,7 +189,7 @@ class User extends Resource
             $model->app_company_id = $model->company_id;
         } else {
             $model->removeRole('company_admin');
-            $model->app_company_id = null;
+            $model->assignRole('contributor');
         }
         $model->save();
     }
