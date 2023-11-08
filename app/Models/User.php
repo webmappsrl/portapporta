@@ -20,18 +20,30 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         static::created(function ($user) {
             if ($user->company_id) {
+                if ($user->hasRole('contributor')) {
+                    $user->removeRole('contributor');
+                }
                 $user->assignRole('company_admin');
+                $user->app_company_id = $user->company_id;
             } else {
-                $user->assignRole('contributor');
+                $user->removeRole('company_admin');
+                $user->app_company_id = null;
             }
+            $model->save();
         });
 
         static::updated(function ($user) {
             if ($user->company_id) {
+                if ($user->hasRole('contributor')) {
+                    $user->removeRole('contributor');
+                }
                 $user->assignRole('company_admin');
+                $user->app_company_id = $user->company_id;
             } else {
-                $user->assignRole('contributor');
+                $user->removeRole('company_admin');
+                $user->app_company_id = null;
             }
+            $model->save();
         });
     }
 
@@ -94,10 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canImpersonate()
     {
-        if (auth()->user()->id == 1) {
-            return true;
-        }
-        return false;
+        return $this->hasRole('super_admin');
     }
 
     /**
@@ -107,9 +116,6 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canBeImpersonated()
     {
-        if (Company::where('user_id', $this->id)->count()) {
-            return true;
-        }
-        return false;
+        return $this->hasRole('company_admin');
     }
 }
