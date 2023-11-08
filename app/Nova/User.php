@@ -58,13 +58,17 @@ class User extends Resource
                 ->rules('required', 'max:255'),
             Text::make('fcm_token')
                 ->sortable()->onlyOnForms(),
-            Text::make('app_company_id'),
+            Text::make('app_company_id')
+                ->hideFromIndex(),
             BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
                 ->nullable()
-                ->onlyOnDetail(),
+                ->hideWhenCreating()
+                ->hideWhenUpdating(),
+
             BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
                 ->nullable()
-                ->onlyOnForms()->canSee(function ($request) {
+                ->onlyOnForms()
+                ->canSee(function ($request) {
                     return $request->user()->hasRole('super_admin');
                 }),
             MorphToMany::make('Roles', 'roles', \Vyuldashev\NovaPermission\Role::class),
@@ -163,14 +167,30 @@ class User extends Resource
     public static function afterCreate(NovaRequest $request, Model $model)
     {
         if ($model->company_id) {
+            if ($model->hasRole('contributor')) {
+                $model->removeRole('contributor');
+            }
             $model->assignRole('company_admin');
+            $model->app_company_id = $model->company_id;
+        } else {
+            $model->removeRole('company_admin');
+            $model->app_company_id = null;
         }
+        $model->save();
     }
 
     public static function afterUpdate(NovaRequest $request, Model $model)
     {
         if ($model->company_id) {
+            if ($model->hasRole('contributor')) {
+                $model->removeRole('contributor');
+            }
             $model->assignRole('company_admin');
+            $model->app_company_id = $model->company_id;
+        } else {
+            $model->removeRole('company_admin');
+            $model->app_company_id = null;
         }
+        $model->save();
     }
 }
