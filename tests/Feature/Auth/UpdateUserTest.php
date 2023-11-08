@@ -6,13 +6,13 @@ use App\Models\User;
 use App\Models\UserType;
 use App\Models\Zone;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class UpdateUserTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
     public function test_change_password_ok()
     {
         $lat = 10;

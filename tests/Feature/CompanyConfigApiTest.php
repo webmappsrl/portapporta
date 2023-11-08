@@ -5,13 +5,12 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class CompanyConfigApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
     /**
      *@test
      *
@@ -22,7 +21,7 @@ class CompanyConfigApiTest extends TestCase
         // SETUP DB
         $c = Company::factory()->create();
         $user = User::factory()->create(
-            ['email' => 'test@webmapp.it', 'app_company_id' => $c->id]
+            ['email' => 'test1@webmapp.it', 'app_company_id' => $c->id]
         );
         //access the api as the admin user
         $response = $this->actingAs($user)->get('/api/c/' . $c->id . '/config.json');
@@ -40,7 +39,7 @@ class CompanyConfigApiTest extends TestCase
         // SETUP DB
         $company = Company::factory()->create();
         $user = User::factory()->create(
-            ['email' => 'test@webmapp.it', 'app_company_id' => $company->id]
+            ['email' => 'test1@webmapp.it', 'app_company_id' => $company->id]
         );
 
         //access the api as the admin user
