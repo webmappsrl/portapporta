@@ -15,7 +15,9 @@ class Address extends Model
         'zone_id',
         'user_type_id',
         'location',
+        'city',
         'address',
+        'house_number'
     ];
     public function user(): BelongsTo
     {
