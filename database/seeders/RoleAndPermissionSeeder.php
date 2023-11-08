@@ -20,11 +20,6 @@ class RoleAndPermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        //reset all roles for the users
-        User::all()->each(function ($user) {
-            $user->syncRoles([]);
-        });
-
         //create roles
         if (!Role::where('name', 'super_admin')->exists()) {
             $superAdminRole = Role::create(['name' => 'super_admin']);
@@ -43,8 +38,6 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         //create permissions for super admin
-        //reset permissions
-        $superAdminRole->revokePermissionTo(Permission::all());
         foreach (config('services.permissions.super_admin') as $permission) {
             if (!Permission::where('name', $permission)->exists()) {
                 Permission::create(['name' => $permission]);
@@ -57,8 +50,6 @@ class RoleAndPermissionSeeder extends Seeder
         $superAdmin->assignRole($superAdminRole);
 
         //create permissions for company admin
-        //reset permissions
-        $companyAdminRole->revokePermissionTo(Permission::all());
         foreach (config('services.permissions.company_admin') as $permission) {
             if (!Permission::where('name', $permission)->exists()) {
                 Permission::create(['name' => $permission]);
@@ -74,8 +65,6 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         //create permissions for contributor
-        //reset permissions
-        $contributorRole->revokePermissionTo(Permission::all());
         foreach (config('services.permissions.contributor') as $permission) {
             if (!Permission::where('name', $permission)->exists()) {
                 Permission::create(['name' => $permission]);
@@ -84,11 +73,6 @@ class RoleAndPermissionSeeder extends Seeder
             $contributorRole->givePermissionTo($permission);
         }
 
-        //assign role to user contributor
-        $contributors = User::where('app_company_id', null)->get();
-
-        foreach ($contributors as $contributor) {
-            $contributor->assignRole($contributorRole);
-        }
+        //role to user contributor will be assigned in the import user command due to PHP memory limit:  app/Console/Commands/importUserFromApi.php
     }
 }

@@ -58,6 +58,7 @@ class importUserFromApi extends Command
                 if (!is_null($userDB)) {
                     $msg = $email . ": SKIPPED already exist.";
                     array_push($skyppedUsers, $msg);
+                    $userDB->assignRole('contributor');
                     $userProgressBar->advance();
                 } else {
                     try {
@@ -68,6 +69,7 @@ class importUserFromApi extends Command
                             'app_company_id' => $this->argument('company_id'),
                         ]);
                         $usr->email_verified_at = \Carbon\Carbon::parse($user['created_at'])->format('Y-m-d h:m:s');
+                        $usr->assignRole('contributor');
                         $usr->save();
                         $userProgressBar->advance();
                     } catch (Exception $e) {
