@@ -79,10 +79,12 @@ class AddressController extends Controller
     {
         try {
             $authUser = Auth::user();
-            if (isset($request->address) && isset($request->location)) {
+            if (isset($request->city) && isset($request->address) && isset($request->location)) {
                 $address = Address::create([
                     'user_id' => $authUser->id,
                     'address' => $request->address,
+                    'city' => $request->city,
+                    'house_number' => $request->house_number,
                     'zone_id' => $request->zone_id,
                     'user_type_id' => $request->user_type_id,
                     'location' => $this->getGeometryFromLocation($request->location)

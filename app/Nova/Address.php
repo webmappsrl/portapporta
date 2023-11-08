@@ -50,7 +50,9 @@ class Address extends Resource
                 }
                 return 'ND';
             })->onlyOnDetail(),
+            Text::make('city'),
             Text::make('address'),
+            Text::make('house_number'),
             Text::make('User Type', function () {
                 if (!is_null($this->user_type_id)) {
                     return $this->userType->label;
