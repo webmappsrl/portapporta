@@ -67,6 +67,6 @@ class NewTicketsValueMetric extends Value
         if (auth()->user()->hasRole('super_admin')) {
             return 'Tickets';
         }
-        return 'Tickets for ' . auth()->user()->company->name;
+        return 'Tickets for ' . auth()->user()->companyWhereAdmin->name;
     }
 }

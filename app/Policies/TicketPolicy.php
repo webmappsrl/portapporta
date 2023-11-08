@@ -30,7 +30,7 @@ class TicketPolicy
      */
     public function view(User $user, Ticket $ticket)
     {
-        if ($ticket->company_id == $user->company->id) {
+        if ($ticket->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 

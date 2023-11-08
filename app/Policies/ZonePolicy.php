@@ -30,7 +30,7 @@ class ZonePolicy
      */
     public function view(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class ZonePolicy
      */
     public function update(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -73,7 +73,7 @@ class ZonePolicy
      */
     public function delete(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -89,7 +89,7 @@ class ZonePolicy
      */
     public function restore(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -105,7 +105,7 @@ class ZonePolicy
      */
     public function forceDelete(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 

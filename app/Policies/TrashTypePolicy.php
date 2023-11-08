@@ -30,7 +30,7 @@ class TrashTypePolicy
      */
     public function view(User $user, TrashType $trashType)
     {
-        if ($trashType->company_id == $user->company->id) {
+        if ($trashType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class TrashTypePolicy
      */
     public function update(User $user, TrashType $trashType)
     {
-        if ($trashType->company_id == $user->company->id) {
+        if ($trashType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -73,7 +73,7 @@ class TrashTypePolicy
      */
     public function delete(User $user, TrashType $trashType)
     {
-        if ($trashType->company_id == $user->company->id) {
+        if ($trashType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -89,7 +89,7 @@ class TrashTypePolicy
      */
     public function restore(User $user, TrashType $trashType)
     {
-        if ($trashType->company_id == $user->company->id) {
+        if ($trashType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -105,7 +105,7 @@ class TrashTypePolicy
      */
     public function forceDelete(User $user, TrashType $trashType)
     {
-        if ($trashType->company_id == $user->company->id) {
+        if ($trashType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 

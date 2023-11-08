@@ -30,7 +30,7 @@ class WastePolicy
      */
     public function view(User $user, Waste $waste)
     {
-        if ($waste->company_id == $user->company->id) {
+        if ($waste->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class WastePolicy
      */
     public function update(User $user, Waste $waste)
     {
-        if ($waste->company_id == $user->company->id) {
+        if ($waste->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -73,7 +73,7 @@ class WastePolicy
      */
     public function delete(User $user, Waste $waste)
     {
-        if ($waste->company_id == $user->company->id) {
+        if ($waste->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -89,7 +89,7 @@ class WastePolicy
      */
     public function restore(User $user, Waste $waste)
     {
-        if ($waste->company_id == $user->company->id) {
+        if ($waste->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -105,7 +105,7 @@ class WastePolicy
      */
     public function forceDelete(User $user, Waste $waste)
     {
-        if ($waste->company_id == $user->company->id) {
+        if ($waste->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
