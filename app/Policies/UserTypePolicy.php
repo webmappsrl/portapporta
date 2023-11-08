@@ -30,7 +30,7 @@ class UserTypePolicy
      */
     public function view(User $user, UserType $userType)
     {
-        if ($userType->company_id == $user->company->id) {
+        if ($userType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class UserTypePolicy
      */
     public function update(User $user, UserType $userType)
     {
-        if ($userType->company_id == $user->company->id) {
+        if ($userType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -73,7 +73,7 @@ class UserTypePolicy
      */
     public function delete(User $user, UserType $userType)
     {
-        if ($userType->company_id == $user->company->id) {
+        if ($userType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -89,7 +89,7 @@ class UserTypePolicy
      */
     public function restore(User $user, UserType $userType)
     {
-        if ($userType->company_id == $user->company->id) {
+        if ($userType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -105,7 +105,7 @@ class UserTypePolicy
      */
     public function forceDelete(User $user, UserType $userType)
     {
-        if ($userType->company_id == $user->company->id) {
+        if ($userType->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 

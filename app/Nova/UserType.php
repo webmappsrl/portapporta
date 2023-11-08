@@ -30,7 +30,7 @@ class UserType extends Resource
      * @var array
      */
     public static $search = [
-        'slug','label'
+        'slug', 'label'
     ];
 
     /**
@@ -105,6 +105,6 @@ class UserType extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->where('company_id', $request->user()->company->id);
+        return $query->where('company_id', $request->user()->companyWhereAdmin->id);
     }
 }

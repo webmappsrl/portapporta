@@ -30,7 +30,7 @@ class CalendarItemPolicy
      */
     public function view(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class CalendarItemPolicy
      */
     public function update(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company->id == $user->company->id) {
+        if ($calendar_item->calendar->company->id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -73,7 +73,7 @@ class CalendarItemPolicy
      */
     public function delete(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -89,7 +89,7 @@ class CalendarItemPolicy
      */
     public function restore(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -105,7 +105,7 @@ class CalendarItemPolicy
      */
     public function forceDelete(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 

@@ -30,7 +30,7 @@ class WasteCollectionCenterPolicy
      */
     public function view(User $user, WasteCollectionCenter $wasteCollectionCenter)
     {
-        if ($wasteCollectionCenter->company_id == $user->company->id) {
+        if ($wasteCollectionCenter->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -57,7 +57,7 @@ class WasteCollectionCenterPolicy
      */
     public function update(User $user, WasteCollectionCenter $wasteCollectionCenter)
     {
-        if ($wasteCollectionCenter->company_id == $user->company->id) {
+        if ($wasteCollectionCenter->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -73,7 +73,7 @@ class WasteCollectionCenterPolicy
      */
     public function delete(User $user, WasteCollectionCenter $wasteCollectionCenter)
     {
-        if ($wasteCollectionCenter->company_id == $user->company->id) {
+        if ($wasteCollectionCenter->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -89,7 +89,7 @@ class WasteCollectionCenterPolicy
      */
     public function restore(User $user, WasteCollectionCenter $wasteCollectionCenter)
     {
-        if ($wasteCollectionCenter->company_id == $user->company->id) {
+        if ($wasteCollectionCenter->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 
@@ -105,7 +105,7 @@ class WasteCollectionCenterPolicy
      */
     public function forceDelete(User $user, WasteCollectionCenter $wasteCollectionCenter)
     {
-        if ($wasteCollectionCenter->company_id == $user->company->id) {
+        if ($wasteCollectionCenter->company_id == $user->companyWhereAdmin->id) {
             return true;
         }
 

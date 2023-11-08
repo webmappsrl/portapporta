@@ -25,7 +25,7 @@ class CalendarItemsCalendarFilter extends Filter
      */
     public function apply(NovaRequest $request, $query, $value)
     {
-        return $query->where('calendar_id',$value);
+        return $query->where('calendar_id', $value);
     }
 
     /**
@@ -36,6 +36,6 @@ class CalendarItemsCalendarFilter extends Filter
      */
     public function options(NovaRequest $request)
     {
-        return Calendar::where('company_id',auth()->user()->company->id)->get()->pluck('id','name')->toArray();
+        return Calendar::where('company_id', auth()->user()->companyWhereAdmin->id)->get()->pluck('id', 'name')->toArray();
     }
 }

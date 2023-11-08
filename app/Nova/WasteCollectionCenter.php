@@ -148,6 +148,6 @@ class WasteCollectionCenter extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->where('company_id', $request->user()->company->id);
+        return $query->where('company_id', $request->user()->companyWhereAdmin->id);
     }
 }
