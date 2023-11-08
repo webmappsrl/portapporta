@@ -2,14 +2,16 @@
     use Jenssegers\Agent\Agent;
     use App\Models\Zone;
     use App\Models\App;
+    use App\Models\Company;
     $agent = new Agent();
 
-    $zone = Zone::find($user->zone_id)->first();
-    $company = strtoupper($zone->company->name);
+    $company = Company::find($user->app_company_id)->first();
+    $companyName = strtoupper($company->name);
 
-    $link_apple = $zone->company->ios_store_link;
-    $link_android = $zone->company->android_store_link;
+    $link_apple = $company->ios_store_link;
+    $link_android = $company->android_store_link;
     $verification_message = 'Da ora puoi accedere alla applicazione con le credenziali che hai creato durante la regisitrazione.';
+
 @endphp
 
 <!DOCTYPE html>
@@ -19,7 +21,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>portAPPorta - {{ $company }}</title>
+    <title>portAPPorta - {{ $companyName }} </title>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -99,7 +101,7 @@
 
 <body class="antialiased">
     <div class="content">
-        <p>Ciao {{ $user->name }}, puoi accedere alla nostra APP PortAPPorta - {{ $company }}.</p>
+        <p>Ciao {{ $user->name }}, puoi accedere alla nostra APP PortAPPorta - {{ $companyName }}.</p>
 
         <div class="button-wrapper">
             <div class="button-container">
@@ -110,6 +112,7 @@
                 @endif
             </div>
         </div>
+
     </div>
 </body>
 
