@@ -16,7 +16,14 @@ class NewUsersValueMetric extends Value
      */
     public function calculate(NovaRequest $request)
     {
-        return $this->count($request, User::class);
+        //get the current logged in user
+        $user = $request->user();
+
+        if ($user->hasRole('super_admin')) {
+            return $this->count($request, User::class)->format('0,0');
+        }
+
+        return $this->count($request, User::where('app_company_id', $user->app_company_id))->format('0,0');
     }
 
     /**
@@ -55,5 +62,13 @@ class NewUsersValueMetric extends Value
     public function uriKey()
     {
         return 'new-users-value-metric';
+    }
+
+    public function name()
+    {
+        if (auth()->user()->hasRole('super_admin')) {
+            return 'Users';
+        }
+        return 'Users for ' . auth()->user()->company->name;
     }
 }
