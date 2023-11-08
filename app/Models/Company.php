@@ -12,6 +12,10 @@ class Company extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
+    protected $fillable = [
+        'user_id',
+    ];
+
     /**
      * creates a sha1 from the uploaded file name with the original file extension
      *

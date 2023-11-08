@@ -31,7 +31,7 @@ class WasteCollectionCenter extends Model
         'geometry',
     ];
 
-        /**
+    /**
      * The "booted" method of the model.
      *
      * @return void
@@ -40,21 +40,24 @@ class WasteCollectionCenter extends Model
     {
         if (auth()->check()) {
             static::creating(function ($collection_center) {
-                $collection_center->company_id = auth()->user()->company->id;
+                $collection_center->company_id = auth()->user()->companyWhereAdmin->id;
             });
         }
     }
 
 
-    public function company(){
+    public function company()
+    {
         return $this->belongsTo(Company::class);
     }
 
-    public function userTypes(){
+    public function userTypes()
+    {
         return $this->belongsToMany(UserType::class);
     }
-    
-    public function trashTypes(){
+
+    public function trashTypes()
+    {
         return $this->belongsToMany(TrashType::class);
     }
 }
