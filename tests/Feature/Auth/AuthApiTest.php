@@ -5,12 +5,12 @@ namespace Tests\Feature\Auth;
 use App\Models\Company;
 use App\Models\UserType;
 use App\Models\Zone;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function testRegisterNameFieldRequired()
     {

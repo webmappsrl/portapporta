@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\TrashType;
 use App\Models\Waste;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
@@ -15,7 +15,7 @@ class ApiDataRifiutarioTest extends TestCase
 {
     // REF: https://apiersu.netseven.it/data/rifiutario.json
 
-    use RefreshDatabase;
+    use DatabaseTransactions;
     use WithoutMiddleware;
 
     /** @test     */

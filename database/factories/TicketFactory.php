@@ -26,13 +26,13 @@ class TicketFactory extends Factory
             $trash_type = TrashType::factory()->create();
         }
         try {
-            $user = User::all()->random();
+            $user = User::where('id', range(2, 20))->get()->random();
         } catch (Exception $e) {
             $user = User::factory()->create();
         }
 
         return [
-            'ticket_type' => $this->faker->randomElement(['reservation', 'info','abandonment','report']),
+            'ticket_type' => $this->faker->randomElement(['reservation', 'info', 'abandonment', 'report']),
             'company_id' => $trash_type->company->id,
             'trash_type_id' => $trash_type->id,
             'user_id' => $user->id,
