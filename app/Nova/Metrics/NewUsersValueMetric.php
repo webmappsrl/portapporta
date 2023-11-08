@@ -23,7 +23,7 @@ class NewUsersValueMetric extends Value
             return $this->count($request, User::class)->format('0,0');
         }
 
-        return $this->count($request, User::where('app_company_id', $user->app_company_id))->format('0,0');
+        return $this->count($request, User::where('app_company_id', $user->company_id))->format('0,0');
     }
 
     /**
