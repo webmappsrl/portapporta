@@ -16,34 +16,18 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
     use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles;
 
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
     protected static function booted()
     {
-        static::created(function ($user) {
-            if ($user->company_id) {
-                if ($user->hasRole('contributor')) {
-                    $user->removeRole('contributor');
-                }
-                $user->assignRole('company_admin');
-                $user->app_company_id = $user->company_id;
-            } else {
-                $user->removeRole('company_admin');
-                $user->app_company_id = null;
+        static::deleting(function ($user) {
+            $company = Company::where('user_id', $user->id)->first();
+            if ($company) {
+                $company->update(['user_id' => null]);
             }
-            $model->save();
-        });
-
-        static::updated(function ($user) {
-            if ($user->company_id) {
-                if ($user->hasRole('contributor')) {
-                    $user->removeRole('contributor');
-                }
-                $user->assignRole('company_admin');
-                $user->app_company_id = $user->company_id;
-            } else {
-                $user->removeRole('company_admin');
-                $user->app_company_id = null;
-            }
-            $model->save();
         });
     }
 

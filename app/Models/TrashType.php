@@ -45,7 +45,7 @@ class TrashType extends Model
     {
         if (auth()->check()) {
             static::creating(function ($trash_type) {
-                $trash_type->company_id = auth()->user()->company->id;
+                $trash_type->company_id = auth()->user()->companyWhereAdmin->id;
             });
         }
     }
