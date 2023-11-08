@@ -48,7 +48,8 @@ class Zone extends Resource
         return [
             ID::make()->sortable(),
             Text::make('Label', 'label'),
-            Text::make('Comune', 'comune'),
+            Text::make('Comune', 'comune')
+                ->required(),
             Text::make('Url', 'url'),
             MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],

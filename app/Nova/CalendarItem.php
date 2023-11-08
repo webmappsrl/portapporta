@@ -89,11 +89,13 @@ class CalendarItem extends Resource
                 4 => 'Thu',
                 5 => 'Fry',
                 6 => 'Sat',
-            ])->displayUsingLabels(),
+            ])->displayUsingLabels()
+                ->required(),
             Select::make('Frequency', 'frequency')->options([
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
-            ]),
+            ])
+                ->required(),
             Date::make('Base Date', 'base_date')
                 ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
                 ->hideFromIndex(),
