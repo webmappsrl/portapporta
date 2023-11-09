@@ -57,7 +57,7 @@ class TicketPolicy
      */
     public function update(User $user, Ticket $ticket)
     {
-        return false;
+        return true;
     }
 
     /**
