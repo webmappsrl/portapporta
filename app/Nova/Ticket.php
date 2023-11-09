@@ -181,7 +181,10 @@ class Ticket extends Resource
      */
     public function filters(NovaRequest $request)
     {
-        return [];
+        return [
+            new \App\Nova\Filters\TicketZoneFilter(),
+            new \App\Nova\Filters\TicketTypeFilter(),
+        ];
     }
 
     /**
