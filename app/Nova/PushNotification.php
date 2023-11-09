@@ -2,7 +2,7 @@
 
 namespace App\Nova;
 
-use App\models\Company;
+use App\Models\Company;
 use Exception;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Date;
