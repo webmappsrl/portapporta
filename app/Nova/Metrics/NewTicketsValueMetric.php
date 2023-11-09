@@ -21,7 +21,7 @@ class NewTicketsValueMetric extends Value
         if ($user->hasRole('super_admin')) {
             return $this->count($request, Ticket::class);
         }
-        return $this->count($request, Ticket::Where('company_id', $user->company_id));
+        return $this->count($request, Ticket::Where('company_id', $user->admin_company_id));
     }
 
     /**
