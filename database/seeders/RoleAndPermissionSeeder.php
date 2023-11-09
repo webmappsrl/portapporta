@@ -45,9 +45,6 @@ class RoleAndPermissionSeeder extends Seeder
 
             $superAdminRole->givePermissionTo($permission);
         }
-        //assign role to user super admin
-        $superAdmin = User::where('email', 'admin@webmapp.it')->first();
-        $superAdmin->assignRole($superAdminRole);
 
         //create permissions for company admin
         foreach (config('services.permissions.company_admin') as $permission) {
@@ -56,12 +53,6 @@ class RoleAndPermissionSeeder extends Seeder
             }
 
             $companyAdminRole->givePermissionTo($permission);
-        }
-        //assign role to user company admin
-        $companyAdmins = User::where('company_id', '!=', null)->get();
-
-        foreach ($companyAdmins as $companyAdmin) {
-            $companyAdmin->assignRole($companyAdminRole);
         }
 
         //create permissions for contributor
@@ -72,7 +63,6 @@ class RoleAndPermissionSeeder extends Seeder
 
             $contributorRole->givePermissionTo($permission);
         }
-
         //role to user contributor will be assigned in the import user command due to PHP memory limit:  app/Console/Commands/importUserFromApi.php
     }
 }
