@@ -16,6 +16,7 @@
 
 <body>
     <div>
+        <h3>Segnalazione</h3>
         <p><strong>Data risposta:</strong> {{ $ticket->updated_at ?? '/' }}</p>
         <p><strong>Email:</strong> {{ $ticket->user->email ?? '/' }}</p>
         <p><strong>Nome:</strong> {{ $ticket->user->name ?? '/' }}</p>
@@ -27,6 +28,7 @@
         <br>
     </div>
     <div>
+        <h3>Risposta</h3>
         <h4>Caro {{ $ticket->user->name }},</h4>
         <p>{{ $answer }}</p>
     </div>
