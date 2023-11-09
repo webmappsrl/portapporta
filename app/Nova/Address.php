@@ -59,7 +59,7 @@ class Address extends Resource
                 }
                 return 'ND';
             })->onlyOnDetail(),
-            BelongsTo::make('User')->nullable(),
+            BelongsTo::make('User')->nullable()->searchable(),
             MapPoint::make('location')->withMeta([
                 'minZoom' => 5,
                 'maxZoom' => 17,

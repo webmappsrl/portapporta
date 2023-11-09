@@ -50,7 +50,8 @@ class Zone extends Resource
             Text::make('Label', 'label'),
             Text::make('Comune', 'comune')
                 ->required(),
-            Text::make('Url', 'url'),
+            Text::make('Url', 'url')
+                ->help('Url must start with http:// or https://'),
             MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
