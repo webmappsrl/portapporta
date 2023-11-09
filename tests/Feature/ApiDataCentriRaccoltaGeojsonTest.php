@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Models\TrashType;
 use App\Models\UserType;
 use App\Models\WasteCollectionCenter;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
@@ -16,7 +16,7 @@ class ApiDataCentriRaccoltaGeojsonTest extends TestCase
 {
     // REF https://apiersu.netseven.it/data/centri_raccolta.geojson
 
-    use DatabaseTransactions;
+    use RefreshDatabase;
     use WithoutMiddleware;
     /** @test     */
     public function api_data_centri_raccolta_returns_200()
