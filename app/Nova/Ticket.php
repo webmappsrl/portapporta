@@ -218,6 +218,14 @@ class Ticket extends Resource
                 ->canSee(function ($request) {
                     return $request->user()->hasRole('company_admin');
                 }),
+            (new \App\Nova\Actions\TicketAnswerViaMail())
+                ->confirmText('Are you sure you want to send this answer to the user?')
+                ->confirmButtonText('Send')
+                ->cancelButtonText("Don't send")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                }),
 
         ];
     }
