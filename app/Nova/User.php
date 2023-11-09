@@ -166,12 +166,12 @@ class User extends Resource
 
     public static function afterCreate(NovaRequest $request, Model $model)
     {
-        if ($model->company_id) {
+        if ($model->admin_company_id) {
             if ($model->hasRole('contributor')) {
                 $model->removeRole('contributor');
             }
             $model->assignRole('company_admin');
-            $model->app_company_id = $model->company_id;
+            $model->app_company_id = $model->admin_company_id;
         } else {
             $model->removeRole('company_admin');
             $model->assignRole('contributor');
@@ -181,12 +181,12 @@ class User extends Resource
 
     public static function afterUpdate(NovaRequest $request, Model $model)
     {
-        if ($model->company_id) {
+        if ($model->admin_company_id) {
             if ($model->hasRole('contributor')) {
                 $model->removeRole('contributor');
             }
             $model->assignRole('company_admin');
-            $model->app_company_id = $model->company_id;
+            $model->app_company_id = $model->admin_company_id;
         } else {
             $model->removeRole('company_admin');
             $model->assignRole('contributor');
