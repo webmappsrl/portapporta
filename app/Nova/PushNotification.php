@@ -2,6 +2,8 @@
 
 namespace App\Nova;
 
+use App\models\Company;
+use Exception;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\DateTime;
@@ -9,7 +11,8 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
-use Carbon\Carbon;
+use Laravel\Nova\Fields\MultiSelect;
+use Illuminate\Support\Facades\Auth;
 
 class PushNotification extends Resource
 {
@@ -51,7 +54,18 @@ class PushNotification extends Resource
             Textarea::make('message'),
             DateTime::make('Schedule date', 'schedule_date')->help('leave blank for instant scheduling')->sortable(),
             Boolean::make('Status', 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
+            MultiSelect::make('Zone', 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
         ];
+    }
+    private function getZones($fields = ['label', 'id'])
+    {
+        try {
+            $user = Auth::user();
+            $zones = Company::where('user_id', $user->id)->first()->zones();
+            return  $zones->pluck(...$fields)->toArray();
+        } catch (Exception $e) {
+            return  $zones->pluck('label', 'id')->toArray();
+        }
     }
 
     /**
@@ -64,7 +78,10 @@ class PushNotification extends Resource
     {
         return [];
     }
-
+    public function taxonomyThemes()
+    {
+        return $this->morphToMany(TaxonomyTheme::class, 'taxonomy_themeable');
+    }
     /**
      * Get the filters available for the resource.
      *
