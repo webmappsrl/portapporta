@@ -47,7 +47,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'fcm_token',
         'app_company_id',
         'fiscal_code',
-        'user_code'
+        'user_code',
+        'admin_company_id'
     ];
 
     /**
@@ -75,7 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     }
     public function companyWhereAdmin()
     {
-        return $this->belongsTo(Company::class, 'company_id');
+        return $this->belongsTo(Company::class, 'admin_company_id');
     }
     public function addresses(): HasMany
     {
