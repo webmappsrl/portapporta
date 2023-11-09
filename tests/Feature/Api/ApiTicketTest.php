@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\TrashType;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ use Tests\TestCase;
  */
 class ApiTicketTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
     use WithFaker;
     use WithoutMiddleware;
 

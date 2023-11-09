@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Models\UserType;
 use App\Models\Zone;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -44,7 +44,7 @@ use Tests\TestCase;
  */
 class ApiCalendarTest extends TestCase
 {
-  use DatabaseTransactions;
+  use RefreshDatabase;
   use WithFaker;
 
   /** @test */

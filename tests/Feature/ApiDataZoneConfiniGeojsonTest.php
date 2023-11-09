@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\Zone;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
@@ -14,7 +14,7 @@ class ApiDataZoneConfiniGeojsonTest extends TestCase
 {
     // https://apiersu.netseven.it/zones.geojson
 
-    use DatabaseTransactions;
+    use RefreshDatabase;
     use WithoutMiddleware;
 
 

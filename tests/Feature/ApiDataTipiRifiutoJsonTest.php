@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\TrashType;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
@@ -14,7 +14,7 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
 {
     // REF https://apiersu.netseven.it/data/tipi_rifiuto.json
 
-    use DatabaseTransactions;
+    use RefreshDatabase;
     use WithoutMiddleware;
 
     /** @test     */
