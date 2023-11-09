@@ -6,7 +6,6 @@ use App\Models\Address;
 use App\Models\PushNotification;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -14,7 +13,6 @@ use Illuminate\Queue\SerializesModels;
 use Kutia\Larafirebase\Facades\Larafirebase;
 use Illuminate\Support\Facades\Log;
 
-use function PHPSTORM_META\map;
 
 class ProcessPushNotification implements ShouldQueue
 {
