@@ -70,7 +70,8 @@ class Calendar extends Resource
                     $htmlName = str_replace("\n", '<br>', $wrappedName);
                     return $htmlName;
                 })
-                ->asHtml(),
+                ->asHtml()
+                ->required(),
             BelongsTo::make('zone'),
             BelongsTo::make('userType'),
             Date::make('Start Date', 'start_date'),

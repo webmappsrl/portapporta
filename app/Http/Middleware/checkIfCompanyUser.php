@@ -28,7 +28,7 @@ class checkIfCompanyUser
         $userID = $user->id;
         // trovo tutti gli users che sono admin di una company
         $allCompanyAdmins =
-            User::whereNotNull('company_id')
+            User::whereNotNull('admin_company_id')
             ->pluck('id')
             ->toArray();
         // se l'utente non ha company_id è un utente di app e quindi non deve accedere al backend
