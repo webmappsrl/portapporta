@@ -57,6 +57,10 @@ class TicketPolicy
      */
     public function update(User $user, Ticket $ticket)
     {
+        if ($ticket->company_id == $user->companyWhereAdmin->id) {
+            return true;
+        }
+
         return false;
     }
 
