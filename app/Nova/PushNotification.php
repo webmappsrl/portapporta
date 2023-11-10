@@ -51,8 +51,7 @@ class PushNotification extends Resource
             ID::make()->sortable(),
             Date::make('created_at')->hideWhenUpdating()->hideWhenCreating()->sortable(),
             Text::make('title'),
-            Textarea::make('message')->rules('max:178')
-                ->help('max 178 characters'),
+            Textarea::make('message')->maxlength(178)->enforceMaxlength(),
             DateTime::make('Schedule date', 'schedule_date')->help('leave blank for instant scheduling')->sortable(),
             Boolean::make('Status', 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
             MultiSelect::make('Zone', 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
@@ -62,7 +61,7 @@ class PushNotification extends Resource
     {
         try {
             $user = Auth::user();
-            $zones = Company::where('user_id', $user->id)->first()->zones();
+            $zones = $user->companyWhereAdmin->zones;
             return  $zones->pluck(...$fields)->toArray();
         } catch (Exception $e) {
             return  $zones->pluck('label', 'id')->toArray();

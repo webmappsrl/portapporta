@@ -8,15 +8,13 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
-use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class TicketAnswerViaMail extends Action
+class TicketMarkNotRead extends Action
 {
     use InteractsWithQueue, Queueable;
 
-    public $name = 'Answer via email';
-
+    public $name = 'Mark as not read';
     /**
      * Perform the action on the given models.
      *
@@ -26,22 +24,14 @@ class TicketAnswerViaMail extends Action
      */
     public function handle(ActionFields $fields, Collection $models)
     {
-        //get the tickets selected
-        foreach ($models as $ticket) {
-
-            $user = $ticket->user;
-
-            try {
-                \Mail::to($user->email)->send(new \App\Mail\TicketAnswer($ticket, $fields->answer));
-                $ticket->is_read = true;
-            } catch (\Exception $e) {
-
-                \Log::error('Errore nell invio della mail: ' . $e->getMessage() . ' - ' . $e->getLine());
-                return Action::danger('Errore nell invio della mail');
-            }
+        foreach ($models as $model) {
+            if ($model->is_read)
+                $model->update([
+                    'is_read' => false
+                ]);
         }
 
-        return Action::message('Email inviata correttamente');
+        return Action::message('Ticket(s) marked as not read!');
     }
 
     /**
@@ -52,8 +42,6 @@ class TicketAnswerViaMail extends Action
      */
     public function fields(NovaRequest $request)
     {
-        return [
-            Textarea::make('Answer')->rules('required'),
-        ];
+        return [];
     }
 }

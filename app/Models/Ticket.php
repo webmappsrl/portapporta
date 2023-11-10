@@ -26,4 +26,8 @@ class Ticket extends Model
     {
         return $this->belongsTo(Address::class);
     }
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }
