@@ -33,4 +33,8 @@ class Address extends Model
     {
         return $this->belongsTo(UserType::class);
     }
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
 }

@@ -27,9 +27,13 @@ class TicketZoneFilter extends Filter
     public function apply(NovaRequest $request, $query, $value)
     {
         $zone = Zone::where('label', $value)->first();
-        $address = Address::where('zone_id', $zone->id)->first();
-        if ($address) {
-            return $query->where('address_id', $address->id);
+        $addresses = Address::where('zone_id', $zone->id)->get();
+        if ($addresses) {
+            foreach ($addresses as $address) {
+                $addressIds[] = $address->id;
+            }
+
+            return $query->whereIn('address_id', $addressIds);
         }
     }
 
