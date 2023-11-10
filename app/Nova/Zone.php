@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\URL;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Wm\MapMultiPolygon\MapMultiPolygon;
 
@@ -47,10 +48,26 @@ class Zone extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Label', 'label'),
+            Text::make('Label', 'label')
+                ->displayUsing(function ($label) {
+                    $wrappedLabel = wordwrap($label, 75, "\n", true);
+                    $htmlLabel = str_replace("\n", '<br>', $wrappedLabel);
+                    return $htmlLabel;
+                })
+                ->asHtml(),
             Text::make('Comune', 'comune')
                 ->required(),
-            Text::make('Url', 'url')
+            URL::make('Url', 'url')
+                ->displayUsing(function ($url) {
+                    //if the url has more than 75 characters, wrap it
+                    $wrappedUrl = wordwrap($url, 75, "\n", true);
+                    //replace the new line character with a <br> tag
+                    $htmlUrl = str_replace("\n", '<br>', $wrappedUrl);
+
+
+                    return $htmlUrl ? '<a style="color:darkblue;" href="' . $htmlUrl . '" target="_blank">' . $htmlUrl . '</a>' : '';
+                })
+                ->asHtml()
                 ->help('Url must start with http:// or https://'),
             MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],
