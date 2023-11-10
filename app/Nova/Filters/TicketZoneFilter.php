@@ -4,6 +4,7 @@ namespace App\Nova\Filters;
 
 use App\Models\Zone;
 use App\Models\Address;
+use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Filters\Filter;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
@@ -28,7 +29,7 @@ class TicketZoneFilter extends Filter
     {
         $zone = Zone::where('label', $value)->first();
         $addresses = Address::where('zone_id', $zone->id)->get();
-        if ($addresses) {
+        if (count($addresses) > 0) {
             foreach ($addresses as $address) {
                 $addressIds[] = $address->id;
             }

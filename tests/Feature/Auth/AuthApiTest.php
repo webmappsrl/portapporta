@@ -86,7 +86,8 @@ class AuthApiTest extends TestCase
     {
         $response = $this->post('/api/login', [
             'email' => 'amministrazione@webmapp.it',
-            'password' => 'test'
+            'password' => 'test',
+            'app_company_id' => 1
         ]);
         $this->assertSame(400, $response->status());
         $this->assertSame('{"success":false,"message":"Le credenziali inserite non sono corrette."}', $response->content());
@@ -97,6 +98,7 @@ class AuthApiTest extends TestCase
         $response = $this->post('/api/login', [
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
+            'app_company_id' => 1
         ]);
         $this->assertSame(400, $response->status());
         $this->assertSame('{"success":false,"message":"Le credenziali inserite non sono corrette."}', $response->content());

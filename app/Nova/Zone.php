@@ -59,15 +59,8 @@ class Zone extends Resource
                 ->required(),
             URL::make('Url', 'url')
                 ->displayUsing(function ($url) {
-                    //if the url has more than 75 characters, wrap it
-                    $wrappedUrl = wordwrap($url, 75, "\n", true);
-                    //replace the new line character with a <br> tag
-                    $htmlUrl = str_replace("\n", '<br>', $wrappedUrl);
-
-
-                    return $htmlUrl ? '<a style="color:darkblue;" href="' . $htmlUrl . '" target="_blank">' . $htmlUrl . '</a>' : '';
+                    return 'Website';
                 })
-                ->asHtml()
                 ->help('Url must start with http:// or https://'),
             MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],
