@@ -33,6 +33,7 @@ class TicketAnswerViaMail extends Action
 
             try {
                 \Mail::to($user->email)->send(new \App\Mail\TicketAnswer($ticket, $fields->answer));
+                $ticket->is_read = true;
             } catch (\Exception $e) {
 
                 \Log::error('Errore nell invio della mail: ' . $e->getMessage() . ' - ' . $e->getLine());
