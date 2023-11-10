@@ -93,7 +93,7 @@ class Ticket extends Resource
         $fields[] = Text::make('Ticket Type', 'ticket_type')->sortable()->readonly();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = BelongsTo::make('User')->readonly();
-        $fields[] = Boolean::make('Visualized', 'is_read')->sortable()->filterable();
+        $fields[] = Boolean::make('Read', 'is_read')->sortable()->filterable();
         $fields[] = Text::make('User Email', function () {
             return $this->user->email;
         })->onlyOnDetail()->readonly();
