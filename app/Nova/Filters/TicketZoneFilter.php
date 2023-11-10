@@ -49,6 +49,8 @@ class TicketZoneFilter extends Filter
                 continue;
             $options[$zone->id] = $zone->label;
         }
+        $collect = collect($options)->sort();
+        $options = $collect->toArray();
 
         return $options;
     }
