@@ -3,19 +3,20 @@
 namespace App\Nova;
 
 use App\Models\TrashType;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Laravel\Nova\Contracts\FilterableField;
-use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\Boolean;
-use Laravel\Nova\Fields\Date;
-use Laravel\Nova\Fields\DateTime;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Http\Requests\NovaRequest;
-use Laravel\Nova\Query\Search\SearchableRelation;
 use Wm\MapPoint\MapPoint;
+use Laravel\Nova\Fields\ID;
+use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Boolean;
+use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\Textarea;
+use Illuminate\Support\Facades\DB;
+use Laravel\Nova\Fields\BelongsTo;
+use App\Nova\Actions\TicketMarkNotRead;
+use Laravel\Nova\Http\Requests\NovaRequest;
+use App\Nova\Actions\TicketMarkAsReadAction;
+use Laravel\Nova\Query\Search\SearchableRelation;
 
 class Ticket extends Resource
 {
@@ -210,10 +211,18 @@ class Ticket extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new \App\Nova\Actions\TicketMarkAsReadAction())
+            (new TicketMarkAsReadAction())
                 ->confirmText('Are you sure you want to mark this ticket as read?')
                 ->confirmButtonText('Mark as read')
                 ->cancelButtonText("Don't mark as read")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                }),
+            (new TicketMarkNotRead())
+                ->confirmText('Are you sure you want to mark this ticket as not read?')
+                ->confirmButtonText('Mark as not read')
+                ->cancelButtonText("Don't mark as not read")
                 ->showInline()
                 ->canSee(function ($request) {
                     return $request->user()->hasRole('company_admin');
