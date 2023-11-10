@@ -34,7 +34,7 @@ class TicketAnswer extends Mailable
     public function envelope()
     {
         $fromAddress = config('mail.from.address');
-        $fromName = config('mail.from.name');
+        $fromName = 'PortAPPorta-' . $this->ticket->company->name;
 
         return new Envelope(
             from: new Address($fromAddress, $fromName),

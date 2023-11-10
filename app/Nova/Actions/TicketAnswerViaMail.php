@@ -35,7 +35,8 @@ class TicketAnswerViaMail extends Action
                 \Mail::to($user->email)->send(new \App\Mail\TicketAnswer($ticket, $fields->answer));
             } catch (\Exception $e) {
 
-                \Log::error('Error sending email: ' . $e->getMessage());
+                \Log::error('Errore nell invio della mail: ' . $e->getMessage() . ' - ' . $e->getLine());
+                return Action::danger('Errore nell invio della mail');
             }
         }
 
