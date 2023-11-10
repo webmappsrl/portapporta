@@ -15,6 +15,8 @@ class TicketAnswerViaMail extends Action
 {
     use InteractsWithQueue, Queueable;
 
+    public $name = 'Answer via email';
+
     /**
      * Perform the action on the given models.
      *
