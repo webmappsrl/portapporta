@@ -23,7 +23,7 @@ class LoginController extends Controller
 
             if (Auth::attempt($request->only('email', 'password'))) {
                 $user = Auth::user();
-                if ($user->app_company_id != $request->app_company_id) {
+                if (!$user->hasRole('super_admin') && $user->app_company_id != $request->app_company_id) {
                     $message = 'Non puoi accedere a questa app.';
                     $company = Company::find($user->app_company_id);
                     if ($company) {
