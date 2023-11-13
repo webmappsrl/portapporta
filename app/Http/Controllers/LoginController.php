@@ -19,7 +19,6 @@ class LoginController extends Controller
             $request->validate([
                 'email' => ['required'],
                 'password' => ['required'],
-                'app_company_id' => ['required', 'integer']
             ]);
 
             if (Auth::attempt($request->only('email', 'password'))) {
