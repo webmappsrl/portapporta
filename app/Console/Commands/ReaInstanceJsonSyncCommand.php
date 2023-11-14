@@ -167,6 +167,7 @@ class ReaInstanceJsonSyncCommand extends Command
                     array_push($trash_types, $trashType->id);
                 } else {
                     Log::debug('TrashType relation not found: ' . json_encode($value) . ' creating new one');
+                    $params = $this->getTrashParams($feature['properties']);
                     $trashType = TrashType::updateOrCreate(
                         [
                             'slug' => $value,
