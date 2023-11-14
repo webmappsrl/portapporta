@@ -36,6 +36,7 @@ class RegisterController extends Controller
             'user_code' => $request->user_code
 
         ]);
+        $user->assignRole('contributor');
         try {
             Address::create([
                 'user_id' => $user->id,
