@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,20 +26,13 @@ class checkIfCompanyUser
             return $next($request);
         }
         $userID = $user->id;
-        // trovo tutti gli users che hanno una company
-        $allUsersWithCompany =
-            Company::all()
-            ->filter(
-                function ($company) {
-                    return $company->user_id != null;
-                }
-            )->map(
-                function ($c) {
-                    return $c->user_id;
-                }
-            )->toArray();
-        // se l'utente non è admin e non ha nessuna company è un utente di app e quindi non deve accedere al backend
-        if ($userID !== $adminID && !in_array($userID, $allUsersWithCompany)) {
+        // trovo tutti gli users che sono admin di una company
+        $allCompanyAdmins =
+            User::whereNotNull('admin_company_id')
+            ->pluck('id')
+            ->toArray();
+        // se l'utente non ha company_id è un utente di app e quindi non deve accedere al backend
+        if ($userID !== $adminID && !in_array($userID, $allCompanyAdmins)) {
             return new Response(view('loggednocompanyuser', [
                 'user' => $user,
             ]));

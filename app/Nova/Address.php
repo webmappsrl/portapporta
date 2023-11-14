@@ -50,14 +50,16 @@ class Address extends Resource
                 }
                 return 'ND';
             })->onlyOnDetail(),
+            Text::make('city'),
             Text::make('address'),
+            Text::make('house_number'),
             Text::make('User Type', function () {
                 if (!is_null($this->user_type_id)) {
                     return $this->userType->label;
                 }
                 return 'ND';
             })->onlyOnDetail(),
-            BelongsTo::make('User')->nullable(),
+            BelongsTo::make('User')->nullable()->searchable(),
             MapPoint::make('location')->withMeta([
                 'minZoom' => 5,
                 'maxZoom' => 17,

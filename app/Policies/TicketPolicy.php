@@ -18,11 +18,7 @@ class TicketPolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return false;
-        }
-
-        return true;
+        return $user->hasRole('company_admin');
     }
 
     /**
@@ -34,9 +30,9 @@ class TicketPolicy
      */
     public function view(User $user, Ticket $ticket)
     {
-        if ($ticket->company_id == $user->company->id) {
+        if ($ticket->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -61,6 +57,10 @@ class TicketPolicy
      */
     public function update(User $user, Ticket $ticket)
     {
+        if ($ticket->company_id == $user->companyWhereAdmin->id) {
+            return true;
+        }
+
         return false;
     }
 

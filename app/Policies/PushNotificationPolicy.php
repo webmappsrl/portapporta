@@ -18,7 +18,9 @@ class PushNotificationPolicy
      */
     public function viewAny(User $user)
     {
-        return isset($user->company);
+
+        return isset($user->companyWhereAdmin);
+
     }
 
     /**
@@ -30,7 +32,9 @@ class PushNotificationPolicy
      */
     public function view(User $user, PushNotification $pushNotification)
     {
-        return isset($user->company);
+
+        return isset($user->companyWhereAdmin);
+
     }
 
     /**
@@ -41,7 +45,9 @@ class PushNotificationPolicy
      */
     public function create(User $user)
     {
-        return isset($user->company);
+
+        return isset($user->companyWhereAdmin);
+
     }
 
     /**

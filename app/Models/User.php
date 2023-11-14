@@ -10,10 +10,26 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Nova\Auth\Impersonatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
-    use HasApiTokens, HasFactory, Notifiable, Impersonatable;
+    use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles;
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            $company = Company::where('user_id', $user->id)->first();
+            if ($company) {
+                $company->update(['user_id' => null]);
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -31,7 +47,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'fcm_token',
         'app_company_id',
         'fiscal_code',
-        'user_code'
+        'user_code',
+        'admin_company_id'
     ];
 
     /**
@@ -57,6 +74,10 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasOne(Company::class);
     }
+    public function companyWhereAdmin()
+    {
+        return $this->belongsTo(Company::class, 'admin_company_id');
+    }
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
@@ -70,10 +91,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canImpersonate()
     {
-        if (auth()->user()->id == 1) {
-            return true;
-        }
-        return false;
+        return $this->hasRole('super_admin');
     }
 
     /**
@@ -83,9 +101,6 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function canBeImpersonated()
     {
-        if (Company::where('user_id', $this->id)->count()) {
-            return true;
-        }
-        return false;
+        return $this->hasRole('company_admin');
     }
 }

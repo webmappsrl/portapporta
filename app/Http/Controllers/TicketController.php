@@ -165,9 +165,23 @@ class TicketController extends Controller
         if ($request->exists('location')) {
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
         }
-        if ($request->exists('location_address')) {
-            $ticket->location_address = $request->location_address;
+        $location_address = '';
+        if (!is_null($request->city)) {
+            $location_address .= $request->city;
         }
+        if (!is_null($request->address)) {
+            if (!empty($location_address)) {
+                $location_address .= ', ';
+            }
+            $location_address .= $request->address;
+        }
+        if (!is_null($request->house_number)) {
+            if (!empty($location_address)) {
+                $location_address .= ', ';
+            }
+            $location_address .= $request->house_number;
+        }
+        $ticket->location_address = $location_address;
         $res = $ticket->save();
 
         // Send a notification email to company for the newly created ticket

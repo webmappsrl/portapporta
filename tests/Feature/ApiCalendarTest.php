@@ -44,29 +44,29 @@ use Tests\TestCase;
  */
 class ApiCalendarTest extends TestCase
 {
-    use RefreshDatabase;
-    use WithFaker;
+  use RefreshDatabase;
+  use WithFaker;
 
-    /** @test */
-    public function user_must_be_authenticated()
-    {
-        $company = Company::factory()->create();
-        $response = $this->get("api/c/{$company->id}/calendar", [
-            'ticket_type' => 'reservation',
-        ]);
-        $this->assertSame(403, $response->status());
-    }
+  /** @test */
+  public function user_must_be_authenticated()
+  {
+    $company = Company::factory()->create();
+    $response = $this->get("api/c/{$company->id}/calendar", [
+      'ticket_type' => 'reservation',
+    ]);
+    $this->assertSame(403, $response->status());
+  }
 
-    /** @test */
-    public function when_user_has_no_zone_then_it_sends_error()
-    {
-        $company = Company::factory()->create();
-        $user = User::factory()->create(['zone_id' => null]);
-        Sanctum::actingAs($user, ['*']);
-        $response = $this->get("api/c/{$company->id}/calendar", [
-            'ticket_type' => 'reservation',
-        ]);
-        $this->assertSame(400, $response->status());
-        $this->assertSame('{"success":false,"message":"User has no zones."}', $response->content());
-    }
+  /** @test */
+  public function when_user_has_no_zone_then_it_sends_error()
+  {
+    $company = Company::factory()->create();
+    $user = User::factory()->create(['zone_id' => null]);
+    Sanctum::actingAs($user, ['*']);
+    $response = $this->get("api/c/{$company->id}/calendar", [
+      'ticket_type' => 'reservation',
+    ]);
+    $this->assertSame(400, $response->status());
+    $this->assertSame('{"success":false,"message":"User has no zones."}', $response->content());
+  }
 }

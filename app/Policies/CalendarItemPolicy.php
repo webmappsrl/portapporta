@@ -18,11 +18,7 @@ class CalendarItemPolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return false;
-        }
-
-        return true;
+        return $user->can('manage_calendars');
     }
 
     /**
@@ -34,9 +30,9 @@ class CalendarItemPolicy
      */
     public function view(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -49,7 +45,7 @@ class CalendarItemPolicy
      */
     public function create(User $user)
     {
-        return true;
+        return !$user->hasRole('contributor');
     }
 
     /**
@@ -61,9 +57,9 @@ class CalendarItemPolicy
      */
     public function update(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company->id == $user->company->id) {
+        if ($calendar_item->calendar->company->id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -77,9 +73,9 @@ class CalendarItemPolicy
      */
     public function delete(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -93,9 +89,9 @@ class CalendarItemPolicy
      */
     public function restore(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -109,9 +105,9 @@ class CalendarItemPolicy
      */
     public function forceDelete(User $user, CalendarItem $calendar_item)
     {
-        if ($calendar_item->calendar->company_id == $user->company->id) {
+        if ($calendar_item->calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }

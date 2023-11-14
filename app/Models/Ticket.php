@@ -9,6 +9,10 @@ class Ticket extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'is_read',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -21,5 +25,9 @@ class Ticket extends Model
     public function address()
     {
         return $this->belongsTo(Address::class);
+    }
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

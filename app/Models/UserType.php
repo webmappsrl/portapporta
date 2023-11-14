@@ -31,7 +31,7 @@ class UserType extends Model
     {
         if (auth()->check()) {
             static::creating(function ($user_type) {
-                $user_type->company_id = auth()->user()->company->id;
+                $user_type->company_id = auth()->user()->companyWhereAdmin->id;
             });
         }
     }

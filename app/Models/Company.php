@@ -12,6 +12,10 @@ class Company extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
+    protected $fillable = [
+        'user_id',
+    ];
+
     /**
      * creates a sha1 from the uploaded file name with the original file extension
      *
@@ -51,6 +55,13 @@ class Company extends Model implements HasMedia
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function companyAdmins()
+    {
+        return $this->hasMany(User::class, 'admin_company_id')->whereHas('roles', function ($query) {
+            $query->where('name', 'company_admin');
+        });
     }
 
     public function calendars()

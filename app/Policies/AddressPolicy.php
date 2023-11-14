@@ -18,11 +18,7 @@ class AddressPolicy
      */
     public function viewAny(User $user)
     {
-        if ($user->email == 'admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -34,11 +30,7 @@ class AddressPolicy
      */
     public function view(User $user, Address $address)
     {
-        if ($user->email == 'admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -49,11 +41,7 @@ class AddressPolicy
      */
     public function create(User $user)
     {
-        if ($user->email == 'admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -65,11 +53,7 @@ class AddressPolicy
      */
     public function update(User $user, Address $address)
     {
-        if ($user->email == 'admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**
@@ -81,11 +65,7 @@ class AddressPolicy
      */
     public function delete(User $user, Address $address)
     {
-        if ($user->email == 'admin@webmapp.it') {
-            return true;
-        }
-
-        return false;
+        return $user->hasPermissionTo('manage_address');
     }
 
     /**

@@ -18,10 +18,7 @@ class ZonePolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return false;
-        }
-        return true;
+        return $user->hasRole('company_admin');
     }
 
     /**
@@ -33,9 +30,9 @@ class ZonePolicy
      */
     public function view(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -48,7 +45,7 @@ class ZonePolicy
      */
     public function create(User $user)
     {
-        return true;
+        return !$user->hasRole('contributor');
     }
 
     /**
@@ -60,9 +57,9 @@ class ZonePolicy
      */
     public function update(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -76,9 +73,9 @@ class ZonePolicy
      */
     public function delete(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -92,9 +89,9 @@ class ZonePolicy
      */
     public function restore(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -108,9 +105,9 @@ class ZonePolicy
      */
     public function forceDelete(User $user, Zone $zone)
     {
-        if ($zone->company_id == $user->company->id) {
+        if ($zone->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }

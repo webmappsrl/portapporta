@@ -15,7 +15,9 @@ class Address extends Model
         'zone_id',
         'user_type_id',
         'location',
+        'city',
         'address',
+        'house_number'
     ];
     public function user(): BelongsTo
     {
@@ -30,5 +32,9 @@ class Address extends Model
     public function userType(): BelongsTo
     {
         return $this->belongsTo(UserType::class);
+    }
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
     }
 }

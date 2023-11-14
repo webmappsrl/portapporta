@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\URL;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Wm\MapMultiPolygon\MapMultiPolygon;
 
@@ -47,13 +48,25 @@ class Zone extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Label', 'label'),
-            Text::make('Comune', 'comune'),
-            Text::make('Url', 'url'),
+            Text::make('Label', 'label')
+                ->displayUsing(function ($label) {
+                    $wrappedLabel = wordwrap($label, 75, "\n", true);
+                    $htmlLabel = str_replace("\n", '<br>', $wrappedLabel);
+                    return $htmlLabel;
+                })
+                ->asHtml(),
+            Text::make('Comune', 'comune')
+                ->required(),
+            URL::make('Url', 'url')
+                ->displayUsing(function ($url) {
+                    return 'Website';
+                })
+                ->help('Url must start with http:// or https://'),
             MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
-            ]),
+            ])
+                ->rules('required'),
             BelongsToMany::make('User Types', 'UserTypes'),
         ];
     }
@@ -111,6 +124,6 @@ class Zone extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->where('company_id', $request->user()->company->id);
+        return $query->where('company_id', $request->user()->companyWhereAdmin->id);
     }
 }

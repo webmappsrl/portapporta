@@ -16,7 +16,7 @@ composer install  --no-interaction --prefer-dist --optimize-autoloader
 
 # Run database migrations
 php artisan migrate
-
+php artisan db:seed --class=SuperAdminRoleSeeder
 # Clear caches
 php artisan cache:clear
 

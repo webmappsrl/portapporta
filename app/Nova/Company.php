@@ -23,6 +23,7 @@ use Murdercode\TinymceEditor\TinymceEditor;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Database\Eloquent\Model;
 use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
+use Laravel\Nova\Fields\HasMany;
 
 class Company extends Resource
 {
@@ -61,8 +62,19 @@ class Company extends Resource
         $iosLink = $this->ios_store_link;
         return [
             ID::make(__('ID'), 'id')->sortable(),
-            Text::make('name'),
-            BelongsTo::make('User')->nullable(),
+            Text::make('name')
+                ->required(),
+            Text::make('Admins', function ($request) {
+                $admins = $this->companyAdmins;
+                $html = '';
+                foreach ($admins as $admin) {
+                    $html .= '<a style="color:#44b3d6;" href=/resources/users/' . $admin->id . '>' . $admin->name . '</a><br>';
+                }
+                return $html;
+            })->asHtml()
+                ->hideWhenCreating()
+                ->hideWhenUpdating(),
+            HasMany::make('Company Admins', 'companyAdmins', User::class),
             Text::make('sku')
                 ->hideWhenUpdating()
                 ->help('Must be prefixed with "it.webmapp.{sku}"')
@@ -81,7 +93,19 @@ class Company extends Resource
                     }
                     return '<a class="link-default" target="_blank" href="' . $iosLink . '">App Link</a>';
                 })->asHtml(),
-            Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.'),
+            Text::make(__('Ticket E-mails'), 'ticket_email')->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.')->hideFromIndex(),
+            Text::make(__('Ticket E-mails'), function () {
+                $emails = $this->ticket_email;
+                if (!$emails) {
+                    return '';
+                }
+                $emails = explode(',', $emails);
+                $html = '';
+                foreach ($emails as $email) {
+                    $html .= $email . '<br>';
+                }
+                return $html;
+            })->asHtml()->help('Seperate e-mails with a "," (comma) for multiple e-mail addresses.')->onlyOnIndex(),
             new Panel('Company API', $this->apiPanel()),
             new Panel('Company Location', $this->companyLocation()),
             new Panel('Company Resources', $this->companyResources()),

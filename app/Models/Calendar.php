@@ -33,7 +33,7 @@ class Calendar extends Model
     {
         if (auth()->check()) {
             static::creating(function ($calendar) {
-                $calendar->company_id = auth()->user()->company->id;
+                $calendar->company_id = auth()->user()->companyWhereAdmin->id;
             });
         }
     }

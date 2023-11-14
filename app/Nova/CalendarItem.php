@@ -55,7 +55,7 @@ class CalendarItem extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        $calendars = $request->user()->company->calendars->pluck('id')->toArray();
+        $calendars = $request->user()->companyWhereAdmin->calendars->pluck('id')->toArray();
         return $query->whereIn('calendar_id', $calendars);
     }
 
@@ -89,16 +89,20 @@ class CalendarItem extends Resource
                 4 => 'Thu',
                 5 => 'Fry',
                 6 => 'Sat',
-            ])->displayUsingLabels(),
+            ])->displayUsingLabels()
+                ->required(),
             Select::make('Frequency', 'frequency')->options([
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
-            ]),
+            ])
+                ->required(),
             Date::make('Base Date', 'base_date')
                 ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
                 ->hideFromIndex(),
-            Text::make('Start Time', 'start_time'),
-            Text::make('Stop Time', 'stop_time'),
+            Text::make('Start Time', 'start_time')
+                ->help('Supported format: HH:MM:SS'),
+            Text::make('Stop Time', 'stop_time')
+                ->help('Supported format: HH:MM:SS'),
 
             BelongsToMany::make('Trash Types', 'TrashTypes'),
         ];

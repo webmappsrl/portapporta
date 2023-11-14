@@ -11,13 +11,13 @@ class Waste extends Model
     use HasFactory;
     use HasTranslations;
 
-    
+
     public $translatable = [
         'name',
         'where',
         'notes'
     ];
-    
+
     protected $fillable = [
         'name',
         'where',
@@ -34,7 +34,7 @@ class Waste extends Model
         'delivery' => 'boolean',
         'collection_center' => 'boolean',
     ];
-        /**
+    /**
      * The "booted" method of the model.
      *
      * @return void
@@ -43,16 +43,18 @@ class Waste extends Model
     {
         if (auth()->check()) {
             static::creating(function ($waste) {
-                $waste->company_id = auth()->user()->company->id;
+                $waste->company_id = auth()->user()->companyWhereAdmin->id;
             });
         }
     }
 
-    public function company(){
+    public function company()
+    {
         return $this->belongsTo(Company::class);
     }
 
-    public function trashType(){
+    public function trashType()
+    {
         return $this->belongsTo(TrashType::class);
     }
 }

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'version' => '233.1.02',
+    'version' => '234.1.0',
 
     /*
     |--------------------------------------------------------------------------
@@ -175,6 +175,7 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
         Jenssegers\Agent\AgentServiceProvider::class,
+        Spatie\Permission\PermissionServiceProvider::class,
 
         /*
          * Package Service Providers...

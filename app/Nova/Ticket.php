@@ -3,17 +3,20 @@
 namespace App\Nova;
 
 use App\Models\TrashType;
+use Wm\MapPoint\MapPoint;
+use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\Boolean;
+use Laravel\Nova\Fields\DateTime;
+use Laravel\Nova\Fields\Textarea;
 use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\Date;
-use Laravel\Nova\Fields\DateTime;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\Textarea;
+use App\Nova\Actions\TicketMarkNotRead;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use App\Nova\Actions\TicketMarkAsReadAction;
 use Laravel\Nova\Query\Search\SearchableRelation;
-use Wm\MapPoint\MapPoint;
 
 class Ticket extends Resource
 {
@@ -55,7 +58,7 @@ class Ticket extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->where('company_id', $request->user()->company->id);
+        return $query->where('company_id', $request->user()->companyWhereAdmin->id);
     }
 
     /**
@@ -88,36 +91,37 @@ class Ticket extends Resource
     private function _headerFields(&$fields)
     {
         // $fields[] = ID::make()->sortable();
-        $fields[] = Text::make('Ticket Type', 'ticket_type')->sortable();
-        $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable();
-        $fields[] = BelongsTo::make('User');
+        $fields[] = Text::make('Ticket Type', 'ticket_type')->sortable()->readonly();
+        $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
+        $fields[] = BelongsTo::make('User')->readonly();
+        $fields[] = Boolean::make('Read', 'is_read')->sortable()->filterable();
         $fields[] = Text::make('User Email', function () {
             return $this->user->email;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
     }
 
     private function _reportFields(&$fields)
     {
-        $fields[] = Text::make('Report date', 'missed_withdraw_date')->onlyOnDetail();
+        $fields[] = Text::make('Report date', 'missed_withdraw_date')->onlyOnDetail()->readonly();
         $fields[] = Text::make('Trash Type', 'trash_type', function () { // TODO: use belongsTo
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
         $fields[] = Text::make('zone', function () {
             return $this->address->zone->label;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
         $fields[] = Text::make('user address', function () {
             return $this->address->address;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
         $fields[] = MapPoint::make('Location', 'location', function () {
             return $this->address->location;
         })->withMeta([
             'defaultZoom' => 13
-        ])->onlyOnDetail();
+        ])->onlyOnDetail()->readonly();
         $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make('Image', 'image', function () {
             return '<img src="' . $this->image . '" />';
-        })->asHtml()->onlyOnDetail();
+        })->asHtml()->onlyOnDetail()->readonly();
         return $fields;
     }
 
@@ -126,40 +130,40 @@ class Ticket extends Resource
         $fields[] = Text::make('Trash Type', 'trash_type', function () {
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
         $fields[] = Text::make('address', function () {
             return $this->location_address;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
         $fields[] = MapPoint::make('Location', 'location', function () {
             return $this->geometry;
         })->withMeta([
             'defaultZoom' => 13
-        ])->onlyOnDetail();
+        ])->onlyOnDetail()->readonly();
         $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make('Image', 'image', function () {
             return '<img src="' . $this->image . '" />';
-        })->asHtml()->onlyOnDetail();
+        })->asHtml()->onlyOnDetail()->readonly();
     }
 
     private function _abandonmentFields(&$fields)
     {
         $fields[] = Text::make('address', function () {
             return $this->location_address;
-        })->onlyOnDetail();
+        })->onlyOnDetail()->readonly();
         $fields[] = MapPoint::make('Location', 'location', function () {
             return $this->geometry;
         })->withMeta([
             'defaultZoom' => 13
-        ])->onlyOnDetail();
+        ])->onlyOnDetail()->readonly();
         $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make('Image', 'image', function () {
             return '<img src="' . $this->image . '" />';
-        })->asHtml()->onlyOnDetail();
+        })->asHtml()->onlyOnDetail()->readonly();
     }
 
     private function _infoFields(&$fields)
     {
-        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail()->readonly();
     }
 
     /**
@@ -181,7 +185,10 @@ class Ticket extends Resource
      */
     public function filters(NovaRequest $request)
     {
-        return [];
+        return [
+            new \App\Nova\Filters\TicketZoneFilter(),
+            new \App\Nova\Filters\TicketTypeFilter(),
+        ];
     }
 
     /**
@@ -203,6 +210,32 @@ class Ticket extends Resource
      */
     public function actions(NovaRequest $request)
     {
-        return [];
+        return [
+            (new TicketMarkAsReadAction())
+                ->confirmText('Are you sure you want to mark this ticket as read?')
+                ->confirmButtonText('Mark as read')
+                ->cancelButtonText("Don't mark as read")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                }),
+            (new TicketMarkNotRead())
+                ->confirmText('Are you sure you want to mark this ticket as not read?')
+                ->confirmButtonText('Mark as not read')
+                ->cancelButtonText("Don't mark as not read")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                }),
+            (new \App\Nova\Actions\TicketAnswerViaMail())
+                ->confirmText('Are you sure you want to send this answer to the user?')
+                ->confirmButtonText('Send')
+                ->cancelButtonText("Don't send")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                }),
+
+        ];
     }
 }

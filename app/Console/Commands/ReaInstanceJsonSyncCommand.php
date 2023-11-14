@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use Carbon\Carbon;
 use App\Models\Zone;
 use App\Models\Waste;
@@ -11,6 +12,7 @@ use App\Models\TrashType;
 use App\Models\CalendarItem;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\WasteCollectionCenter;
 use App\Providers\CurlServiceProvider;
 
@@ -56,54 +58,11 @@ class ReaInstanceJsonSyncCommand extends Command
         $url = $endpoint . '/data/tipi_rifiuto.json';
         $track_obj = $curl->exec($url);
         $response = json_decode($track_obj, true);
-
+        $params = [];
 
         try {
             foreach ($response as $trash) {
-                if (array_key_exists('name', $trash)) {
-                    $params['name']['it'] = $trash['name'];
-                }
-                if (array_key_exists('description', $trash)) {
-                    $params['description']['it'] = $trash['description'];
-                }
-                if (array_key_exists('howto', $trash)) {
-                    $params['howto']['it'] = $trash['howto'];
-                }
-                if (array_key_exists('where', $trash)) {
-                    $params['where']['it'] = $trash['where'];
-                }
-                if (array_key_exists('color', $trash)) {
-                    $params['color']['it'] = $trash['color'];
-                }
-                if (array_key_exists('allowed', $trash)) {
-                    $params['allowed']['it'] = $trash['allowed'];
-                }
-                if (array_key_exists('notallowed', $trash)) {
-                    $params['notallowed']['it'] = $trash['notallowed'];
-                }
-                if (!empty($trash['translations'])) {
-                    if (array_key_exists('name', $trash['translations'])) {
-                        $params['name']['en'] = $trash['translations']['en']['name'];
-                    }
-                    if (array_key_exists('description', $trash['translations'])) {
-                        $params['description']['en'] = $trash['translations']['en']['description'];
-                    }
-                    if (array_key_exists('howto', $trash['translations'])) {
-                        $params['howto']['en'] = $trash['translations']['en']['howto'];
-                    }
-                    if (array_key_exists('where', $trash['translations'])) {
-                        $params['where']['en'] = $trash['translations']['en']['where'];
-                    }
-                    if (array_key_exists('color', $trash['translations'])) {
-                        $params['color']['en'] = $trash['translations']['en']['color'];
-                    }
-                    if (array_key_exists('allowed', $trash['translations'])) {
-                        $params['allowed']['en'] = $trash['translations']['en']['allowed'];
-                    }
-                    if (array_key_exists('notallowed', $trash['translations'])) {
-                        $params['notallowed']['en'] = $trash['translations']['en']['notallowed'];
-                    }
-                }
+                $params = $this->getTrashParams($trash);
                 TrashType::updateOrCreate(
                     [
                         'slug' => $trash['id'],
@@ -112,6 +71,8 @@ class ReaInstanceJsonSyncCommand extends Command
                     $params
                 );
             }
+        } catch (Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
         } catch (Exception $e) {
             echo 'Caught exception: ',  $e->getMessage(), "\n";
         }
@@ -151,48 +112,13 @@ class ReaInstanceJsonSyncCommand extends Command
 
     protected function syncCentriRaccolta($company_id, $endpoint)
     {
-
-        // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
         $url = $endpoint . '/data/centri_raccolta.geojson';
-        $track_obj = $curl->exec($url);
-        $response = json_decode($track_obj, true);
+        $response = json_decode($curl->exec($url), true);
 
         try {
             foreach ($response['features'] as $feature) {
-                if (array_key_exists('name', $feature['properties'])) {
-                    $params['name']['it'] = $feature['properties']['name'];
-                }
-                if (array_key_exists('marker-color', $feature['properties'])) {
-                    $params['marker-color'] = $feature['properties']['marker-color'];
-                }
-                if (array_key_exists('marker-size', $feature['properties'])) {
-                    $params['marker-size'] = $feature['properties']['marker-size'];
-                }
-                if (array_key_exists('marker-symbol', $feature['properties'])) {
-                    $params['marker-symbol'] = $feature['properties']['marker-symbol'];
-                }
-                if (array_key_exists('website', $feature['properties'])) {
-                    $params['website'] = $feature['properties']['website'];
-                }
-                if (array_key_exists('picture_url', $feature['properties'])) {
-                    $params['picture_url'] = $feature['properties']['picture_url'];
-                }
-                if (array_key_exists('orario', $feature['properties'])) {
-                    $params['orario']['it'] = $feature['properties']['orario'];
-                }
-                if (array_key_exists('description', $feature['properties'])) {
-                    $params['description']['it'] = $feature['properties']['description'];
-                }
-
-                if (!empty($feature['properties']['translations'])) {
-                    if (array_key_exists('en', $feature['properties']['translations'])) {
-                        $params['name']['en'] = $feature['properties']['translations']['en']['name'];
-                        $params['orario']['en'] = $feature['properties']['translations']['en']['orario'];
-                        $params['description']['en'] = $feature['properties']['translations']['en']['description'];
-                    }
-                }
-
+                $params = $this->getParamsFromCentriRaccolta($feature);
                 $lat = $feature['geometry']['coordinates'][0];
                 $lng = $feature['geometry']['coordinates'][1];
 
@@ -204,90 +130,104 @@ class ReaInstanceJsonSyncCommand extends Command
                     $params
                 );
 
-                // Relational Table: user_type_waste_collection_center 
-                if (array_key_exists('userTypes', $feature['properties'])) {
-                    $user_types = [];
-                    foreach ($feature['properties']['userTypes'] as $value) {
-                        $userType = UserType::where('company_id', $company_id)
-                            ->where('slug', $value)->get();
-                        array_push($user_types, $userType[0]->id);
-                    };
-                    $waste_center->userTypes()->sync($user_types, false);
-                }
-
-                // Relational Table: trash_type_waste_collection_center 
-                if (array_key_exists('trashTypes', $feature['properties'])) {
-                    $trash_types = [];
-                    foreach ($feature['properties']['trashTypes'] as $value) {
-                        $trashType = TrashType::where('company_id', $company_id)
-                            ->where('slug', $value)->get();
-                        array_push($trash_types, $trashType[0]->id);
-                    };
-                    $waste_center->trashTypes()->sync($trash_types, false);
-                }
+                $this->syncUserTypes($feature, $company_id, $waste_center);
+                $this->syncTrashTypes($feature, $company_id, $waste_center);
             }
         } catch (Exception $e) {
-            echo 'Caught exception: ',  $e->getMessage(), "\n";
+            echo 'Caught exception: ',  $e->getMessage() . ' at line: ' . $e->getLine() . "\n";
+        }
+    }
+
+
+
+    private function syncUserTypes($feature, $company_id, $waste_center)
+    {
+        if (array_key_exists('userTypes', $feature['properties']) && !empty($feature['properties']['userTypes'])) {
+            $user_types = [];
+            foreach ($feature['properties']['userTypes'] as $value) {
+                $userType = UserType::where('company_id', $company_id)
+                    ->where('slug', $value)->first();
+                if ($userType) {
+                    array_push($user_types, $userType->id);
+                }
+            };
+            $waste_center->userTypes()->sync($user_types, false);
+        }
+    }
+
+    private function syncTrashTypes($feature, $company_id, $waste_center)
+    {
+        if (array_key_exists('trashTypes', $feature['properties']) && !empty($feature['properties']['trashTypes'])) {
+            $trash_types = [];
+            foreach ($feature['properties']['trashTypes'] as $value) {
+                $trashType = TrashType::where('company_id', $company_id)
+                    ->where('slug', $value)->first();
+
+                if ($trashType) {
+                    array_push($trash_types, $trashType->id);
+                } else {
+                    Log::debug('TrashType relation not found: ' . json_encode($value) . ' creating new one');
+                    $trashType = TrashType::updateOrCreate(
+                        [
+                            'slug' => $value,
+                            'company_id' => $company_id
+                        ],
+                        $params
+                    );
+                    array_push($trash_types, $trashType->id);
+                }
+            };
+            $waste_center->trashTypes()->sync($trash_types, false);
         }
     }
 
     protected function syncRifiutario($company_id, $endpoint)
     {
-
         // Curl request to get the feature information from external source
         $curl = app(CurlServiceProvider::class);
         $url = $endpoint . '/data/rifiutario.json';
         $track_obj = $curl->exec($url);
         $response = json_decode($track_obj, true);
 
-
         try {
             foreach ($response as $waste) {
-                if (array_key_exists('notes', $waste)) {
-                    $params['notes']['it'] = $waste['notes'];
-                }
-                if (array_key_exists('where', $waste)) {
-                    $params['where']['it'] = $waste['where'];
-                }
-                if (array_key_exists('pap', $waste)) {
-                    $params['pap'] = $waste['pap'];
-                }
-                if (array_key_exists('collection_center', $waste)) {
-                    $params['collection_center'] = $waste['collection_center'];
-                }
-                if (array_key_exists('delivery', $waste)) {
-                    $params['delivery'] = $waste['delivery'];
-                }
-                if (!empty($waste['translations'])) {
+                $params = [
+                    'notes' => [
+                        'it' => $waste['notes'] ?? null,
+                        'en' => $waste['translations']['en']['notes'] ?? null,
+                    ],
+                    'where' => [
+                        'it' => $waste['where'] ?? null,
+                        'en' => $waste['translations']['en']['where'] ?? null,
+                    ],
+                    'pap' => $waste['pap'] ?? null,
+                    'collection_center' => $waste['collection_center'] ?? null,
+                    'delivery' => $waste['delivery'] ?? null,
+                    'name' => [
+                        'it' => $waste['name'],
+                        'en' => $waste['translations']['en']['name'] ?? null,
+                    ],
+                ];
 
-                    if (array_key_exists('name', $waste['translations']['en'])) {
-                        $params['name']['en'] = $waste['translations']['en']['name'];
-                    }
-                    if (array_key_exists('notes', $waste['translations']['en'])) {
-                        $params['notes']['en'] = $waste['translations']['en']['notes'];
-                    }
-                    if (array_key_exists('where', $waste['translations']['en'])) {
-                        $params['where']['en'] = $waste['translations']['en']['where'];
-                    }
-                }
                 if (array_key_exists('category', $waste)) {
-                    try {
-                        $trashType = TrashType::where('company_id', $company_id)
-                            ->where('slug', $waste['category'])->get();
-                        if (count($trashType) > 0) {
-                            $params['trash_type_id'] = $trashType[0]->id;
-                        }
-                    } catch (Exception $e) {
-                        Log::error('TrashType relation not found: ' . json_encode($waste) . ' ' . $e->getMessage());
+                    $trashType = TrashType::where('company_id', $company_id)
+                        ->where('slug', $waste['category'])
+                        ->first();
+
+                    if ($trashType) {
+                        $params['trash_type_id'] = $trashType->id;
+                    } else {
+                        Log::error('TrashType relation not found: ' . json_encode($waste));
                         continue;
                     }
                 }
+
                 Waste::updateOrCreate(
                     [
                         'name' => [
                             'it' => $waste['name'],
                         ],
-                        'company_id' => $company_id
+                        'company_id' => $company_id,
                     ],
                     $params
                 );
@@ -535,5 +475,81 @@ class ReaInstanceJsonSyncCommand extends Command
         }
 
         return $dateDay;
+    }
+
+    private function getTrashParams($trash)
+    {
+        $params = [];
+
+        if (array_key_exists('name', $trash)) {
+            $params['name']['it'] = $trash['name'];
+        }
+        if (array_key_exists('description', $trash)) {
+            $params['description']['it'] = $trash['description'];
+        }
+        if (array_key_exists('howto', $trash)) {
+            $params['howto']['it'] = $trash['howto'];
+        }
+        if (array_key_exists('where', $trash)) {
+            $params['where']['it'] = $trash['where'];
+        }
+        if (array_key_exists('color', $trash)) {
+            $params['color'] = $trash['color'];
+        }
+        if (array_key_exists('allowed', $trash)) {
+            $params['allowed']['it'] = $trash['allowed'];
+        }
+        if (array_key_exists('notallowed', $trash)) {
+            $params['notallowed']['it'] = $trash['notallowed'];
+        }
+        if (!empty($trash['translations'])) {
+            if (array_key_exists('name', $trash['translations']['en'])) {
+                $params['name']['en'] = $trash['translations']['en']['name'];
+            }
+            if (array_key_exists('description', $trash['translations']['en'])) {
+                $params['description']['en'] = $trash['translations']['en']['description'];
+            }
+            if (array_key_exists('howto', $trash['translations']['en'])) {
+                $params['howto']['en'] = $trash['translations']['en']['howto'];
+            }
+            if (array_key_exists('where', $trash['translations']['en'])) {
+                $params['where']['en'] = $trash['translations']['en']['where'];
+            }
+            if (array_key_exists('allowed', $trash['translations']['en'])) {
+                $params['allowed']['en'] = $trash['translations']['en']['allowed'];
+            }
+            if (array_key_exists('notallowed', $trash['translations']['en'])) {
+                $params['notallowed']['en'] = $trash['translations']['en']['notallowed'];
+            }
+        }
+
+        return $params;
+    }
+
+    private function getParamsFromCentriRaccolta($feature)
+    {
+        $params = [];
+
+        $properties = $feature['properties'];
+
+        $params['name']['it'] = $properties['name'] ?? null;
+        $params['marker-color'] = $properties['marker-color'] ?? null;
+        $params['marker-size'] = $properties['marker-size'] ?? null;
+        $params['marker-symbol'] = $properties['marker-symbol'] ?? null;
+        $params['website'] = $properties['website'] ?? null;
+        $params['picture_url'] = $properties['picture_url'] ?? null;
+        $params['orario']['it'] = $properties['orario'] ?? null;
+        $params['description']['it'] = $properties['description'] ?? null;
+
+        if (!empty($properties['translations'])) {
+            $translations = $properties['translations']['en'] ?? null;
+            if ($translations) {
+                $params['name']['en'] = $translations['name'] ?? null;
+                $params['orario']['en'] = $translations['orario'] ?? null;
+                $params['description']['en'] = $translations['description'] ?? null;
+            }
+        }
+
+        return $params;
     }
 }

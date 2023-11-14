@@ -29,7 +29,7 @@ class Zone extends Model
     {
         if (auth()->check()) {
             static::creating(function ($zone) {
-                $zone->company_id = auth()->user()->company->id;
+                $zone->company_id = auth()->user()->companyWhereAdmin->id;
             });
         }
     }
@@ -37,6 +37,11 @@ class Zone extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
     }
 
     public function userTypes()

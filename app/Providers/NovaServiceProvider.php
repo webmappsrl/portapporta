@@ -21,13 +21,13 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         parent::boot();
         Nova::userMenu(function (Request $request, Menu $menu) {
 
-            if(!empty($request->user()->company)) {
+            if (!empty($request->user()->company)) {
                 $menu->append(
                     MenuItem::make(
-                        'Profile (company: ' . $request->user()->company->name.')',
+                        'Profile (company: ' . $request->user()->company->name . ')',
                         "/resources/users/{$request->user()->getKey()}"
                     )
-                );   
+                );
             }
 
             return $menu;
@@ -42,9 +42,9 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     protected function routes()
     {
         Nova::routes()
-                ->withAuthenticationRoutes()
-                ->withPasswordResetRoutes()
-                ->register();
+            ->withAuthenticationRoutes()
+            ->withPasswordResetRoutes()
+            ->register();
     }
 
     /**
@@ -57,9 +57,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     protected function gate()
     {
         Gate::define('viewNova', function ($user) {
-            return in_array($user->email, [
-                //
-            ]);
+            return $user->hasRole('super_admin') || $user->hasRole('company_admin)');
         });
     }
 
@@ -82,7 +80,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
      */
     public function tools()
     {
-        return [];
+        return [
+            \Vyuldashev\NovaPermission\NovaPermissionTool::make()->canSee(function ($request) {
+                return $request->user()->hasRole('super_admin');
+            }),
+        ];
     }
 
     /**

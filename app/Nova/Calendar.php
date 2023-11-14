@@ -51,7 +51,7 @@ class Calendar extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->where('company_id', $request->user()->company->id);
+        return $query->where('company_id', $request->user()->companyWhereAdmin->id);
     }
 
     /**
@@ -70,7 +70,8 @@ class Calendar extends Resource
                     $htmlName = str_replace("\n", '<br>', $wrappedName);
                     return $htmlName;
                 })
-                ->asHtml(),
+                ->asHtml()
+                ->required(),
             BelongsTo::make('zone'),
             BelongsTo::make('userType'),
             Date::make('Start Date', 'start_date'),

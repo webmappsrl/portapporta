@@ -2,16 +2,20 @@
 
 namespace App\Nova;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules;
-use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\Gravatar;
-use Laravel\Nova\Fields\HasMany;
-use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Password;
-use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use Wm\MapPoint\MapPoint;
+use Laravel\Nova\Fields\ID;
+use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Text;
+use Illuminate\Validation\Rules;
+use Laravel\Nova\Fields\HasMany;
+use Laravel\Nova\Fields\Gravatar;
+use Laravel\Nova\Fields\Password;
+use Laravel\Nova\Fields\BelongsTo;
+use Spatie\Permission\Models\Role;
+use Laravel\Nova\Fields\MorphToMany;
+use Illuminate\Database\Eloquent\Model;
+use Vyuldashev\NovaPermission\RoleSelect;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class User extends Resource
 {
@@ -35,7 +39,7 @@ class User extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'name', 'email',
+        'id', 'name', 'email', 'fiscal_code'
     ];
 
     /**
@@ -54,7 +58,22 @@ class User extends Resource
                 ->rules('required', 'max:255'),
             Text::make('fcm_token')
                 ->sortable()->onlyOnForms(),
-            Text::make('app_company_id'),
+            Text::make('app_company_id')
+                ->hideFromIndex(),
+            BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
+                ->nullable()
+                ->hideWhenCreating()
+                ->hideWhenUpdating(),
+
+            BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
+                ->nullable()
+                ->onlyOnForms()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('super_admin');
+                }),
+            MorphToMany::make('Roles', 'roles', \Vyuldashev\NovaPermission\Role::class),
+            MorphToMany::make('Permissions', 'permissions', \Vyuldashev\NovaPermission\Permission::class),
+
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
@@ -69,9 +88,13 @@ class User extends Resource
                 ->creationRules('unique:users,phone_number')
                 ->updateRules('unique:users,phone_number,{{resourceId}}'),
             Text::make('Fiscal code')
-                ->rules('nullable', 'max:16', 'unique:users,fiscal_code'),
+                ->rules('nullable', 'max:16')
+                ->creationRules('unique:users,fiscal_code')
+                ->updateRules('unique:users,fiscal_code,{{resourceId}}'),
             Text::make('User code')
-                ->rules('nullable', 'max:16', 'unique:users,user_code'),
+                ->rules('nullable', 'max:16')
+                ->creationRules('unique:users,user_code')
+                ->updateRules('unique:users,user_code,{{resourceId}}'),
             Text::make('Company', function () {
                 if (!is_null($this->zone_id) && !is_null($this->zone)) {
                     return $this->zone->company->name;
@@ -139,5 +162,35 @@ class User extends Resource
             return false;
         }
         return true;
+    }
+
+    public static function afterCreate(NovaRequest $request, Model $model)
+    {
+        if ($model->admin_company_id) {
+            if ($model->hasRole('contributor')) {
+                $model->removeRole('contributor');
+            }
+            $model->assignRole('company_admin');
+            $model->app_company_id = $model->admin_company_id;
+        } else {
+            $model->removeRole('company_admin');
+            $model->assignRole('contributor');
+        }
+        $model->save();
+    }
+
+    public static function afterUpdate(NovaRequest $request, Model $model)
+    {
+        if ($model->admin_company_id) {
+            if ($model->hasRole('contributor')) {
+                $model->removeRole('contributor');
+            }
+            $model->assignRole('company_admin');
+            $model->app_company_id = $model->admin_company_id;
+        } else {
+            $model->removeRole('company_admin');
+            $model->assignRole('contributor');
+        }
+        $model->save();
     }
 }

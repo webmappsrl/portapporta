@@ -16,7 +16,12 @@ class NewTicketsValueMetric extends Value
      */
     public function calculate(NovaRequest $request)
     {
-        return $this->count($request, Ticket::class);
+        $user = $request->user();
+
+        if ($user->hasRole('super_admin')) {
+            return $this->count($request, Ticket::class);
+        }
+        return $this->count($request, Ticket::Where('company_id', $user->admin_company_id));
     }
 
     /**
@@ -55,5 +60,13 @@ class NewTicketsValueMetric extends Value
     public function uriKey()
     {
         return 'new-tickets-value-metric';
+    }
+
+    public function name()
+    {
+        if (auth()->user()->hasRole('super_admin')) {
+            return 'Tickets';
+        }
+        return 'Tickets for ' . auth()->user()->companyWhereAdmin->name;
     }
 }

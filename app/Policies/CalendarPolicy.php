@@ -18,11 +18,7 @@ class CalendarPolicy
      */
     public function viewAny(User $user)
     {
-        if($user->email=='admin@webmapp.it') {
-            return false;
-        }
-
-        return true;
+        return $user->hasRole('company_admin');
     }
 
     /**
@@ -34,9 +30,9 @@ class CalendarPolicy
      */
     public function view(User $user, Calendar $calendar)
     {
-        if ($calendar->company_id == $user->company->id) {
+        if ($calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -49,7 +45,7 @@ class CalendarPolicy
      */
     public function create(User $user)
     {
-        return true;
+        return !$user->hasRole('contributor');
     }
 
     /**
@@ -61,9 +57,9 @@ class CalendarPolicy
      */
     public function update(User $user, Calendar $calendar)
     {
-        if ($calendar->company_id == $user->company->id) {
+        if ($calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -77,9 +73,9 @@ class CalendarPolicy
      */
     public function delete(User $user, Calendar $calendar)
     {
-        if ($calendar->company_id == $user->company->id) {
+        if ($calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -93,9 +89,9 @@ class CalendarPolicy
      */
     public function restore(User $user, Calendar $calendar)
     {
-        if ($calendar->company_id == $user->company->id) {
+        if ($calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
@@ -109,9 +105,9 @@ class CalendarPolicy
      */
     public function forceDelete(User $user, Calendar $calendar)
     {
-        if ($calendar->company_id == $user->company->id) {
+        if ($calendar->company_id == $user->companyWhereAdmin->id) {
             return true;
-        } 
+        }
 
         return false;
     }
