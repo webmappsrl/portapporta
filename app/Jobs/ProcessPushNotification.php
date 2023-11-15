@@ -36,22 +36,25 @@ class ProcessPushNotification implements ShouldQueue
      */
     public function handle()
     {
+        $zones = $this->pushNotification->zone_ids;
         Log::info("Processing push notification: {$this->pushNotification->title}");
         Log::info("app company id: {$this->pushNotification->company_id}");
         Log::info("app company message: {$this->pushNotification->message}");
+        $azone_ids = json_encode($zones, true);
+        Log::info("app company zones: {$azone_ids}");
         $status = false;
 
         try {
-            $zones = $this->pushNotification->zone_ids;
             try {
                 $appUsers = User::whereNotNull('fcm_token')->where('app_company_id', $this->pushNotification->company_id)->get();
             } catch (\Exception $e) {
                 Log::info("error " . json_encode($e));
                 $appUsers = [];
             }
-
+            Log::info("push notification filtering process");
             $AppUserFilteredByZones = $appUsers->filter(
                 function ($appUsr) use ($zones) {
+                    Log::info("user: {$appUsr->name}");
                     try {
                         $addresses = Address::where('user_id', $appUsr->id)->get();
                         if (is_null($addresses)) {
@@ -61,6 +64,7 @@ class ProcessPushNotification implements ShouldQueue
                         if (is_null($address) || is_null($address->zone_id)) {
                             return false;
                         }
+                        Log::info("user zone id: {$address->zone_id}");
                         return in_array($address->zone_id, $zones);
                     } catch (\Exception $e) {
                         return false;
@@ -68,8 +72,8 @@ class ProcessPushNotification implements ShouldQueue
                 }
             );
 
-
             $fcmTokens =  $AppUserFilteredByZones->pluck('fcm_token')->toArray();
+            Log::info("notification send to users: " . json_encode($AppUserFilteredByZones->pluck('name')->toArray()));
             Log::info("token numbers: " . json_encode($fcmTokens));
             try {
                 $res =  Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($fcmTokens);
