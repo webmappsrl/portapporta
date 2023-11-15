@@ -37,7 +37,7 @@ class ProcessPushNotification implements ShouldQueue
     public function handle()
     {
         $zones = $this->pushNotification->zone_ids;
-        Log::info("Processing push notification: {$this->pushNotification->title}");
+        Log::info("Processing push notifications: {$this->pushNotification->title}");
         Log::info("app company id: {$this->pushNotification->company_id}");
         Log::info("app company message: {$this->pushNotification->message}");
         $azone_ids = json_encode($zones, true);
