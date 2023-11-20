@@ -23,7 +23,7 @@ class ErsuInstanceJsonSyncCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pap:ersusync {company_id : e.g. 1 (for ersu)} {endpoint : e.g. http://apiersu.netseven.it/}';
+    protected $signature = 'pap:ersusync {company_id : e.g. 1 (for ersu)} {endpoint : e.g. http://apiersu.netseven.it/} {--Z|zone : Only sync Zone Meta}';
 
     /**
      * The console command description.
@@ -42,12 +42,17 @@ class ErsuInstanceJsonSyncCommand extends Command
         $company_id = $this->argument('company_id');
         $endpoint = $this->argument('endpoint');
 
-
-        $this->syncTipiRifiuto($company_id, $endpoint);
-        $this->syncUtenzeMeta($company_id, $endpoint);
-        $this->syncCentriRaccolta($company_id, $endpoint);
-        $this->syncRifiutario($company_id, $endpoint);
-        $this->syncZoneMeta($company_id, $endpoint);
+        if ($this->option('zone')) {
+            $this->syncZoneMeta($company_id, $endpoint);
+            return 0;
+        } else {
+            $this->syncTipiRifiuto($company_id, $endpoint);
+            $this->syncUtenzeMeta($company_id, $endpoint);
+            $this->syncCentriRaccolta($company_id, $endpoint);
+            $this->syncRifiutario($company_id, $endpoint);
+            $this->syncZoneMeta($company_id, $endpoint);
+            return 0;
+        }
     }
 
     protected function syncTipiRifiuto($company_id, $endpoint)
@@ -266,6 +271,7 @@ class ErsuInstanceJsonSyncCommand extends Command
         $response = json_decode($track_obj, true);
 
         try {
+            $prompt = $this->confirm('Do you also want to sync calendars for the zones?');
             foreach ($response as $zone) {
                 if (array_key_exists('comune', $zone)) {
                     $params['comune'] = $zone['comune'];
@@ -280,6 +286,7 @@ class ErsuInstanceJsonSyncCommand extends Command
 
                 $zone_obg = Zone::updateOrCreate(
                     [
+                        'comune' => $zone['comune'],
                         'label' =>  $zone['label'],
                         'company_id' => $company_id
                     ],
@@ -295,12 +302,14 @@ class ErsuInstanceJsonSyncCommand extends Command
                     };
                     $zone_obg->userTypes()->sync($zones, false);
                 }
+                $this->info('zone: ' . $zone['label'] . PHP_EOL);
 
-                if (count($zone_obg->userTypes) > 0) {
-                    foreach ($zone_obg->userTypes as $userType) {
-                        $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
+                if ($prompt)
+                    if (count($zone_obg->userTypes) > 0) {
+                        foreach ($zone_obg->userTypes as $userType) {
+                            $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
+                        }
                     }
-                }
             }
         } catch (Exception $e) {
             Log::error('Caught exception syncZoneMeta: ' . json_encode($zone) . ' ' .  $e->getMessage());
