@@ -18,6 +18,7 @@ class Zone extends Model
         'label',
         'url',
         'geometry',
+        'import_id',
     ];
 
     /**

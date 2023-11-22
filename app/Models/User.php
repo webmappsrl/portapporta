@@ -23,12 +23,12 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     protected static function booted()
     {
-        static::deleting(function ($user) {
-            $company = Company::where('user_id', $user->id)->first();
-            if ($company) {
-                $company->update(['user_id' => null]);
-            }
-        });
+        // static::deleting(function ($user) {
+        //     $company = Company::where('user_id', $user->id)->first();
+        //     if ($company) {
+        //         $company->update(['user_id' => null]);
+        //     }
+        // });
     }
 
     /**
@@ -70,10 +70,6 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'email_verified_at' => 'datetime',
     ];
 
-    public function company()
-    {
-        return $this->hasOne(Company::class);
-    }
     public function companyWhereAdmin()
     {
         return $this->belongsTo(Company::class, 'admin_company_id');
