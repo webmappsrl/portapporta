@@ -256,10 +256,16 @@ class AsmiuInstanceJsonSyncCommand extends Command
         $coordinate_array = [];
         try {
             foreach ($response['features'] as $zone) {
-                $coordinate_array[$zone['properties']['id']] = array(
-                    "type" => "MultiPolygon",
-                    "coordinates" => $zone['geometry']['coordinates']
-                );
+                $currentIteratingId = $zone['properties']['id'];
+                //if the id is already present in the array keys, merge the coordinates
+                if (array_key_exists($currentIteratingId, $coordinate_array)) {
+                    $coordinate_array[$currentIteratingId]['coordinates'][0] = array_merge($coordinate_array[$currentIteratingId]['coordinates'][0], $zone['geometry']['coordinates'][0]);
+                } else {
+                    $coordinate_array[$zone['properties']['id']] = array(
+                        "type" => "MultiPolygon",
+                        "coordinates" => $zone['geometry']['coordinates']
+                    );
+                };
             }
         } catch (Exception $e) {
             Log::error('Caught exception syncZoneConfini: ' . json_encode($zone) . ' ' .  $e->getMessage());
