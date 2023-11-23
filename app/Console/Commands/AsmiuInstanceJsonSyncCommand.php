@@ -42,7 +42,6 @@ class AsmiuInstanceJsonSyncCommand extends Command
         $company_id = $this->argument('company_id');
         $endpoint = $this->argument('endpoint');
 
-
         if ($this->option('zone')) {
             $this->syncZoneMeta($company_id, $endpoint);
             return 0;
@@ -279,7 +278,6 @@ class AsmiuInstanceJsonSyncCommand extends Command
 
         try {
             $prompt = $this->confirm('Do you also want to sync calendars for the zones?');
-
             foreach ($response as $zone) {
                 if (array_key_exists('comune', $zone)) {
                     $params['comune'] = $zone['comune'];
@@ -290,13 +288,29 @@ class AsmiuInstanceJsonSyncCommand extends Command
                 if (array_key_exists($zone['id'], $coordinate_array)) {
                     $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('" . json_encode($coordinate_array[$zone['id']]) . ",4326')) As wkt")[0]->wkt;
                 }
+                if (array_key_exists('label', $zone)) {
+                    $params['label'] = $zone['label'];
+                }
+                if (array_key_exists('comune', $zone)) {
+                    $params['comune'] = $zone['comune'];
+                }
                 $params['company_id'] = $company_id;
+                //if in the database exists a zone with the same comune and label, assign the $zone['id'] to the 'import_id' field
+                $zonesDb = Zone::where('comune', $zone['comune'])
+                    ->where('label', $zone['label'])
+                    ->get();
+                if (count($zonesDb) > 0) {
+                    foreach ($zonesDb as $zoneDb) {
+                        if ($zoneDb->import_id == null) {
+                            $zoneDb->forceDelete();
+                        }
+                    }
+                }
 
                 $zone_obg = Zone::updateOrCreate(
                     [
                         'comune' => $zone['comune'],
-                        'label' =>  $zone['label'],
-                        'company_id' => $company_id
+                        'import_id' => $zone['id'],
                     ],
                     $params
                 );

@@ -42,7 +42,6 @@ class ReaInstanceJsonSyncCommand extends Command
         $company_id = $this->argument('company_id');
         $endpoint = $this->argument('endpoint');
 
-
         if ($this->option('zone')) {
             $this->syncZoneMeta($company_id, $endpoint);
             return 0;
@@ -289,13 +288,29 @@ class ReaInstanceJsonSyncCommand extends Command
                 if (array_key_exists($zone['id'], $coordinate_array)) {
                     $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('" . json_encode($coordinate_array[$zone['id']]) . ",4326')) As wkt")[0]->wkt;
                 }
+                if (array_key_exists('label', $zone)) {
+                    $params['label'] = $zone['label'];
+                }
+                if (array_key_exists('comune', $zone)) {
+                    $params['comune'] = $zone['comune'];
+                }
                 $params['company_id'] = $company_id;
+                //if in the database exists a zone with the same comune and label, assign the $zone['id'] to the 'import_id' field
+                $zonesDb = Zone::where('comune', $zone['comune'])
+                    ->where('label', $zone['label'])
+                    ->get();
+                if (count($zonesDb) > 0) {
+                    foreach ($zonesDb as $zoneDb) {
+                        if ($zoneDb->import_id == null) {
+                            $zoneDb->forceDelete();
+                        }
+                    }
+                }
 
                 $zone_obg = Zone::updateOrCreate(
                     [
                         'comune' => $zone['comune'],
-                        'label' =>  $zone['label'],
-                        'company_id' => $company_id
+                        'import_id' => $zone['id'],
                     ],
                     $params
                 );
@@ -329,11 +344,15 @@ class ReaInstanceJsonSyncCommand extends Command
         $curl = app(CurlServiceProvider::class);
         $url = $endpoint . '/data/calendar_' . $slug . '_input.json';
         $obj = $curl->exec($url);
-        $response = json_decode($obj, true);
+        $response = json_decode($obj, true); // TODO http://apirea.webmapp.it/data/calendar_seaside_input.json not found
         $calendarItems = [];
 
         //take only the item from the response with key = zone->id
-        $response = array_filter($response, function ($key) use ($zone) {
+        if ($response == null) {
+            $this->info('calendar: ' . $url . ' for zone: ' . $zone['label'] . ' not found' . PHP_EOL);
+            return;
+        }
+        $filteredResponse = array_filter($response, function ($key) use ($zone) {
             return $key == $zone['id'];
         }, ARRAY_FILTER_USE_KEY);
 
@@ -348,7 +367,7 @@ class ReaInstanceJsonSyncCommand extends Command
 
         $this->info('calendar: ' . $url . ' for zone: ' . $zone['label'] . PHP_EOL);
 
-        foreach ($response as $items) {
+        foreach ($filteredResponse as $items) {
             foreach ($items as $calendar) {
                 if (array_key_exists('start', $calendar)) {
                     //convert string to date

@@ -302,13 +302,14 @@ class ErsuInstanceJsonSyncCommand extends Command
                 if (count($zonesDb) > 0) {
                     foreach ($zonesDb as $zoneDb) {
                         if ($zoneDb->import_id == null) {
-                            $zoneDb->delete();
+                            $zoneDb->forceDelete();
                         }
                     }
                 }
 
                 $zone_obg = Zone::updateOrCreate(
                     [
+                        'comune' => $zone['comune'],
                         'import_id' => $zone['id'],
                     ],
                     $params
