@@ -277,7 +277,6 @@ class ErsuInstanceJsonSyncCommand extends Command
         $response = json_decode($track_obj, true);
 
         try {
-            $prompt = $this->confirm('Do you also want to sync calendars for the zones?');
             foreach ($response as $zone) {
                 if (array_key_exists('comune', $zone)) {
                     $params['comune'] = $zone['comune'];
@@ -326,12 +325,11 @@ class ErsuInstanceJsonSyncCommand extends Command
                 }
                 $this->info('zone: ' . $zone['label'] . PHP_EOL);
 
-                if ($prompt)
-                    if (count($zone_obg->userTypes) > 0) {
-                        foreach ($zone_obg->userTypes as $userType) {
-                            $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
-                        }
+                if (count($zone_obg->userTypes) > 0) {
+                    foreach ($zone_obg->userTypes as $userType) {
+                        $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
                     }
+                }
             }
         } catch (Exception $e) {
             Log::error('Caught exception syncZoneMeta: ' . json_encode($zone) . ' ' .  $e->getMessage());
@@ -378,7 +376,7 @@ class ErsuInstanceJsonSyncCommand extends Command
                         $calendarItems[] = $calendarItem;
                     }
                 }
-                $syncedCalendar = Calendar::factory()->create($params);
+                $syncedCalendar = Calendar::updateOrCreate(['name' => $calendarName], $params);
                 foreach ($calendarItems as $calendarItem) {
                     $this->syncCalendarioItem($calendarItem, $syncedCalendar);
                 }
@@ -413,7 +411,6 @@ class ErsuInstanceJsonSyncCommand extends Command
                 $formattedBaseDate = Carbon::createFromFormat('Y-m-d', $serviceData['baseDate'])->format('Y-m-d');
 
                 $item = [
-                    'calendar_id' => $syncedCalendar->id,
                     'start_time' => $startTime,
                     'stop_time' => $stopTime,
                     'day_of_week' => $dateDay,
@@ -421,6 +418,16 @@ class ErsuInstanceJsonSyncCommand extends Command
                     'services' => $services, // initialize the services array
                     'base_date' => $formattedBaseDate
                 ];
+
+                $dbCalendarItem = CalendarItem::where('calendar_id', $syncedCalendar->id)
+                    ->where('day_of_week', $dateDay)
+                    ->where('frequency', $serviceData['frequency'] == 14 ? 'biweekly' : 'weekly')
+                    ->first();
+
+                if ($dbCalendarItem) {
+                    continue;
+                }
+                $item['calendar_id'] = $syncedCalendar->id;
 
                 //get the trashtypes from the $item['services']
                 $trashTypes = $this->getTrashTypes($item['services'], $syncedCalendar);
@@ -443,14 +450,21 @@ class ErsuInstanceJsonSyncCommand extends Command
         }
         foreach ($servicesByDay as $dayOfWeek => $services) {
             //create a new calendar item for each day of the week and assign the services to it
-
             $item = [
-                'calendar_id' => $syncedCalendar->id,
                 'start_time' => $startTime,
                 'stop_time' => $stopTime,
                 'day_of_week' => $dayOfWeek,
                 'frequency' => $frequency,
             ];
+            //if syncedCalendar has already a calendar item for the day of the week, do not associate the item to the calendar
+            $dbCalendarItem = CalendarItem::where('calendar_id', $syncedCalendar->id)
+                ->where('day_of_week', $dayOfWeek)
+                ->where('frequency', $frequency)
+                ->first();
+            if ($dbCalendarItem) {
+                continue;
+            }
+            $item['calendar_id'] = $syncedCalendar->id;
 
             $newCalendarItem = CalendarItem::create($item);
 
