@@ -376,7 +376,7 @@ class AsmiuInstanceJsonSyncCommand extends Command
                         $calendarItems[] = $calendarItem;
                     }
                 }
-                $syncedCalendar = Calendar::updateOrCreate(['name' => $calendarName], $params);
+                $syncedCalendar = Calendar::updateOrCreate(['name' => $calendarName, 'start_date' => $params['start_date'], 'stop_date' => $params['stop_date']], $params);
                 foreach ($calendarItems as $calendarItem) {
                     $this->syncCalendarioItem($calendarItem, $syncedCalendar);
                 }
