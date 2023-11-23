@@ -21,11 +21,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         parent::boot();
         Nova::userMenu(function (Request $request, Menu $menu) {
 
-            if (!empty($request->user()->company)) {
+            if (!empty($request->user()->companyWhereAdmin)) {
                 $menu->append(
                     MenuItem::make(
-                        'Profile (company: ' . $request->user()->company->name . ')',
-                        "/resources/users/{$request->user()->getKey()}"
+                        'Profile (company: ' . $request->user()->companyWhereAdmin->name . ')',
+                        "/resources/users/{$request->user()->id} . '/edit'"
                     )
                 );
             }

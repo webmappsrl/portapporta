@@ -255,10 +255,16 @@ class ErsuInstanceJsonSyncCommand extends Command
         $coordinate_array = [];
         try {
             foreach ($response['features'] as $zone) {
-                $coordinate_array[$zone['properties']['id']] = array(
-                    "type" => "MultiPolygon",
-                    "coordinates" => $zone['geometry']['coordinates']
-                );
+                $currentIteratingId = $zone['properties']['id'];
+                //if the id is already present in the array keys, merge the coordinates
+                if (array_key_exists($currentIteratingId, $coordinate_array)) {
+                    $coordinate_array[$currentIteratingId]['coordinates'][0] = array_merge($coordinate_array[$currentIteratingId]['coordinates'][0], $zone['geometry']['coordinates'][0]);
+                } else {
+                    $coordinate_array[$zone['properties']['id']] = array(
+                        "type" => "MultiPolygon",
+                        "coordinates" => $zone['geometry']['coordinates']
+                    );
+                };
             }
         } catch (Exception $e) {
             Log::error('Caught exception syncZoneConfini: ' . json_encode($zone) . ' ' .  $e->getMessage());
@@ -271,7 +277,6 @@ class ErsuInstanceJsonSyncCommand extends Command
         $response = json_decode($track_obj, true);
 
         try {
-            $prompt = $this->confirm('Do you also want to sync calendars for the zones?');
             foreach ($response as $zone) {
                 if (array_key_exists('comune', $zone)) {
                     $params['comune'] = $zone['comune'];
@@ -282,13 +287,29 @@ class ErsuInstanceJsonSyncCommand extends Command
                 if (array_key_exists($zone['id'], $coordinate_array)) {
                     $params['geometry'] = DB::select("SELECT ST_AsText(ST_GeomFromGeoJSON('" . json_encode($coordinate_array[$zone['id']]) . ",4326')) As wkt")[0]->wkt;
                 }
+                if (array_key_exists('label', $zone)) {
+                    $params['label'] = $zone['label'];
+                }
+                if (array_key_exists('comune', $zone)) {
+                    $params['comune'] = $zone['comune'];
+                }
                 $params['company_id'] = $company_id;
+                //if in the database exists a zone with the same comune and label, assign the $zone['id'] to the 'import_id' field
+                $zonesDb = Zone::where('comune', $zone['comune'])
+                    ->where('label', $zone['label'])
+                    ->get();
+                if (count($zonesDb) > 0) {
+                    foreach ($zonesDb as $zoneDb) {
+                        if ($zoneDb->import_id == null) {
+                            $zoneDb->forceDelete();
+                        }
+                    }
+                }
 
                 $zone_obg = Zone::updateOrCreate(
                     [
                         'comune' => $zone['comune'],
-                        'label' =>  $zone['label'],
-                        'company_id' => $company_id
+                        'import_id' => $zone['id'],
                     ],
                     $params
                 );
@@ -304,12 +325,11 @@ class ErsuInstanceJsonSyncCommand extends Command
                 }
                 $this->info('zone: ' . $zone['label'] . PHP_EOL);
 
-                if ($prompt)
-                    if (count($zone_obg->userTypes) > 0) {
-                        foreach ($zone_obg->userTypes as $userType) {
-                            $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
-                        }
+                if (count($zone_obg->userTypes) > 0) {
+                    foreach ($zone_obg->userTypes as $userType) {
+                        $this->syncCalendario($userType->slug, $endpoint, $userType, $zone, $zone_obg->id, $company_id);
                     }
+                }
             }
         } catch (Exception $e) {
             Log::error('Caught exception syncZoneMeta: ' . json_encode($zone) . ' ' .  $e->getMessage());
@@ -356,7 +376,7 @@ class ErsuInstanceJsonSyncCommand extends Command
                         $calendarItems[] = $calendarItem;
                     }
                 }
-                $syncedCalendar = Calendar::factory()->create($params);
+                $syncedCalendar = Calendar::updateOrCreate(['name' => $calendarName], $params);
                 foreach ($calendarItems as $calendarItem) {
                     $this->syncCalendarioItem($calendarItem, $syncedCalendar);
                 }
@@ -391,7 +411,6 @@ class ErsuInstanceJsonSyncCommand extends Command
                 $formattedBaseDate = Carbon::createFromFormat('Y-m-d', $serviceData['baseDate'])->format('Y-m-d');
 
                 $item = [
-                    'calendar_id' => $syncedCalendar->id,
                     'start_time' => $startTime,
                     'stop_time' => $stopTime,
                     'day_of_week' => $dateDay,
@@ -399,6 +418,16 @@ class ErsuInstanceJsonSyncCommand extends Command
                     'services' => $services, // initialize the services array
                     'base_date' => $formattedBaseDate
                 ];
+
+                $dbCalendarItem = CalendarItem::where('calendar_id', $syncedCalendar->id)
+                    ->where('day_of_week', $dateDay)
+                    ->where('frequency', $serviceData['frequency'] == 14 ? 'biweekly' : 'weekly')
+                    ->first();
+
+                if ($dbCalendarItem) {
+                    continue;
+                }
+                $item['calendar_id'] = $syncedCalendar->id;
 
                 //get the trashtypes from the $item['services']
                 $trashTypes = $this->getTrashTypes($item['services'], $syncedCalendar);
@@ -421,14 +450,21 @@ class ErsuInstanceJsonSyncCommand extends Command
         }
         foreach ($servicesByDay as $dayOfWeek => $services) {
             //create a new calendar item for each day of the week and assign the services to it
-
             $item = [
-                'calendar_id' => $syncedCalendar->id,
                 'start_time' => $startTime,
                 'stop_time' => $stopTime,
                 'day_of_week' => $dayOfWeek,
                 'frequency' => $frequency,
             ];
+            //if syncedCalendar has already a calendar item for the day of the week, do not associate the item to the calendar
+            $dbCalendarItem = CalendarItem::where('calendar_id', $syncedCalendar->id)
+                ->where('day_of_week', $dayOfWeek)
+                ->where('frequency', $frequency)
+                ->first();
+            if ($dbCalendarItem) {
+                continue;
+            }
+            $item['calendar_id'] = $syncedCalendar->id;
 
             $newCalendarItem = CalendarItem::create($item);
 
