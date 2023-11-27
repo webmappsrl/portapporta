@@ -334,6 +334,8 @@ class Company extends Resource
                 ->buttons($allButtons)
                 ->hideFromIndex()
                 ->help('You can use HTML tags to format the content. Please insert image only by external link.'),
+            Text::make('Other info url', 'other_info_url')->hideFromIndex()->hideFromIndex()
+                ->help('this url can be displayed as default in app other info url in calendar page'),
             Images::make('Images', 'content-images')
         ];
     }
