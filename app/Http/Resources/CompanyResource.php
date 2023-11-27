@@ -85,6 +85,10 @@ class CompanyResource extends JsonResource
         if (!empty($this->company_page)) {
             $resources['company_page'] = $this->company_page;
         }
+        if (!empty($this->other_info_url)) {
+            $resources['other_info_url'] = $this->other_info_url;
+        }
+
 
         $json['resources'] = $resources;
 
