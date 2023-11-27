@@ -2,12 +2,22 @@
 
 namespace App\Providers;
 
+use App\Nova\Calendar;
+use App\Nova\CalendarItem;
+use App\Nova\Ticket;
+use App\Nova\PushNotification;
+use App\Nova\TrashType;
+use App\Nova\UserType;
+use App\Nova\Waste;
+use App\Nova\WasteCollectionCenter;
+use App\Nova\Zone;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Nova\Nova;
 use Laravel\Nova\NovaApplicationServiceProvider;
 use Illuminate\Http\Request;
 use Laravel\Nova\Menu\Menu;
 use Laravel\Nova\Menu\MenuItem;
+use Laravel\Nova\Menu\MenuSection;
 
 class NovaServiceProvider extends NovaApplicationServiceProvider
 {
@@ -19,6 +29,27 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
+        Nova::mainMenu(function (Request $request, Menu $menu) {
+            if (!empty($request->user()->companyWhereAdmin)) {
+                return [
+                    MenuSection::make('Communication', [
+                        MenuItem::resource(Ticket::class),
+                        MenuItem::resource(PushNotification::class),
+                    ])->icon('user')->collapsable(),
+                    MenuSection::make('Calendar', [
+                        MenuItem::resource(Calendar::class),
+                        MenuItem::resource(CalendarItem::class),
+                        MenuItem::resource(Zone::class),
+                        MenuItem::resource(UserType::class),
+                    ])->icon('calendar')->collapsable(),
+                    MenuSection::make('trash', [
+                        MenuItem::resource(TrashType::class),
+                        MenuItem::resource(Waste::class),
+                        MenuItem::resource(WasteCollectionCenter::class),
+                    ])->icon('trash')->collapsable(),
+                ];
+            } else return $menu;
+        });
         Nova::userMenu(function (Request $request, Menu $menu) {
 
             if (!empty($request->user()->companyWhereAdmin)) {
