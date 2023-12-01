@@ -163,9 +163,9 @@ return [
     |
     */
 
-    // 'brand' => [
-    //     'logo' => realpath(__DIR__.'/../public/img/example-logo.svg'),
-
+    'brand' => [
+        'logo' => realpath(__DIR__ . '/../public/img/portAPPorta.svg'),
+    ],
     //     'colors' => [
     //         "400" => "24, 182, 155, 0.5",
     //         "500" => "24, 182, 155",
