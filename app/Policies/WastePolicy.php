@@ -45,7 +45,7 @@ class WastePolicy
      */
     public function create(User $user)
     {
-        return !$user->hasRole('contributor');
+        return $user->hasRole('company_admin');
     }
 
     /**
