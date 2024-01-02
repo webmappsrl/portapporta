@@ -126,7 +126,7 @@ class CalendarController extends Controller
                 ->whereDate('stop_date', '>=', $stop_date)
                 ->get();
             if (is_null($calendars) || count($calendars) === 0) {
-                break;
+                continue;
             }
             $diff_in_date_from_start_stop = CarbonPeriod::create($start_date, $stop_date)->toArray(); // tutti i giorni dallo start allo stop
             Log::info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
