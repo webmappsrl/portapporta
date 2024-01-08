@@ -52,7 +52,8 @@ Route::prefix('c')->name('company.')->group(function () {
     })->name('waste_collection_centers.geojson');
     Route::get('/{id}/company_page', function ($id) {
         $company = Company::findOrFail($id);
-        return $company->company_page;
+        return response($company->company_page, 200)
+            ->header('Content-Type', 'text/plain');
     });
 });
 
