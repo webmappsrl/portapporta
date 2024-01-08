@@ -17,7 +17,6 @@ use App\Http\Resources\ZoneConfiniResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -51,6 +50,10 @@ Route::prefix('c')->name('company.')->group(function () {
     Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
         return new CentriRaccoltaResource(Company::findOrFail($id));
     })->name('waste_collection_centers.geojson');
+    Route::get('/{id}/company_page', function ($id) {
+        $company = Company::findOrFail($id);
+        return $company->company_page;
+    });
 });
 
 // AUTH
