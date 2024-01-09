@@ -163,9 +163,18 @@ class CalendarController extends Controller
                             $p['start_time'] = str_replace('0:00', '0', $item->start_time);
                             $p['stop_time'] = str_replace('0:00', '0', $item->stop_time);
                             if ($item->frequency == 'biweekly') {
-                                $p['base_date'] = $item->base_date;
+                                $baseDate = Carbon::parse($item->base_date);
+                                $diffInWeeks = $baseDate->diffInWeeks($currentDay);
+
+                                // Aggiungi solo se la differenza in settimane è un multiplo di 2
+                                if ($diffInWeeks % 2 == 0) {
+                                    $p['base_date'] = $item->base_date;
+                                    $data[$currentDay->format('Y-m-d')][] = $p;
+                                }
+                            } else {
+                                // Codice per la frequenza non bi-settimanale
+                                $data[$currentDay->format('Y-m-d')][] = $p;
                             }
-                            $data[$currentDay->format('Y-m-d')][] = $p;
                         }
                     } else {
                         Log::info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
