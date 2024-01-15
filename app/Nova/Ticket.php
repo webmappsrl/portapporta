@@ -99,7 +99,7 @@ class Ticket extends Resource
             return $this->user->email;
         })->onlyOnDetail()->readonly();
         $fields[] = Text::make('Phone', function () {
-            return $this->user->phone;
+            return $this->phone;
         })->onlyOnDetail()->readonly();
     }
 
