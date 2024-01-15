@@ -98,6 +98,9 @@ class Ticket extends Resource
         $fields[] = Text::make('User Email', function () {
             return $this->user->email;
         })->onlyOnDetail()->readonly();
+        $fields[] = Text::make('Phone', function () {
+            return $this->user->phone;
+        })->onlyOnDetail()->readonly();
     }
 
     private function _reportFields(&$fields)
