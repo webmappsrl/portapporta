@@ -10,6 +10,7 @@ use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
 use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Illuminate\Support\Facades\Auth;
 
 class TicketAnswerViaMail extends Action
 {
@@ -30,9 +31,10 @@ class TicketAnswerViaMail extends Action
         foreach ($models as $ticket) {
 
             $user = $ticket->user;
+            $loggedUser = Auth::user();
 
             try {
-                \Mail::to($user->email)->send(new \App\Mail\TicketAnswer($ticket, $fields->answer));
+                \Mail::to($user->email)->cc($loggedUser->email)->send(new \App\Mail\TicketAnswer($ticket, $fields->answer));
                 $ticket->is_read = true;
             } catch (\Exception $e) {
 
