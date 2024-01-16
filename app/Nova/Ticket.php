@@ -90,17 +90,19 @@ class Ticket extends Resource
 
     private function _headerFields(&$fields)
     {
-        // $fields[] = ID::make()->sortable();
         $fields[] = Text::make('Ticket Type', 'ticket_type')->sortable()->readonly();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
-        $fields[] = BelongsTo::make('User')->readonly();
-        $fields[] = Boolean::make('Read', 'is_read')->sortable()->filterable();
-        $fields[] = Text::make('User Email', function () {
+        $fields[] = Text::make('Ticket ID', 'id')->readonly();
+        $fields[] = Text::make('Name', function () {
+            return $this->checkName($this->user->name);
+        })->readonly()->onlyOnDetail();
+        $fields[] = Text::make('Email', function () {
             return $this->user->email;
-        })->onlyOnDetail()->readonly();
+        })->readonly();
         $fields[] = Text::make('Phone', function () {
             return $this->phone;
         })->onlyOnDetail()->readonly();
+        $fields[] = Boolean::make('Read', 'is_read')->sortable()->filterable()->onlyOnIndex();
     }
 
     private function _reportFields(&$fields)
@@ -110,11 +112,18 @@ class Ticket extends Resource
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
         })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('zone', function () {
+        $fields[] = Text::make('Zone', function () {
             return $this->address->zone->label;
         })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('user address', function () {
+        $fields[] = Text::make('Address', function () {
             return $this->address->address;
+        })->onlyOnDetail()->readonly();
+        $fields[] = Text::make('Coordinate', function () {
+            $loc = $this->address->location;
+            $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+            $x = $g->coordinates[0];
+            $y = $g->coordinates[1];
+            return "lat:$y lon:$x";
         })->onlyOnDetail()->readonly();
         $fields[] = MapPoint::make('Location', 'location', function () {
             return $this->address->location;
@@ -137,6 +146,13 @@ class Ticket extends Resource
         $fields[] = Text::make('address', function () {
             return $this->location_address;
         })->onlyOnDetail()->readonly();
+        $fields[] = Text::make('Coordinate', function () {
+            $loc = $this->geometry;
+            $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+            $x = $g->coordinates[0];
+            $y = $g->coordinates[1];
+            return "lat:$y lon:$x";
+        })->onlyOnDetail()->readonly();
         $fields[] = MapPoint::make('Location', 'location', function () {
             return $this->geometry;
         })->withMeta([
@@ -152,6 +168,13 @@ class Ticket extends Resource
     {
         $fields[] = Text::make('address', function () {
             return $this->location_address;
+        })->onlyOnDetail()->readonly();
+        $fields[] = Text::make('Coordinate', function () {
+            $loc = $this->geometry;
+            $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+            $x = $g->coordinates[0];
+            $y = $g->coordinates[1];
+            return "lat:$y lon:$x";
         })->onlyOnDetail()->readonly();
         $fields[] = MapPoint::make('Location', 'location', function () {
             return $this->geometry;
@@ -240,5 +263,17 @@ class Ticket extends Resource
                 }),
 
         ];
+    }
+
+
+    private function checkName($string)
+    {
+        if (filter_var($string, FILTER_VALIDATE_EMAIL)) {
+            // Se la stringa è un indirizzo email valido, restituisci una stringa vuota
+            return '';
+        } else {
+            // Altrimenti, restituisci la stringa originale
+            return $string;
+        }
     }
 }
