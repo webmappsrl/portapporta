@@ -166,9 +166,18 @@ class AddressController extends Controller
                 if (isset($request->user_type_id)) {
                     $address->user_type_id = $request->user_type_id;
                 }
+                if (isset($request->house_number)) {
+                    $address->house_number = $request->house_number;
+                }
+                if (isset($request->city)) {
+                    $address->city = $request->city;
+                }
+                if (isset($request->zone_id)) {
+                    $address->zone_id = $request->zone_id;
+                }
                 $address->save();
                 $success['address'] =  $address;
-                return $this->sendResponse($success, 'address correctly deleted');
+                return $this->sendResponse($success, 'address correctly updated');
             } else {
                 throw ValidationException::withMessages([
                     'wrong' => ['address is not propery of this user']

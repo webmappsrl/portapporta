@@ -43,6 +43,8 @@ class RegisterController extends Controller
                 'zone_id' => $request->zone_id,
                 'user_type_id' => $request->user_type_id,
                 'address' => $request->address,
+                'city' => $request->city,
+                'house_number' => $request->house_number,
                 'location' => $this->getGeometryFromLocation($request->location),
             ]);
         } catch (\Exception $e) {

@@ -85,6 +85,9 @@ class TicketController extends Controller
         if ($request->exists('image')) {
             $ticket->image = $request->image;
         }
+        if ($request->exists('address_id')) {
+            $ticket->address_id = $request->address_id;
+        }
         if ($request->exists('location')) {
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[1]} {$request->location[0]})') as g;")))[0]->g;
 

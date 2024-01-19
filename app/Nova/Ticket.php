@@ -103,6 +103,49 @@ class Ticket extends Resource
             return $this->phone;
         })->onlyOnDetail()->readonly();
         $fields[] = Boolean::make('Read', 'is_read')->sortable()->filterable()->onlyOnIndex();
+        if (isset($this->address)) {
+            $fields[] = Text::make('Zone', function () {
+                return $this->address->zone->label;
+            })->onlyOnDetail()->readonly();
+            $fields[] = Text::make('Address', function () {
+                return $this->address->address;
+            })->onlyOnDetail()->readonly();
+            $fields[] = Text::make('House Number', function () {
+                return $this->address->house_number;
+            })->onlyOnDetail()->readonly();
+            $fields[] = Text::make('Coordinate', function () {
+                $loc = $this->address->location;
+                $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+                $x = $g->coordinates[0];
+                $y = $g->coordinates[1];
+                return "lat:$y lon:$x";
+            })->onlyOnDetail()->readonly();
+            $fields[] = MapPoint::make('Location', 'location', function () {
+                return $this->address->location;
+            })->withMeta([
+                'defaultZoom' => 13
+            ])->onlyOnDetail()->readonly();
+        } else {
+            if (isset($this->location_address) && !empty($this->location_address)) {
+                $fields[] = Text::make('Address', function () {
+                    return $this->location_address;
+                })->onlyOnDetail()->readonly();
+            }
+            if (isset($this->geometry)) {
+                $fields[] = Text::make('Coordinate', function () {
+                    $loc = $this->geometry;
+                    $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+                    $x = $g->coordinates[0];
+                    $y = $g->coordinates[1];
+                    return "lat:$y lon:$x";
+                })->onlyOnDetail()->readonly();
+                $fields[] = MapPoint::make('Location', 'location', function () {
+                    return $this->geometry;
+                })->withMeta([
+                    'defaultZoom' => 13
+                ])->onlyOnDetail()->readonly();
+            }
+        }
     }
 
     private function _reportFields(&$fields)
@@ -112,24 +155,6 @@ class Ticket extends Resource
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
         })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('Zone', function () {
-            return $this->address->zone->label;
-        })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('Address', function () {
-            return $this->address->address;
-        })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('Coordinate', function () {
-            $loc = $this->address->location;
-            $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
-            $x = $g->coordinates[0];
-            $y = $g->coordinates[1];
-            return "lat:$y lon:$x";
-        })->onlyOnDetail()->readonly();
-        $fields[] = MapPoint::make('Location', 'location', function () {
-            return $this->address->location;
-        })->withMeta([
-            'defaultZoom' => 13
-        ])->onlyOnDetail()->readonly();
         $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make('Image', 'image', function () {
             return '<img src="' . $this->image . '" />';
@@ -143,21 +168,6 @@ class Ticket extends Resource
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
         })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('address', function () {
-            return $this->location_address;
-        })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('Coordinate', function () {
-            $loc = $this->geometry;
-            $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
-            $x = $g->coordinates[0];
-            $y = $g->coordinates[1];
-            return "lat:$y lon:$x";
-        })->onlyOnDetail()->readonly();
-        $fields[] = MapPoint::make('Location', 'location', function () {
-            return $this->geometry;
-        })->withMeta([
-            'defaultZoom' => 13
-        ])->onlyOnDetail()->readonly();
         $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make('Image', 'image', function () {
             return '<img src="' . $this->image . '" />';
@@ -166,21 +176,6 @@ class Ticket extends Resource
 
     private function _abandonmentFields(&$fields)
     {
-        $fields[] = Text::make('address', function () {
-            return $this->location_address;
-        })->onlyOnDetail()->readonly();
-        $fields[] = Text::make('Coordinate', function () {
-            $loc = $this->geometry;
-            $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
-            $x = $g->coordinates[0];
-            $y = $g->coordinates[1];
-            return "lat:$y lon:$x";
-        })->onlyOnDetail()->readonly();
-        $fields[] = MapPoint::make('Location', 'location', function () {
-            return $this->geometry;
-        })->withMeta([
-            'defaultZoom' => 13
-        ])->onlyOnDetail()->readonly();
         $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make('Image', 'image', function () {
             return '<img src="' . $this->image . '" />';
