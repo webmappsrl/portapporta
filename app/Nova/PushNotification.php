@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Auth;
 
 class PushNotification extends Resource
 {
-
     public static function label()
     {
         return __('Push notifications');
@@ -62,7 +61,7 @@ class PushNotification extends Resource
             Date::make(__('created_at'), 'created_at')->hideWhenUpdating()->hideWhenCreating()->sortable(),
             Text::make(__('title')),
             Textarea::make(__('message'))->maxlength(178)->enforceMaxlength(),
-            DateTime::make(__('Schedule date'), 'schedule_date')->help('leave blank for instant scheduling')->sortable(),
+            DateTime::make(__('Schedule date'), 'schedule_date')->help(__('leave blank for instant scheduling'))->sortable(),
             Boolean::make(__('Status'), 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
             MultiSelect::make(__('Zone'), 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
         ];

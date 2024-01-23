@@ -67,8 +67,8 @@ class NewUsersValueMetric extends Value
     public function name()
     {
         if (auth()->user()->hasRole('super_admin')) {
-            return 'Users';
+            return __('Users');
         }
-        return 'Users for ' . auth()->user()->companyWhereAdmin->name;
+        return __('Users for ') . auth()->user()->companyWhereAdmin->name;
     }
 }

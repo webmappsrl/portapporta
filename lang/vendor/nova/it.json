@@ -69,9 +69,9 @@
     "This file field is read-only.": "This file field is read-only.",
     "No additional information...": "No additional information...",
     "ID": "ID",
-    "30 Days": "30 Days",
-    "60 Days": "60 Days",
-    "90 Days": "90 Days",
+    "30 Days": "30 Giorni",
+    "60 Days": "60 Giorni",
+    "90 Days": "90 Giorni",
     "Today": "Today",
     "Month To Date": "Month To Date",
     "Quarter To Date": "Quarter To Date",
@@ -572,5 +572,13 @@
     "by ticket type":"per tipo di segnalazione",
     "by ticket zone":"per zona di segnalazione",
     "by calendar":"per calendario",
-    "Trash types filter": "per Tipi di rifiuto"
+    "Trash types filter": "per Tipi di rifiuto",
+    "Mark as not read": "Segna come non letto",
+    "Answer via email": "Rispondi via email",
+    "Mark as read": "Segna come letto",
+    "Users for ": "Utenti per ",
+    "Tickets for ": "Segnalazioni per ",
+    "Tickets": "Segnalazioni",
+    "Tickets per type": "Segnalazioni per tipo",
+    "leave blank for instant scheduling": "lascia vuoto per invio immediato"
 }

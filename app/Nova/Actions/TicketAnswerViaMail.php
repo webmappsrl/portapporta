@@ -14,9 +14,18 @@ use Illuminate\Support\Facades\Auth;
 
 class TicketAnswerViaMail extends Action
 {
-    use InteractsWithQueue, Queueable;
+    use InteractsWithQueue;
+    use Queueable;
 
-    public $name = 'Answer via email';
+    /**
+     * Get the displayable name of the action.
+     *
+     * @return string
+     */
+    public function name()
+    {
+        return __('Answer via email');
+    }
 
     /**
      * Perform the action on the given models.

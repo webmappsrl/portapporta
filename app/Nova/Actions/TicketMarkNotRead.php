@@ -12,9 +12,19 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class TicketMarkNotRead extends Action
 {
-    use InteractsWithQueue, Queueable;
+    use InteractsWithQueue;
+    use Queueable;
 
-    public $name = 'Mark as not read';
+    /**
+     * Get the displayable name of the action.
+     *
+     * @return string
+     */
+    public function name()
+    {
+        return __('Mark as not read');
+    }
+
     /**
      * Perform the action on the given models.
      *
@@ -25,10 +35,11 @@ class TicketMarkNotRead extends Action
     public function handle(ActionFields $fields, Collection $models)
     {
         foreach ($models as $model) {
-            if ($model->is_read)
+            if ($model->is_read) {
                 $model->update([
                     'is_read' => false
                 ]);
+            }
         }
 
         return Action::message('Ticket(s) marked as not read!');

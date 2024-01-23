@@ -67,4 +67,9 @@ class TicketsPerType extends Partition
     {
         return 'tickets-per-type';
     }
+
+    public function name()
+    {
+        return __('Tickets per type');
+    }
 }

@@ -12,9 +12,18 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class TicketMarkAsReadAction extends Action
 {
-    use InteractsWithQueue, Queueable;
+    use InteractsWithQueue;
+    use Queueable;
 
-    public $name = 'Mark as read';
+    /**
+     * Get the displayable name of the action.
+     *
+     * @return string
+     */
+    public function name()
+    {
+        return __('Mark as read');
+    }
 
     /**
      * Perform the action on the given models.
@@ -27,10 +36,11 @@ class TicketMarkAsReadAction extends Action
     {
 
         foreach ($models as $model) {
-            if ($model->is_read == false && auth()->user()->hasRole('company_admin'))
+            if ($model->is_read == false && auth()->user()->hasRole('company_admin')) {
                 $model->update([
                     'is_read' => true
                 ]);
+            }
         }
 
         return Action::message('Ticket(s) marked as read!');

@@ -17,6 +17,7 @@ class Zone extends Resource
     {
         return __('Zones');
     }
+
     public static function createButtonLabel()
     {
         return __('Create Zone');
