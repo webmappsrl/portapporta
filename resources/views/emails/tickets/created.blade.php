@@ -1,12 +1,12 @@
 @php
-    $site_url = request()->getHost();
-    if ($ticket->geometry) {
-        $g = json_decode(DB::select("SELECT st_asgeojson('{$ticket->geometry}') as g")[0]->g);
-    }
-    $trash_type = '';
-    if ($ticket->trashType) {
-        $trash_type = $ticket->trashType->name;
-    }
+$site_url = request()->getHost();
+if ($ticket->geometry) {
+$g = json_decode(DB::select("SELECT st_asgeojson('{$ticket->geometry}') as g")[0]->g);
+}
+$trash_type = '';
+if ($ticket->trashType) {
+$trash_type = $ticket->trashType->name;
+}
 @endphp
 <div>
     Data segnalazione: {{ $ticket->created_at }}<br>
@@ -20,5 +20,5 @@
     @endisset
     Telefono: {{ $ticket->phone }}<br>
     Note: {{ $ticket->note }}<br>
-    Link al Ticket: {{$site_url . '/resources/tickets/' . $ticket->id}}
+    Link al Ticket: <a href="https://{{$site_url . '/resources/tickets/' . $ticket->id}}">https://{{$site_url . '/resources/tickets/' . $ticket->id}}</a>
 </div>
