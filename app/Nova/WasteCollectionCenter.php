@@ -64,10 +64,10 @@ class WasteCollectionCenter extends Resource
         // $geojson = '{"type" : "FeatureCollection", "features" : [{"type": "Feature", "geometry": '.$geom.'}]}';
         return [
             ID::make()->sortable(),
-            Color::make('Marker Color', 'marker_color')->hideFromIndex(),
-            Text::make('Marker Size', 'marker_size')->hideFromIndex(),
-            Text::make('Website', 'website')->hideFromIndex(),
-            MapPoint::make('Geometry', 'geometry')->withMeta([
+            Color::make(__('Marker Color'), 'marker_color')->hideFromIndex(),
+            Text::make(__('Marker Size'), 'marker_size')->hideFromIndex(),
+            Text::make(__('Website'), 'website')->hideFromIndex(),
+            MapPoint::make(__('Geometry'), 'geometry')->withMeta([
                 'center' => ["43", "10"],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
                 'tiles' => 'https://api.webmapp.it/tiles/{z}/{x}/{y}.png',
@@ -77,7 +77,7 @@ class WasteCollectionCenter extends Resource
             ]),
             // Text::make('picture_url')->hideFromIndex(),
 
-            Text::make('Position', function () {
+            Text::make(__('Position'), 'Position', function () {
                 if (!is_null($this->geometry)) {
                     $coord = $this->position();
                     $lon = $coord[0];
@@ -88,9 +88,9 @@ class WasteCollectionCenter extends Resource
             })->asHtml()->hideFromIndex(),
 
             NovaTabTranslatable::make([
-                Text::make('name')->sortable(),
-                Textarea::make('description'),
-                Textarea::make('orario')
+                Text::make(__('name'), 'name')->sortable(),
+                Textarea::make(__('description'), 'description'),
+                Textarea::make(__('orario'), 'orario')
             ]),
         ];
     }

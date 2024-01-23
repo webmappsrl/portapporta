@@ -20,6 +20,17 @@ use App\Nova\Actions\CalendarItemAdvancedReplicateAction;
 
 class CalendarItem extends Resource
 {
+
+
+    public static function label()
+    {
+        return __('Calendar Items');
+    }
+    public static function createButtonLabel()
+    {
+        return __('Create Calendar Items');
+    }
+
     /**
      * The model the resource corresponds to.
      *
@@ -69,8 +80,8 @@ class CalendarItem extends Resource
     {
         return [
             ID::make()->sortable(),
-            BelongsTo::make('Calendar'),
-            Text::make('Trash Types', function () {
+            BelongsTo::make(__('Calendar'), 'Calendar', Calendar::class),
+            Text::make(__('Trash Types'), 'Trash Types', function () {
                 if ($this->trashTypes->count() > 0) {
                     $out = "<ul>\n";
                     foreach ($this->trashTypes as $item) {
@@ -81,30 +92,30 @@ class CalendarItem extends Resource
                 }
                 return 'ND';
             })->asHtml(),
-            Select::make('Day of Week', 'day_of_week')->options([
-                0 => 'Sun',
-                1 => 'Mon',
-                2 => 'Tue',
-                3 => 'Wed',
-                4 => 'Thu',
-                5 => 'Fry',
-                6 => 'Sat',
+            Select::make(__('Day of Week'), 'day_of_week')->options([
+                0 => __('Sun'),
+                1 => __('Mon'),
+                2 => __('Tue'),
+                3 => __('Wed'),
+                4 => __('Thu'),
+                5 => __('Fry'),
+                6 => __('Sat'),
             ])->displayUsingLabels()
                 ->required(),
-            Select::make('Frequency', 'frequency')->options([
+            Select::make(__('Frequency'), 'frequency')->options([
                 'weekly' => 'weekly',
                 'biweekly' => 'biweekly',
             ])
                 ->required(),
-            Date::make('Base Date', 'base_date')
+            Date::make(__('Base Date'), 'base_date')
                 ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
                 ->hideFromIndex(),
-            Text::make('Start Time', 'start_time')
+            Text::make(__('Start Date'), 'start_time')
                 ->help('Supported format: HH:MM:SS'),
-            Text::make('Stop Time', 'stop_time')
+            Text::make(__('Stop Date'), 'stop_time')
                 ->help('Supported format: HH:MM:SS'),
 
-            BelongsToMany::make('Trash Types', 'TrashTypes'),
+            BelongsToMany::make(__('Trash Types'), 'TrashTypes', TrashType::class),
         ];
     }
 

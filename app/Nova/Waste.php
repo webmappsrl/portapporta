@@ -22,6 +22,12 @@ use Laravel\Nova\Query\Search\SearchableRelation;
 
 class Waste extends Resource
 {
+
+    public static function label()
+    {
+        return __('Wastes');
+    }
+
     /**
      * The model the resource corresponds to.
      *
@@ -63,14 +69,14 @@ class Waste extends Resource
         $selectedTrashTypeId = $this->model()->trash_type_id;
         return [
             ID::make()->sortable(),
-            Boolean::make('PAP', 'pap'),
-            Boolean::make('Delivery', 'delivery'),
-            Boolean::make('Collection Center', 'collection_center'),
-            BelongsTo::make('Trash Type', 'trashType'),
+            Boolean::make(__('PAP'), 'pap'),
+            Boolean::make(__('Delivery'), 'delivery'), //TODO: Prenotabile ritiro ingombrante da app aggiungere helper
+            Boolean::make(__('Collection Center'), 'collection_center'),
+            BelongsTo::make(__('Trash Type'), 'trashType', TrashType::class),
             NovaTabTranslatable::make([
-                Text::make('name')->sortable(),
-                Textarea::make('where'),
-                Textarea::make('notes')
+                Text::make(__('name'), 'name')->sortable(),
+                Textarea::make(__('where'), 'where'),
+                Textarea::make(__('notes'), 'notes')
             ]),
         ];
     }

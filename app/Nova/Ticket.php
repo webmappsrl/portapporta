@@ -4,15 +4,11 @@ namespace App\Nova;
 
 use App\Models\TrashType;
 use Wm\MapPoint\MapPoint;
-use Laravel\Nova\Fields\ID;
-use Illuminate\Http\Request;
-use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Textarea;
 use Illuminate\Support\Facades\DB;
-use Laravel\Nova\Fields\BelongsTo;
 use App\Nova\Actions\TicketMarkNotRead;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use App\Nova\Actions\TicketMarkAsReadAction;
@@ -33,7 +29,10 @@ class Ticket extends Resource
      * @var string
      */
     public static $title = 'id';
-
+    public static function label()
+    {
+        return __('Ticket');
+    }
     /**
      * Get the searchable columns for the resource.
      *
@@ -90,56 +89,61 @@ class Ticket extends Resource
 
     private function _headerFields(&$fields)
     {
-        $fields[] = Text::make('Ticket Type', 'ticket_type')->sortable()->readonly();
+        $fields[] = Text::make(__('Ticket Type'), 'ticket_type', function ($res) {
+            // Controlla se esiste una traduzione per il valore di $res
+            $translated = __($this->ticket_type);
+            // Se la traduzione è diversa dalla chiave originale, usa quella tradotta
+            return $translated;
+        })->sortable()->readonly();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = Text::make('Ticket ID', 'id')->readonly();
-        $fields[] = Text::make('Name', function () {
+        $fields[] = Text::make(__('Name'), function () {
             return $this->checkName($this->user->name);
         })->readonly()->onlyOnDetail();
         $fields[] = Text::make('Email', function () {
             return $this->user->email;
         })->readonly();
-        $fields[] = Text::make('Phone', function () {
+        $fields[] = Text::make(__('Phone'), function () {
             return $this->phone;
         })->onlyOnDetail()->readonly();
-        $fields[] = Boolean::make('Read', 'is_read')->sortable()->filterable()->onlyOnIndex();
+        $fields[] = Boolean::make(__('Read'), 'is_read')->sortable()->filterable()->onlyOnIndex();
         if (isset($this->address)) {
-            $fields[] = Text::make('Zone', function () {
+            $fields[] = Text::make(__('Zone'), function () {
                 return $this->address->zone->label;
             })->onlyOnDetail()->readonly();
-            $fields[] = Text::make('Address', function () {
+            $fields[] = Text::make(__('Address'), function () {
                 return $this->address->address;
             })->onlyOnDetail()->readonly();
-            $fields[] = Text::make('House Number', function () {
+            $fields[] = Text::make(__('House Number'), function () {
                 return $this->address->house_number;
             })->onlyOnDetail()->readonly();
-            $fields[] = Text::make('Coordinate', function () {
+            $fields[] = Text::make(__('Coordinate'), function () {
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                 $x = $g->coordinates[0];
                 $y = $g->coordinates[1];
                 return "lat:$y lon:$x";
             })->onlyOnDetail()->readonly();
-            $fields[] = MapPoint::make('Location', 'location', function () {
+            $fields[] = MapPoint::make(__('Location'), 'location', function () {
                 return $this->address->location;
             })->withMeta([
                 'defaultZoom' => 13
             ])->onlyOnDetail()->readonly();
         } else {
             if (isset($this->location_address) && !empty($this->location_address)) {
-                $fields[] = Text::make('Address', function () {
+                $fields[] = Text::make(__('Address'), function () {
                     return $this->location_address;
                 })->onlyOnDetail()->readonly();
             }
             if (isset($this->geometry)) {
-                $fields[] = Text::make('Coordinate', function () {
+                $fields[] = Text::make(__('Coordinate'), function () {
                     $loc = $this->geometry;
                     $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                     $x = $g->coordinates[0];
                     $y = $g->coordinates[1];
                     return "lat:$y lon:$x";
                 })->onlyOnDetail()->readonly();
-                $fields[] = MapPoint::make('Location', 'location', function () {
+                $fields[] = MapPoint::make(__('Location'), 'location', function () {
                     return $this->geometry;
                 })->withMeta([
                     'defaultZoom' => 13
@@ -150,13 +154,13 @@ class Ticket extends Resource
 
     private function _reportFields(&$fields)
     {
-        $fields[] = Text::make('Report date', 'missed_withdraw_date')->onlyOnDetail()->readonly();
-        $fields[] = Text::make('Trash Type', 'trash_type', function () { // TODO: use belongsTo
+        $fields[] = Text::make(__('Report date'), 'missed_withdraw_date')->onlyOnDetail()->readonly();
+        $fields[] = Text::make(__('Trash Type'), 'trash_type', function () { // TODO: use belongsTo
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
         })->onlyOnDetail()->readonly();
-        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
-        $fields[] = Text::make('Image', 'image', function () {
+        $fields[] = Textarea::make(__('Note'), 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Text::make(__('Image'), 'image', function () {
             return '<img src="' . $this->image . '" />';
         })->asHtml()->onlyOnDetail()->readonly();
         return $fields;
@@ -164,27 +168,27 @@ class Ticket extends Resource
 
     private function _reservationFields(&$fields)
     {
-        $fields[] = Text::make('Trash Type', 'trash_type', function () {
+        $fields[] = Text::make(__('Trash Type'), 'trash_type', function () {
             $trashType = TrashType::find($this->trash_type_id);
             return $trashType->name;
         })->onlyOnDetail()->readonly();
-        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
-        $fields[] = Text::make('Image', 'image', function () {
+        $fields[] = Textarea::make(__('Note'), 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Text::make(__('Image'), 'image', function () {
             return '<img src="' . $this->image . '" />';
         })->asHtml()->onlyOnDetail()->readonly();
     }
 
     private function _abandonmentFields(&$fields)
     {
-        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail();
-        $fields[] = Text::make('Image', 'image', function () {
+        $fields[] = Textarea::make(__('Note'), 'note')->alwaysShow()->onlyOnDetail();
+        $fields[] = Text::make(__('Image'), 'image', function () {
             return '<img src="' . $this->image . '" />';
         })->asHtml()->onlyOnDetail()->readonly();
     }
 
     private function _infoFields(&$fields)
     {
-        $fields[] = Textarea::make('Note', 'note')->alwaysShow()->onlyOnDetail()->readonly();
+        $fields[] = Textarea::make(__('Note'), 'note')->alwaysShow()->onlyOnDetail()->readonly();
     }
 
     /**

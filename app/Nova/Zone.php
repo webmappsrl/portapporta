@@ -13,6 +13,15 @@ use Wm\MapMultiPolygon\MapMultiPolygon;
 
 class Zone extends Resource
 {
+    public static function label()
+    {
+        return __('Zones');
+    }
+    public static function createButtonLabel()
+    {
+        return __('Create Zone');
+    }
+
     /**
      * The model the resource corresponds to.
      *
@@ -48,7 +57,7 @@ class Zone extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Label', 'label')
+            Text::make(__('Label'), 'label')
                 ->displayUsing(function ($label) {
                     $wrappedLabel = wordwrap($label, 75, "\n", true);
                     $htmlLabel = str_replace("\n", '<br>', $wrappedLabel);
@@ -62,7 +71,7 @@ class Zone extends Resource
                     return 'Website';
                 })
                 ->help('Url must start with http:// or https://'),
-            MapMultiPolygon::make('Geometry', 'geometry')->withMeta([
+            MapMultiPolygon::make(__('Geometry'), 'geometry')->withMeta([
                 'center' => ['42.795977075', '10.326813853'],
                 'attribution' => '<a href="https://webmapp.it/">Webmapp</a> contributors',
             ]),

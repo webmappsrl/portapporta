@@ -10,6 +10,13 @@ use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 
 class UserType extends Resource
 {
+
+
+    public static function label()
+    {
+        return __('userType');
+    }
+
     /**
      * The model the resource corresponds to.
      *

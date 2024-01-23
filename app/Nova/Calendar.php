@@ -27,6 +27,15 @@ class Calendar extends Resource
      */
     public static $title = 'name';
 
+    public static function label()
+    {
+        return __('Calendars');
+    }
+    public static function createButtonLabel()
+    {
+        return __('Create calendar');
+    }
+
     /**
      * Get the searchable columns for the resource.
      *
@@ -64,7 +73,7 @@ class Calendar extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('name')
+            Text::make(__('name'), 'name')
                 ->displayUsing(function ($name, $a, $b) {
                     $wrappedName = wordwrap($name, 50, "\n", true);
                     $htmlName = str_replace("\n", '<br>', $wrappedName);
@@ -72,10 +81,10 @@ class Calendar extends Resource
                 })
                 ->asHtml()
                 ->required(),
-            BelongsTo::make('zone'),
-            BelongsTo::make('userType'),
-            Date::make('Start Date', 'start_date'),
-            Date::make('Stop Date', 'stop_date'),
+            BelongsTo::make(__('zone'), 'zone', Zone::class),
+            BelongsTo::make(__('userType'), 'userType', userType::class),
+            Date::make(__('Start Date'), 'start_date'),
+            Date::make(__('Stop Date'), 'stop_date'),
             HasMany::make('Calendar Items', 'CalendarItems'),
         ];
     }

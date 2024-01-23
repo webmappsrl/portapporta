@@ -21,6 +21,7 @@ use Laravel\Nova\Menu\MenuSection;
 
 class NovaServiceProvider extends NovaApplicationServiceProvider
 {
+
     /**
      * Bootstrap any application services.
      *
@@ -32,17 +33,17 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         Nova::mainMenu(function (Request $request, Menu $menu) {
             if (!empty($request->user()->companyWhereAdmin)) {
                 return [
-                    MenuSection::make('Communication', [
+                    MenuSection::make(__('Communication'), [
                         MenuItem::resource(Ticket::class),
                         MenuItem::resource(PushNotification::class),
                     ])->icon('user')->collapsable(),
-                    MenuSection::make('Calendar', [
+                    MenuSection::make(__('Calendar'),  [
                         MenuItem::resource(Calendar::class),
                         MenuItem::resource(CalendarItem::class),
                         MenuItem::resource(Zone::class),
                         MenuItem::resource(UserType::class),
                     ])->icon('calendar')->collapsable(),
-                    MenuSection::make('trash', [
+                    MenuSection::make(__('trash'), [
                         MenuItem::resource(TrashType::class),
                         MenuItem::resource(Waste::class),
                         MenuItem::resource(WasteCollectionCenter::class),

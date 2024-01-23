@@ -49,7 +49,10 @@ class Company extends Resource
     public static $search = [
         'id',
     ];
-
+    public static function label()
+    {
+        return __('Companies');
+    }
     /**
      * Get the fields displayed by the resource.
      *
@@ -62,7 +65,7 @@ class Company extends Resource
         $iosLink = $this->ios_store_link;
         return [
             ID::make(__('ID'), 'id')->sortable(),
-            Text::make('name')
+            Text::make(__('name'), 'name')
                 ->required(),
             Text::make('Admins', function ($request) {
                 $admins = $this->companyAdmins;

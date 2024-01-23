@@ -16,6 +16,16 @@ use Illuminate\Support\Facades\Auth;
 
 class PushNotification extends Resource
 {
+
+    public static function label()
+    {
+        return __('Push notifications');
+    }
+    public static function createButtonLabel()
+    {
+        return __('Create Push notifications');
+    }
+
     /**
      * The model the resource corresponds to.
      *
@@ -49,12 +59,12 @@ class PushNotification extends Resource
     {
         return [
             ID::make()->sortable(),
-            Date::make('created_at')->hideWhenUpdating()->hideWhenCreating()->sortable(),
-            Text::make('title'),
-            Textarea::make('message')->maxlength(178)->enforceMaxlength(),
-            DateTime::make('Schedule date', 'schedule_date')->help('leave blank for instant scheduling')->sortable(),
-            Boolean::make('Status', 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
-            MultiSelect::make('Zone', 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
+            Date::make(__('created_at'), 'created_at')->hideWhenUpdating()->hideWhenCreating()->sortable(),
+            Text::make(__('title')),
+            Textarea::make(__('message'))->maxlength(178)->enforceMaxlength(),
+            DateTime::make(__('Schedule date'), 'schedule_date')->help('leave blank for instant scheduling')->sortable(),
+            Boolean::make(__('Status'), 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
+            MultiSelect::make(__('Zone'), 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
         ];
     }
     private function getZones($fields = ['label', 'id'])
