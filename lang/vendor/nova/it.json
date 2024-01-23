@@ -566,7 +566,7 @@
     "Create Calendar Items":"crea voce calendario",
     "Create Zone":"Crea Zona",
     "reservation": "(reservation)Prenotazione servizio di ritiro",
-    "info":"(info):Richiesta informazioni",
-    "abandonment": "(abandonment):Segnalazione abbandono",
-    "report":"(report):Segnalazione mancato ritiro"
+    "info":"(info)Richiesta informazioni",
+    "abandonment": "(abandonment)Segnalazione abbandono",
+    "report":"(report)Segnalazione mancato ritiro"
 }
