@@ -19,7 +19,7 @@ class TicketZoneFilter extends Filter
 
     public function name()
     {
-        return __('per zona di segnalazione');
+        return __('by ticket zone');
     }
 
     /**
