@@ -7,6 +7,11 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class WasteDeliveryFilter extends BooleanFilter
 {
+
+    public function name()
+    {
+        return __('Delivery');
+    }
     /**
      * Apply the filter to the given query.
      *
@@ -17,8 +22,8 @@ class WasteDeliveryFilter extends BooleanFilter
      */
     public function apply(NovaRequest $request, $query, $value)
     {
-        if($value['delivery']) {
-            return $query->where('delivery',$value['delivery']);
+        if ($value['delivery']) {
+            return $query->where('delivery', $value['delivery']);
         }
         return $query;
     }

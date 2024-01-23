@@ -15,6 +15,13 @@ class CalendarItemsCalendarFilter extends Filter
      */
     public $component = 'select-filter';
 
+
+    public function name()
+    {
+        return __('by calendar');
+    }
+
+
     /**
      * Apply the filter to the given query.
      *

@@ -17,6 +17,11 @@ class TicketZoneFilter extends Filter
      */
     public $component = 'select-filter';
 
+    public function name()
+    {
+        return __('per zona di segnalazione');
+    }
+
     /**
      * Apply the filter to the given query.
      *

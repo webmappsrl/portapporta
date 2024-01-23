@@ -7,6 +7,13 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class WastePap extends BooleanFilter
 {
+
+    public function name()
+    {
+        return __('PAP');
+    }
+
+
     /**
      * Apply the filter to the given query.
      *
@@ -17,8 +24,8 @@ class WastePap extends BooleanFilter
      */
     public function apply(NovaRequest $request, $query, $value)
     {
-        if($value['pap']) {
-            return $query->where('pap',$value['pap']);
+        if ($value['pap']) {
+            return $query->where('pap', $value['pap']);
         }
         return $query;
     }

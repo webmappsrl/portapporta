@@ -568,5 +568,9 @@
     "reservation": "(reservation)Prenotazione servizio di ritiro",
     "info":"(info)Richiesta informazioni",
     "abandonment": "(abandonment)Segnalazione abbandono",
-    "report":"(report)Segnalazione mancato ritiro"
+    "report":"(report)Segnalazione mancato ritiro",
+    "by ticket type":"per tipo di segnalazione",
+    "by ticket zone":"per zona di segnalazione",
+    "by calendar":"per calendario",
+    "Trash types filter": "per Tipi di rifiuto"
 }

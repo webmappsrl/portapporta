@@ -15,6 +15,12 @@ class WasteTrashTypeFilter extends Filter
      */
     public $component = 'select-filter';
 
+
+    public function name()
+    {
+        return __('Trash types filter');
+    }
+
     /**
      * Apply the filter to the given query.
      *
@@ -25,7 +31,7 @@ class WasteTrashTypeFilter extends Filter
      */
     public function apply(NovaRequest $request, $query, $value)
     {
-        return $query->where('trash_type_id',$value);
+        return $query->where('trash_type_id', $value);
     }
 
     /**
@@ -36,6 +42,6 @@ class WasteTrashTypeFilter extends Filter
      */
     public function options(NovaRequest $request)
     {
-        return TrashType::get()->pluck('id','name')->toArray();
+        return TrashType::get()->pluck('id', 'name')->toArray();
     }
 }

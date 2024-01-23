@@ -7,6 +7,10 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class WasteCollectionCenterFilter extends BooleanFilter
 {
+    public function name()
+    {
+        return __('Collection Center');
+    }
     /**
      * Apply the filter to the given query.
      *
@@ -18,7 +22,7 @@ class WasteCollectionCenterFilter extends BooleanFilter
     public function apply(NovaRequest $request, $query, $value)
     {
         if ($value['collection_center']) {
-            return $query->where('collection_center',$value['collection_center']);
+            return $query->where('collection_center', $value['collection_center']);
         }
         return $query;
     }
