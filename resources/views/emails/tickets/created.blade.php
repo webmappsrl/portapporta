@@ -8,7 +8,7 @@ if ($ticket->trashType) {
     $trash_type = $ticket->trashType->name;
 }
 $user_addresses = [];
-if (!emtpry($ticket->user->addresses)){
+if (!empty($ticket->user->addresses)){
     foreach ($ticket->user->addresses as $count => $address){
         $user_addresses[$count]['geometry'] = json_decode(DB::select("SELECT st_asgeojson('{$address->geometry}') as g")[0]->g);
         $addresse_string = implode(' ', [$address->address, $address->house_number, $address->city]);
