@@ -10,9 +10,11 @@ if ($ticket->trashType) {
 $user_addresses = [];
 if (!empty($ticket->user->addresses)){
     foreach ($ticket->user->addresses as $count => $address){
-        $user_addresses[$count]['geometry'] = json_decode(DB::select("SELECT st_asgeojson('{$address->geometry}') as g")[0]->g);
-        $addresse_string = implode(' ', [$address->address, $address->house_number, $address->city]);
-        $user_addresses[$count]['address'] = $addresse_string;
+        if ($address->location) {
+            $user_addresses[$count]['geometry'] = json_decode(DB::select("SELECT st_asgeojson('{$address->location}') as g")[0]->g);
+            $addresse_string = implode(' ', [$address->address, $address->house_number, $address->city]);
+            $user_addresses[$count]['address'] = $addresse_string;
+        }
     }
 }
 $user_addresses = $ticket->user->addresses;
