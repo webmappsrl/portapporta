@@ -27,9 +27,9 @@ $user_addresses = $ticket->user->addresses;
     Codice Utente: {{ $ticket->user->user_code }}<br>
     Telefono: {{ $ticket->phone }}<br>
     @if(!empty($user_addresses))
-        <strong>{{ count($user_addresses) > 1 ? "Gli indirizzi:" : "L'indirizzo:" }} dell'utente:</strong><br>
+        <strong>{{ count($user_addresses) > 1 ? "Gli indirizzi" : "L'indirizzo" }} dell'utente:</strong><br>
         @foreach($user_addresses as $count => $address)
-            Posizione (lat,lon): {{ $address->coordinates[1] }},{{ $address->coordinates[0] }} <a href="https://www.openstreetmap.org/?mlat={{ $address->coordinates[1] }}&mlon={{ $address->coordinates[0] }}#map=15/{{ $address->coordinates[1] }}/{{ $address->coordinates[0] }}">MAPPA</a><br>
+            Posizione (lat,lon): {{ $address->geometry->coordinates[1] }},{{ $address->geometry->coordinates[0] }} <a href="https://www.openstreetmap.org/?mlat={{ $address->geometry->coordinates[1] }}&mlon={{ $address->geometry->coordinates[0] }}#map=15/{{ $address->geometry->coordinates[1] }}/{{ $address->geometry->coordinates[0] }}">MAPPA</a><br>
             Indirizzo: {{ $address->address }}<br>
         @endforeach
     @endif
