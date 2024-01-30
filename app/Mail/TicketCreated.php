@@ -42,11 +42,12 @@ class TicketCreated extends Mailable
         $company_name =  $this->company->name;
         $trash_type = $this->ticket->ticket_type;
         $trash_id = $this->ticket->id;
-        $emails = ['noreply@webmapp.it'];
+        $ticket_emails = ['noreply@webmapp.it'];
         if (!empty($this->company->ticket_email) && is_array(explode(',', $this->company->ticket_email)) && count(explode(',', $this->company->ticket_email)) > 0) {
-            $emails = explode(',', $this->company->ticket_email);
+            $ticket_emails = explode(',', $this->company->ticket_email)[0];
         }
-        return $this->from($emails, "Nuovo Ticket $company_name - ($trash_id)")
+
+        return $this->from($ticket_emails, "Nuovo Ticket $company_name - ($trash_id)")
                 ->subject("PortAPPorta - $company_name: $trash_type")
                 ->view('emails.tickets.created');
     }
