@@ -10,7 +10,8 @@ use Illuminate\Queue\SerializesModels;
 
 class TicketCreated extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * The ticket instance.
@@ -25,7 +26,7 @@ class TicketCreated extends Mailable
      *
      * @return void
      */
-    public function __construct(Ticket $ticket,$company)
+    public function __construct(Ticket $ticket, $company)
     {
         $this->ticket = $ticket;
         $this->company = $company;
@@ -40,7 +41,12 @@ class TicketCreated extends Mailable
     {
         $company_name =  $this->company->name;
         $trash_type = $this->ticket->ticket_type;
-        return $this->from('noreply@webmapp.it', "Nuovo Ticket $company_name")
+        $trash_id = $this->ticket->id;
+        $emails = ['noreply@webmapp.it'];
+        if (!empty($this->company->ticket_email) && is_array(explode(',', $this->company->ticket_email)) && count(explode(',', $this->company->ticket_email)) > 0) {
+            $emails = explode(',', $this->company->ticket_email);
+        }
+        return $this->from($emails, "Nuovo Ticket $company_name - ($trash_id)")
                 ->subject("PortAPPorta - $company_name: $trash_type")
                 ->view('emails.tickets.created');
     }

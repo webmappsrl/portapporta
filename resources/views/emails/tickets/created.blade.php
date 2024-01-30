@@ -15,7 +15,7 @@ $trash_type = $ticket->trashType->name;
     Tipo segnalazione: {{ $ticket->ticket_type }}<br>
     Tipo spazzatura: {{ $trash_type }}<br>
     @isset($g)
-    Posizione (lat,lon): {{ $g->coordinates[0] }},{{ $g->coordinates[1] }}<br>
+    Posizione (lat,lon): {{ $g->coordinates[0] }},{{ $g->coordinates[1] }} <a href="https://www.openstreetmap.org/?mlat={{ $g->coordinates[0] }}&mlon={{ $g->coordinates[1] }}#map=15/{{ $g->coordinates[0] }}/{{ $g->coordinates[1] }}">MAPPA</a><br>
     Indirizzo: {{ $ticket->location_address }}<br>
     @endisset
     Telefono: {{ $ticket->phone }}<br>
