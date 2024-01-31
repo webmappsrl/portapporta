@@ -40,15 +40,15 @@ class TicketCreated extends Mailable
     public function build()
     {
         $company_name =  $this->company->name;
-        $trash_type = $this->ticket->ticket_type;
-        $trash_id = $this->ticket->id;
-        $ticket_emails = ['noreply@webmapp.it'];
+        $ticket_type = $this->ticket->ticket_type;
+        $ticket_id = $this->ticket->id;
+        $ticket_emails = 'noreply@webmapp.it';
         if (!empty($this->company->ticket_email) && is_array(explode(',', $this->company->ticket_email)) && count(explode(',', $this->company->ticket_email)) > 0) {
             $ticket_emails = explode(',', $this->company->ticket_email)[0];
         }
-
-        return $this->from($ticket_emails, "Nuovo Ticket $company_name - ($trash_id)")
-                ->subject("PortAPPorta - $company_name: $trash_type")
+        
+        return $this->from($ticket_emails, "Ticket $company_name - ($ticket_id)")
+                ->subject("PortAPPorta - $company_name: $ticket_type")
                 ->view('emails.tickets.created');
     }
 }

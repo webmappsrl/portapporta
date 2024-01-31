@@ -3,7 +3,6 @@ $site_url = request()->getHost();
 if ($ticket->geometry) {
     $g = json_decode(DB::select("SELECT st_asgeojson('{$ticket->geometry}') as g")[0]->g);
 }
-
 $trash_type = '';
 if ($ticket->trashType) {
     $trash_type = $ticket->trashType->name;
@@ -28,6 +27,7 @@ if (!empty($ticket->user->addresses)){
     Codice Utente: {{ $ticket->user->user_code }}<br>
     Telefono: {{ $ticket->phone }}<br>
     @if(!empty($user_addresses))
+        <br>
         <strong>{{ count($user_addresses) > 1 ? "Gli indirizzi" : "L'indirizzo" }} dell'utente:</strong><br>
         @foreach($user_addresses as $count => $address)
             
@@ -35,13 +35,14 @@ if (!empty($ticket->user->addresses)){
             Indirizzo: {{ $address['address'] }}<br>
         @endforeach
     @endif
-    
     Tipo segnalazione: {{ $ticket->ticket_type }}<br>
     Tipo spazzatura: {{ $trash_type }}<br>
-    <br>
-    <strong>L'indirizzo per cui l'utente ha fatto la segnalazione:</strong><br>
-    Posizione (lat,lon): {{ $g->coordinates[1] }},{{ $g->coordinates[0] }} <a href="https://www.openstreetmap.org/?mlat={{ $g->coordinates[1] }}&mlon={{ $g->coordinates[0] }}#map=15/{{ $g->coordinates[1] }}/{{ $g->coordinates[0] }}">MAPPA</a><br>
-    Indirizzo: {{ $ticket->location_address }}<br>
+    @isset($g)
+        <br>
+        <strong>L'indirizzo per cui l'utente ha fatto la segnalazione:</strong><br>
+        Posizione (lat,lon): {{ $g->coordinates[0] }},{{ $g->coordinates[1] }} <a href="https://www.openstreetmap.org/?mlat={{ $g->coordinates[0] }}&mlon={{ $g->coordinates[1] }}#map=15/{{ $g->coordinates[0] }}/{{ $g->coordinates[1] }}">MAPPA</a><br>
+        Indirizzo: {{ $ticket->location_address }}<br>
+    @endisset
     Note: {{ $ticket->note }}<br>
     Link al Ticket: <a href="https://{{$site_url . '/resources/tickets/' . $ticket->id}}">https://{{$site_url . '/resources/tickets/' . $ticket->id}}</a>
 </div>
