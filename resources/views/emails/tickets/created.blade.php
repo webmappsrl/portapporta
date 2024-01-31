@@ -3,6 +3,7 @@ $site_url = request()->getHost();
 if ($ticket->geometry) {
     $g = json_decode(DB::select("SELECT st_asgeojson('{$ticket->geometry}') as g")[0]->g);
 }
+
 $trash_type = '';
 if ($ticket->trashType) {
     $trash_type = $ticket->trashType->name;
@@ -17,9 +18,9 @@ if (!empty($ticket->user->addresses)){
         }
     }
 }
-$user_addresses = $ticket->user->addresses;
 @endphp
 <div>
+    <h2>Segnalazione #{{ $ticket->id }}</h2>
     Data segnalazione: {{ $ticket->created_at }}<br>
     Email: {{ $ticket->user->email }}<br>
     Nome: {{ $ticket->user->name }}<br>
@@ -29,17 +30,18 @@ $user_addresses = $ticket->user->addresses;
     @if(!empty($user_addresses))
         <strong>{{ count($user_addresses) > 1 ? "Gli indirizzi" : "L'indirizzo" }} dell'utente:</strong><br>
         @foreach($user_addresses as $count => $address)
-            Posizione (lat,lon): {{ $address->geometry->coordinates[1] }},{{ $address->geometry->coordinates[0] }} <a href="https://www.openstreetmap.org/?mlat={{ $address->geometry->coordinates[1] }}&mlon={{ $address->geometry->coordinates[0] }}#map=15/{{ $address->geometry->coordinates[1] }}/{{ $address->geometry->coordinates[0] }}">MAPPA</a><br>
-            Indirizzo: {{ $address->address }}<br>
+            
+            Posizione (lat,lon): {{ $address['geometry']->coordinates[1] }},{{ $address['geometry']->coordinates[0] }} <a href="https://www.openstreetmap.org/?mlat={{ $address['geometry']->coordinates[1] }}&mlon={{ $address['geometry']->coordinates[0] }}#map=15/{{ $address['geometry']->coordinates[1] }}/{{ $address['geometry']->coordinates[0] }}">MAPPA</a><br>
+            Indirizzo: {{ $address['address'] }}<br>
         @endforeach
     @endif
+    
     Tipo segnalazione: {{ $ticket->ticket_type }}<br>
     Tipo spazzatura: {{ $trash_type }}<br>
-    @isset($ticket->user->add)
+    <br>
     <strong>L'indirizzo per cui l'utente ha fatto la segnalazione:</strong><br>
     Posizione (lat,lon): {{ $g->coordinates[1] }},{{ $g->coordinates[0] }} <a href="https://www.openstreetmap.org/?mlat={{ $g->coordinates[1] }}&mlon={{ $g->coordinates[0] }}#map=15/{{ $g->coordinates[1] }}/{{ $g->coordinates[0] }}">MAPPA</a><br>
     Indirizzo: {{ $ticket->location_address }}<br>
-    @endisset
     Note: {{ $ticket->note }}<br>
     Link al Ticket: <a href="https://{{$site_url . '/resources/tickets/' . $ticket->id}}">https://{{$site_url . '/resources/tickets/' . $ticket->id}}</a>
 </div>
