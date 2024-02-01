@@ -59,8 +59,8 @@ class PushNotification extends Resource
         return [
             ID::make()->sortable(),
             Date::make(__('created_at'), 'created_at')->hideWhenUpdating()->hideWhenCreating()->sortable(),
-            Text::make(__('title')),
-            Textarea::make(__('message'))->maxlength(178)->enforceMaxlength(),
+            Text::make(__('title'), 'title'),
+            Textarea::make(__('message'), 'message')->maxlength(178)->enforceMaxlength(),
             DateTime::make(__('Schedule date'), 'schedule_date')->help(__('leave blank for instant scheduling'))->sortable(),
             Boolean::make(__('Status'), 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
             MultiSelect::make(__('Zone'), 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
