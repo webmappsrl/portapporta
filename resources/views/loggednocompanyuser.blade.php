@@ -1,16 +1,16 @@
 @php
-    use Jenssegers\Agent\Agent;
-    use App\Models\Zone;
-    use App\Models\App;
-    use App\Models\Company;
-    $agent = new Agent();
+use Jenssegers\Agent\Agent;
+use App\Models\Zone;
+use App\Models\App;
+use App\Models\Company;
+$agent = new Agent();
 
-    $company = Company::find($user->app_company_id)->first();
-    $companyName = strtoupper($company->name);
+$company = Company::find($user->app_company_id);
+$companyName = strtoupper($company->name);
 
-    $link_apple = $company->ios_store_link;
-    $link_android = $company->android_store_link;
-    $verification_message = 'Da ora puoi accedere alla applicazione con le credenziali che hai creato durante la regisitrazione.';
+$link_apple = $company->ios_store_link;
+$link_android = $company->android_store_link;
+$verification_message = 'Da ora puoi accedere alla applicazione con le credenziali che hai creato durante la regisitrazione.';
 
 @endphp
 
@@ -106,9 +106,9 @@
         <div class="button-wrapper">
             <div class="button-container">
                 @if ($agent->is('iPhone'))
-                    <a target="_blank" class="button" href="{{ $link_apple }}">Vai alla APP</a>
+                <a target="_blank" class="button" href="{{ $link_apple }}">Vai alla APP</a>
                 @else
-                    <a target="_blank" class="button" href="{{ $link_android }}">Vai alla APP</a>
+                <a target="_blank" class="button" href="{{ $link_android }}">Vai alla APP</a>
                 @endif
             </div>
         </div>
