@@ -17,11 +17,8 @@ use App\Nova\Filters\CalendarItemsCalendarFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
 use App\Nova\Actions\CalendarItemAdvancedReplicateAction;
 
-
 class CalendarItem extends Resource
 {
-
-
     public static function label()
     {
         return __('Calendar Items');
@@ -91,7 +88,17 @@ class CalendarItem extends Resource
                     return $out;
                 }
                 return 'ND';
-            })->asHtml(),
+            })->asHtml()->onlyOnDetail(),
+            Text::make(__('Trash Types'), 'Trash Types', function () {
+                if ($this->trashTypes->count() > 0) {
+                    $out = "";
+                    foreach ($this->trashTypes as $item) {
+                        $out .= " {$item->name}";
+                    }
+                    return $out;
+                }
+                return 'ND';
+            })->asHtml()->onlyOnForms()->readonly(),
             Select::make(__('Day of Week'), 'day_of_week')->options([
                 0 => __('Sun'),
                 1 => __('Mon'),
@@ -139,7 +146,7 @@ class CalendarItem extends Resource
     public function filters(NovaRequest $request)
     {
         return [
-            new CalendarItemsCalendarFilter,
+            new CalendarItemsCalendarFilter(),
         ];
     }
 
