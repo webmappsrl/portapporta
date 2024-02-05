@@ -127,8 +127,8 @@ class Ticket extends Resource
             })->displayUsing(function () {
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
-                $x = $g->coordinates[0];
                 $y = $g->coordinates[1];
+                $x = $g->coordinates[0];
                 return "lat:$y lon:$x";
             })->onlyOnDetail();
             $fields[] = MapPoint::make(__('Location'), 'location', function () {
