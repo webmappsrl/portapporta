@@ -5,7 +5,7 @@ namespace App\Nova;
 use App\Models\TrashType;
 use Wm\MapPoint\MapPoint;
 use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\Url;
+use Laravel\Nova\Fields\URL;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Textarea;
@@ -118,15 +118,13 @@ class Ticket extends Resource
             $fields[] = Text::make(__('House Number'), function () {
                 return $this->address->house_number;
             })->onlyOnDetail()->readonly();
-            $fields[] = Url::make(__('Coordinate'),  function () {
-                return '';
+            $fields[] = URL::make(__('Coordinate'),  function () {
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                 $x = $g->coordinates[0];
                 $y = $g->coordinates[1];
                 return "https://www.openstreetmap.org/?mlat=$y&mlon=$x#map=15/$y/$x";
             })->displayUsing(function () {
-                return '';
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                 $x = $g->coordinates[0];
