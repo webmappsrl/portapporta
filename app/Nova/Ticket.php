@@ -119,12 +119,14 @@ class Ticket extends Resource
                 return $this->address->house_number;
             })->onlyOnDetail()->readonly();
             $fields[] = Url::make(__('Coordinate'),  function () {
+                return '';
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                 $x = $g->coordinates[0];
                 $y = $g->coordinates[1];
                 return "https://www.openstreetmap.org/?mlat=$y&mlon=$x#map=15/$y/$x";
             })->displayUsing(function () {
+                return '';
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                 $x = $g->coordinates[0];
