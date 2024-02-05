@@ -118,21 +118,19 @@ class Ticket extends Resource
             $fields[] = Text::make(__('House Number'), function () {
                 return $this->address->house_number;
             })->onlyOnDetail()->readonly();
-            $fields[] = Text::make(__('Coordinate'), function () {
-                $loc = $this->address->location;
-                $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
-                $x = $g->coordinates[0];
-                $y = $g->coordinates[1];
-                return "lat:$y lon:$x";
-            })->onlyOnDetail()->readonly();
-            $fields[] = Url::make(__('openstreetmap'), function () {
+            $fields[] = Url::make(__('Coordinate'),  function () {
                 $loc = $this->address->location;
                 $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                 $x = $g->coordinates[0];
                 $y = $g->coordinates[1];
                 return "https://www.openstreetmap.org/?mlat=$y&mlon=$x#map=15/$y/$x";
-            })->onlyOnDetail()->readonly();
-
+            })->displayUsing(function () {
+                $loc = $this->address->location;
+                $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+                $x = $g->coordinates[0];
+                $y = $g->coordinates[1];
+                return "lat:$y lon:$x";
+            })->onlyOnDetail();
             $fields[] = MapPoint::make(__('Location'), 'location', function () {
                 return $this->address->location;
             })->withMeta([
