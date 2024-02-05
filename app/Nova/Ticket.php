@@ -143,13 +143,19 @@ class Ticket extends Resource
                 })->onlyOnDetail()->readonly();
             }
             if (isset($this->geometry)) {
-                $fields[] = Text::make(__('Coordinate'), function () {
+                $fields[] = URL::make(__('Coordinate'),  function () {
+                    $loc = $this->geometry;
+                    $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
+                    $x = $g->coordinates[0];
+                    $y = $g->coordinates[1];
+                    return "https://www.openstreetmap.org/?mlat=$y&mlon=$x#map=15/$y/$x";
+                })->displayUsing(function () {
                     $loc = $this->geometry;
                     $g = json_decode(DB::select("SELECT st_asgeojson('$loc') as g")[0]->g);
                     $x = $g->coordinates[0];
                     $y = $g->coordinates[1];
                     return "lat:$y lon:$x";
-                })->onlyOnDetail()->readonly();
+                })->onlyOnDetail();
                 $fields[] = MapPoint::make(__('Location'), 'location', function () {
                     return $this->geometry;
                 })->withMeta([
