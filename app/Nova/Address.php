@@ -46,7 +46,10 @@ class Address extends Resource
         return [
             ID::make()->sortable(),
             Select::make('Zone', 'zone_id')
-                ->options(\App\Models\Zone::pluck('label', 'id')) // Assumi che il tuo modello Zone sia sotto App\Models
+                ->options(function () {
+                    return \App\Models\Zone::where('company_id', $this->user->app_company_id)
+                        ->pluck('label', 'id');
+                })
                 ->searchable()
                 ->displayUsing(function ($value) {
                     return \App\Models\Zone::find($value)?->label ?? 'ND';
