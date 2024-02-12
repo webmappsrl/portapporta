@@ -5,6 +5,7 @@ namespace App\Nova;
 use Laravel\Nova\Fields\BelongsTo;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Wm\MapPoint\MapPoint;
@@ -44,12 +45,12 @@ class Address extends Resource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Zone', function () {
-                if (!is_null($this->zone_id)) {
-                    return $this->zone->label;
-                }
-                return 'ND';
-            })->onlyOnDetail(),
+            Select::make('Zone', 'zone_id')
+                ->options(\App\Models\Zone::pluck('label', 'id')) // Assumi che il tuo modello Zone sia sotto App\Models
+                ->searchable()
+                ->displayUsing(function ($value) {
+                    return \App\Models\Zone::find($value)?->label ?? 'ND';
+                }),
             Text::make('city'),
             Text::make('address'),
             Text::make('house_number'),
