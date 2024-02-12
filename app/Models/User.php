@@ -78,6 +78,10 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasMany(Address::class);
     }
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'app_company_id');
+    }
 
 
     /**

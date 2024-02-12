@@ -2,19 +2,17 @@
 
 namespace App\Nova;
 
-use Wm\MapPoint\MapPoint;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Text;
 use Illuminate\Validation\Rules;
 use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\BelongsTo;
-use Spatie\Permission\Models\Role;
 use Laravel\Nova\Fields\MorphToMany;
 use Illuminate\Database\Eloquent\Model;
-use Vyuldashev\NovaPermission\RoleSelect;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
 class User extends Resource
@@ -33,6 +31,10 @@ class User extends Resource
      */
     public static $title = 'name';
 
+    public static function label()
+    {
+        return __('Users');
+    }
     /**
      * The columns that should be searched.
      *
@@ -58,21 +60,30 @@ class User extends Resource
                 ->rules('required', 'max:255'),
             Text::make('fcm_token')
                 ->sortable()->onlyOnForms(),
-            Text::make('app_company_id')
-                ->hideFromIndex(),
-            BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
-                ->nullable()
-                ->hideWhenCreating()
-                ->hideWhenUpdating(),
-
+            Text::make(__('Company'), 'app_company_id')
+                ->displayUsing(function ($value) {
+                    return \App\Models\Company::find($value)?->name ?? 'ND';
+                })
+                ->asHtml()
+                ->required()
+                ->readonly(function (NovaRequest $request) {
+                    return !$request->user()->hasRole('super_admin');
+                })
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('super_admin');
+                }),
             BelongsTo::make('Admin of company', 'companyWhereAdmin', Company::class)
                 ->nullable()
                 ->onlyOnForms()
                 ->canSee(function ($request) {
                     return $request->user()->hasRole('super_admin');
                 }),
-            MorphToMany::make('Roles', 'roles', \Vyuldashev\NovaPermission\Role::class),
-            MorphToMany::make('Permissions', 'permissions', \Vyuldashev\NovaPermission\Permission::class),
+            MorphToMany::make('Roles', 'roles', \Vyuldashev\NovaPermission\Role::class)->canSee(function ($request) {
+                return $request->user()->hasRole('super_admin');
+            }),
+            MorphToMany::make('Permissions', 'permissions', \Vyuldashev\NovaPermission\Permission::class)->canSee(function ($request) {
+                return $request->user()->hasRole('super_admin');
+            }),
 
             Text::make('Email')
                 ->sortable()
@@ -95,12 +106,12 @@ class User extends Resource
                 ->rules('nullable', 'max:16')
                 ->creationRules('unique:users,user_code')
                 ->updateRules('unique:users,user_code,{{resourceId}}'),
-            Text::make('Company', function () {
-                if (!is_null($this->zone_id) && !is_null($this->zone)) {
-                    return $this->zone->company->name;
-                }
-                return 'ND';
-            })->onlyOnDetail(),
+            Boolean::make(__('Email Verified'), 'email_verified_at')
+                ->displayUsing(function ($value) {
+                    return isset($value);
+                })
+                ->required(),
+
             HasMany::make('Addresses')
         ];
     }
@@ -146,23 +157,12 @@ class User extends Resource
      */
     public function actions(NovaRequest $request)
     {
-        return [];
+        return [
+            (new Actions\VerifyEmail())->showInline(),
+        ];
     }
 
-    /**
-     * Hides the resource from menu it its not admin@webmapp.it.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return boolean
-     */
-    public static function availableForNavigation(Request $request)
-    {
-        $current_id = $request->user()->id;
-        if ($current_id !== 1) {
-            return false;
-        }
-        return true;
-    }
+
 
     public static function afterCreate(NovaRequest $request, Model $model)
     {
@@ -192,5 +192,17 @@ class User extends Resource
             $model->assignRole('contributor');
         }
         $model->save();
+    }
+
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        $user = Auth()->user();
+        if ($user->hasRole('super_admin')) {
+            return parent::indexQuery($request, $query);
+        } else if ($user->hasRole('company_admin')) {
+            return parent::indexQuery($request, $query)->where('app_company_id', $user->admin_company_id);
+        } else {
+            return  parent::indexQuery($request, $query)->where('user_id', $user->id);
+        }
     }
 }
