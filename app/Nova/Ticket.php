@@ -7,6 +7,7 @@ use Wm\MapPoint\MapPoint;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\URL;
 use Laravel\Nova\Fields\Boolean;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Textarea;
 use Illuminate\Support\Facades\DB;
@@ -101,6 +102,7 @@ class Ticket extends Resource
         $fields[] = Text::make(__('Name'), function () {
             return $this->checkName($this->user->name);
         })->readonly()->onlyOnDetail();
+        $fields[] = BelongsTo::make('User')->readonly();
         $fields[] = Text::make('Email', function () {
             return $this->user->email;
         })->readonly();

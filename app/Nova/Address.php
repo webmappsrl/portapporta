@@ -116,13 +116,26 @@ class Address extends Resource
     public static function indexQuery(NovaRequest $request, $query)
     {
         $user = Auth()->user();
-        if ($user->email == 'admin@webmapp.it') {
-            $query = parent::indexQuery($request, $query);
-            return $query;
+        if ($user->hasRole('super_admin')) {
+            return parent::indexQuery($request, $query);
+        } else if ($user->hasRole('company_admin')) {
+            return $query
+                ->join('users', 'addresses.user_id', '=', 'users.id')
+                ->where('users.app_company_id', $user->admin_company_id)
+                ->select('addresses.*');
         } else {
-            $query = parent::indexQuery($request, $query);
-
-            return $query->where('user_id', $user->id);
+            return  parent::indexQuery($request, $query)->where('user_id', $user->id);
         }
+    }
+
+    /**
+     * Hides the resource from menu it its not 'admin' or 'company_admin'
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return boolean
+     */
+    public static function availableForNavigation(Request $request)
+    {
+        return $request->user()->hasRole('super_admin');
     }
 }
