@@ -395,11 +395,7 @@ class Company extends Resource
      */
     public static function availableForNavigation(Request $request)
     {
-        $current_id = $request->user()->id;
-        if ($current_id !== 1) {
-            return false;
-        }
-        return true;
+        return auth()->user()->hasRole('super_admin');
     }
 
     public static function afterCreate(NovaRequest $request, Model $model)
