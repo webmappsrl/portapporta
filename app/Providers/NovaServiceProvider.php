@@ -8,6 +8,8 @@ use App\Nova\Ticket;
 use App\Nova\PushNotification;
 use App\Nova\TrashType;
 use App\Nova\UserType;
+use App\Nova\User;
+use App\Nova\Address;
 use App\Nova\Waste;
 use App\Nova\WasteCollectionCenter;
 use App\Nova\Zone;
@@ -31,7 +33,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     {
         parent::boot();
         Nova::mainMenu(function (Request $request, Menu $menu) {
-            if (!empty($request->user()->companyWhereAdmin)) {
+            if ($request->user()->hasRole('company_admin')) {
                 return [
                     MenuSection::make(__('Communication'), [
                         MenuItem::resource(Ticket::class),
@@ -48,6 +50,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                         MenuItem::resource(Waste::class),
                         MenuItem::resource(WasteCollectionCenter::class),
                     ])->icon('trash')->collapsable(),
+                    MenuItem::resource(User::class)
                 ];
             } else return $menu;
         });
@@ -114,7 +117,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     {
         return [
             \Vyuldashev\NovaPermission\NovaPermissionTool::make()->canSee(function ($request) {
-                return $request->user()->hasRole('super_admin');
+                return $request->user()->hasRole('super_admin') || $request->user()->hasRole('company_admin');
             }),
         ];
     }

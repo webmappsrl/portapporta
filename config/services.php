@@ -39,6 +39,7 @@ return [
             'manage_roles_and_permissions'
         ],
         'company_admin' => [
+            'manage_users',
             'manage_trash_types',
             'manage_wastes',
             'manage_waste_collection_centers',

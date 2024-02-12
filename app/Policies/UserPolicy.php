@@ -17,7 +17,7 @@ class UserPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->hasRole('super_admin');
+        return $user->hasRole('super_admin') || $user->hasRole('company_admin');
     }
 
     /**
@@ -29,8 +29,7 @@ class UserPolicy
      */
     public function view(User $user, User $user_mod)
     {
-        return $user->hasPermissionTo('manage_users')
-            || $user->id == auth()->user()->id;
+        return $user->hasPermissionTo('manage_users') || $user->hasRole('company_admin');
     }
 
     /**
@@ -53,7 +52,7 @@ class UserPolicy
      */
     public function update(User $user, User $user_mod)
     {
-        return $user->hasPermissionTo('manage_users');
+        return $user->hasPermissionTo('manage_users') || $user->hasRole('company_admin');
     }
 
     /**
