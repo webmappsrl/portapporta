@@ -117,9 +117,9 @@ class CalendarItem extends Resource
             Date::make(__('Base Date'), 'base_date')
                 ->help('Only used for biweekly frequency. Supported format: YYYY-MM-DD')
                 ->hideFromIndex(),
-            Text::make(__('Start Date'), 'start_time')
+            Text::make(__('Start Hour'), 'start_time')
                 ->help('Supported format: HH:MM:SS'),
-            Text::make(__('Stop Date'), 'stop_time')
+            Text::make(__('Stop Hour'), 'stop_time')
                 ->help('Supported format: HH:MM:SS'),
 
             BelongsToMany::make(__('Trash Types'), 'TrashTypes', TrashType::class),
