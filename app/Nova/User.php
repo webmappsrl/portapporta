@@ -61,11 +61,14 @@ class User extends Resource
             Text::make('fcm_token')
                 ->sortable()->onlyOnForms(),
             Text::make(__('Company'), 'app_company_id')
+                ->required()
+                ->onlyOnForms(),
+            Text::make(__('Company'), 'app_company_id')
                 ->displayUsing(function ($value) {
                     return \App\Models\Company::find($value)?->name ?? 'ND';
                 })
                 ->asHtml()
-                ->required()
+                ->onlyOnDetail()
                 ->readonly(function (NovaRequest $request) {
                     return !$request->user()->hasRole('super_admin');
                 })
@@ -110,6 +113,8 @@ class User extends Resource
                 ->displayUsing(function ($value) {
                     return isset($value);
                 })
+                ->hideWhenCreating()
+                ->hideWhenUpdating()
                 ->required(),
 
             HasMany::make('Addresses')
