@@ -77,7 +77,7 @@ class WasteCollectionCenter extends Resource
             ]),
             // Text::make('picture_url')->hideFromIndex(),
 
-            Text::make(__('Position'), 'Position', function () {
+            Text::make(__('Position'), 'geometry', function () {
                 if (!is_null($this->geometry)) {
                     $coord = $this->position();
                     $lon = $coord[0];
@@ -85,7 +85,7 @@ class WasteCollectionCenter extends Resource
                     return "<a href='https://www.google.it/maps/@$lat,$lon,15z' target='_blank'>($lon,$lat)</a>";
                 }
                 return 'ND';
-            })->asHtml()->hideFromIndex(),
+            })->asHtml()->onlyOnDetail(),
 
             NovaTabTranslatable::make([
                 Text::make(__('name'), 'name')->sortable(),
