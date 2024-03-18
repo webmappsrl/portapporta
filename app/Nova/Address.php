@@ -47,7 +47,11 @@ class Address extends Resource
             ID::make()->sortable(),
             Select::make('Zone', 'zone_id')
                 ->options(function () {
-                    return \App\Models\Zone::where('company_id', $this->user->app_company_id)
+                    $user = $this->user;
+                    if (!isset($user)) {
+                        $user = Auth()->user();
+                    }
+                    return \App\Models\Zone::where('company_id', $user->app_company_id)
                         ->pluck('label', 'id');
                 })
                 ->searchable()
