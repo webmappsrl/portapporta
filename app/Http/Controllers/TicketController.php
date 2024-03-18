@@ -13,9 +13,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
+
 class TicketController extends Controller
 {
     use GeojsonableTrait;
+    /**
+     * The allowed ticket types.
+     *
+     * @var array
+     */
+    protected $ticketTypes = ['reservation', 'info', 'abandonment', 'report'];
 
     /**
      * Display a listing of the resource.
@@ -24,14 +31,21 @@ class TicketController extends Controller
      */
     public function index(Request $request)
     {
-
-
-        $result = collect(Ticket::where('company_id', $request->id)
-            ->where('user_id', Auth::user()->id)
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->toArray());
-
+        $user = auth()->user();
+        if ($user->hasRole('dusty_man')) {
+            $result = collect(Ticket::with('user')->whereHas('user', function ($query) {
+                $query->whereHas('roles', function ($subQuery) {
+                    $subQuery->where('name', '=', 'vip');
+                });
+            })->where('company_id', $request->id)->where('status', 'new')->get()->toArray());
+        } else {
+            $result = collect(Ticket::where('company_id', $request->id)
+                ->where('user_id', Auth::user()->id)
+                ->where('status', '!=', 'done')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->toArray());
+        }
 
 
         return $this->sendResponse($result, 'User tickets');
@@ -61,7 +75,7 @@ class TicketController extends Controller
             $request->validate([
                 'ticket_type' => [
                     'required',
-                    Rule::in(['reservation', 'info', 'abandonment', 'report']),
+                    Rule::in($this->ticketTypes),
                 ],
             ]);
         } catch (Exception $e) {
@@ -135,7 +149,7 @@ class TicketController extends Controller
             $request->validate([
                 'ticket_type' => [
                     'required',
-                    Rule::in(['reservation', 'info', 'abandonment', 'report']),
+                    Rule::in($this->ticketTypes),
                 ],
             ]);
         } catch (Exception $e) {
@@ -218,10 +232,66 @@ class TicketController extends Controller
      * @param  \App\Models\Ticket  $ticket
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Ticket $ticket)
+    public function v1update(Request $request, Ticket $ticket)
     {
-        //
+
+
+        // Update ticket properties
+        if ($request->exists('status')) {
+            $ticket->status = $request->status;
+        }
+        if ($request->exists('trash_type_id')) {
+            $ticket->trash_type_id = $request->trash_type_id;
+        }
+        if ($request->exists('address_id')) {
+            $ticket->address_id = $request->address_id;
+        }
+        if ($request->exists('missed_withdraw_date')) {
+            $ticket->missed_withdraw_date = $request->missed_withdraw_date;
+        }
+        if ($request->exists('note')) {
+            $ticket->note = $request->note;
+        }
+        if ($request->exists('phone')) {
+            $ticket->phone = $request->phone;
+        }
+        if ($request->exists('image')) {
+            $ticket->image = $request->image;
+        }
+        if ($request->exists('location')) {
+            $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
+        }
+
+        // Handle location_address the same way as in store
+        $location_address = '';
+        if (!is_null($request->city)) {
+            $location_address .= $request->city;
+        }
+        if (!is_null($request->address)) {
+            if (!empty($location_address)) {
+                $location_address .= ', ';
+            }
+            $location_address .= $request->address;
+        }
+        if (!is_null($request->house_number)) {
+            if (!empty($location_address)) {
+                $location_address .= ', ';
+            }
+            $location_address .= $request->house_number;
+        }
+        $ticket->location_address = $location_address;
+
+        // Attempt to save changes
+        $res = $ticket->save();
+
+        // Response
+        if ($res) {
+            return $this->sendResponse($ticket, 'Ticket updated.');
+        } else {
+            return $this->sendError('Update failed.');
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.

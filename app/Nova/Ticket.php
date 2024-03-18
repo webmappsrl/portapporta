@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use App\Models\TrashType;
+use App\Nova\Actions\TicketMarkAsAction;
 use Wm\MapPoint\MapPoint;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\URL;
@@ -10,6 +11,7 @@ use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Textarea;
+use Laravel\Nova\Fields\Select;
 use Illuminate\Support\Facades\DB;
 use App\Nova\Actions\TicketMarkNotRead;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -91,14 +93,34 @@ class Ticket extends Resource
 
     private function _headerFields(&$fields)
     {
-        $fields[] = Text::make(__('Ticket Type'), 'ticket_type', function ($res) {
-            // Controlla se esiste una traduzione per il valore di $res
-            $translated = __($this->ticket_type);
-            // Se la traduzione è diversa dalla chiave originale, usa quella tradotta
-            return $translated;
-        })->sortable()->readonly();
-        $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = Text::make('Ticket ID', 'id')->readonly();
+        $fields[] = Text::make(__('Ticket Type'), 'ticket_type', function ($res) {
+            // Controlla se esiste una traduzione per il val{ore di $res
+            $vip = '';
+            if ($this->user->hasRole('vip')) {
+                $vip = '[VIP]';
+                $statusColor = 'yellow';
+                if ($this->status === 'done') {
+                    $statusColor = 'green';
+                }
+                $translated =  __($this->ticket_type);
+                $statusDisplay = $this->status ? ' (' . __($this->status) . ')' : '';
+                // Se la traduzione è diversa dalla chiave originale, usa quella tradotta
+                return  <<<HTML
+                <span style="color:red">$vip</span><span>$translated</span><span style="color:{$statusColor}">$statusDisplay</span> 
+                HTML;
+            } else {
+                return __($this->ticket_type);
+            }
+        })->sortable()->readonly()->asHtml();
+        $fields[] =  Select::make(__('Status'), 'status')
+            ->options([
+                'new' => 'New',
+                'doned' => 'Doned',
+            ])
+            ->onlyOnForms()
+            ->displayUsingLabels();
+        $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = Text::make(__('Name'), function () {
             return $this->checkName($this->user->name);
         })->readonly()->onlyOnDetail();
@@ -185,7 +207,11 @@ class Ticket extends Resource
     {
         $fields[] = Text::make(__('Trash Type'), 'trash_type', function () {
             $trashType = TrashType::find($this->trash_type_id);
-            return $trashType->name;
+            if (isset($trashType)) {
+                return $trashType->name;
+            } else {
+                return 'VIP';
+            }
         })->onlyOnDetail()->readonly();
         $fields[] = Textarea::make(__('Note'), 'note')->alwaysShow()->onlyOnDetail();
         $fields[] = Text::make(__('Image'), 'image', function () {
@@ -258,6 +284,9 @@ class Ticket extends Resource
                 ->showInline()
                 ->canSee(function ($request) {
                     return $request->user()->hasRole('company_admin');
+                })
+                ->canRun(function ($request, $model) {
+                    return true;
                 }),
             (new TicketMarkNotRead())
                 ->confirmText('Are you sure you want to mark this ticket as not read?')
@@ -266,6 +295,31 @@ class Ticket extends Resource
                 ->showInline()
                 ->canSee(function ($request) {
                     return $request->user()->hasRole('company_admin');
+                })
+                ->canRun(function ($request, $model) {
+                    return true;
+                }),
+            (new TicketMarkAsAction('status', 'done'))
+                ->confirmText('Are you sure you want to mark this ticket as done?')
+                ->confirmButtonText('Mark as done')
+                ->cancelButtonText("Don't mark as done")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                })
+                ->canRun(function ($request, $model) {
+                    return optional($model->user)->hasRole('vip');
+                }),
+            (new TicketMarkAsAction('status', 'new'))
+                ->confirmText('Are you sure you want to mark this ticket as new?')
+                ->confirmButtonText('Mark as new')
+                ->cancelButtonText("Don't mark as new")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                })
+                ->canRun(function ($request, $model) {
+                    return optional($model->user)->hasRole('vip');
                 }),
             (new \App\Nova\Actions\TicketAnswerViaMail())
                 ->confirmText('Are you sure you want to send this answer to the user?')

@@ -126,6 +126,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}/calendar', [CalendarController::class, 'v1index']);
         Route::get('/{id}/tickets', [TicketController::class, 'index']);
     });
+    Route::patch('/ticket/{ticket}', [TicketController::class, 'v1update'])->name('ticket.v1update');
     Route::middleware('auth:sanctum')->get('/address/delete/{id}', [AddressController::class, 'destroy']);
     Route::middleware('auth:sanctum')->post('/address/update', [AddressController::class, 'update']);
     Route::middleware('auth:sanctum')->post('/address/create', [AddressController::class, 'create']);

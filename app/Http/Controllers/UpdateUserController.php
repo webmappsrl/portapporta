@@ -169,6 +169,7 @@ class UpdateUserController extends Controller
             $g = json_decode(DB::select("SELECT st_asgeojson('$geometry') as g")[0]->g);
             $user->location = [$g->coordinates[1], $g->coordinates[0]];
         }
+        $user->roles = $user->roles;
 
         return $user;
     }

@@ -46,9 +46,23 @@ class TicketCreated extends Mailable
         if (!empty($this->company->ticket_email) && is_array(explode(',', $this->company->ticket_email)) && count(explode(',', $this->company->ticket_email)) > 0) {
             $ticket_emails = explode(',', $this->company->ticket_email)[0];
         }
-        
-        return $this->from($ticket_emails, "Ticket $company_name - ($ticket_id)")
-                ->subject("PortAPPorta - $company_name: $ticket_type")
-                ->view('emails.tickets.created');
+        $isVip = $this->ticket->user->hasRole('vip');
+        $vipSuffix = $isVip ? 'VIP' : '';
+
+        $email = $this->from($ticket_emails, "$vipSuffix Ticket $company_name - ($ticket_id)")
+            ->subject("PortAPPorta - $company_name: $ticket_type")
+            ->view('emails.tickets.created');
+
+        if (!empty($this->ticket->image)) {
+            $imageData = explode(';base64,', $this->ticket->image);
+            if (count($imageData) == 2) {
+                $decodedImage = base64_decode($imageData[1]);
+                $email->attachData($decodedImage, 'immagine.jpeg', [
+                    'mime' => 'image/jpeg',
+                ]);
+            }
+        }
+
+        return $email;
     }
 }

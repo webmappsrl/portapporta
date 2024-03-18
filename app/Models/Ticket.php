@@ -10,7 +10,7 @@ class Ticket extends Model
     use HasFactory;
 
     protected $fillable = [
-        'is_read',
+        'is_read', 'status'
     ];
 
     public function user()
@@ -29,5 +29,15 @@ class Ticket extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+    /**
+     * Determine if the current user can update the resource.
+     *
+     * @param  \Illuminate\Foundation\Auth\User  $user
+     * @return bool
+     */
+    public function authorizedToUpdate($request)
+    {
+        return false;
     }
 }
