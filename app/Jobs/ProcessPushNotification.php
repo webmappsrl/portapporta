@@ -73,6 +73,7 @@ class ProcessPushNotification implements ShouldQueue
             );
 
             $fcmTokens =  $AppUserFilteredByZones->pluck('fcm_token')->toArray();
+            Log::info("push notification count: " . count($fcmTokens));
             try {
                 $res =  Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($fcmTokens);
                 //       Log::info("token numbers: " . $res->body());
