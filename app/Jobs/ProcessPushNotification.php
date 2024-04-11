@@ -74,20 +74,43 @@ class ProcessPushNotification implements ShouldQueue
 
             $fcmTokens =  $AppUserFilteredByZones->pluck('fcm_token')->toArray();
             Log::info("push notification count: " . count($fcmTokens));
+
             try {
-                $res =  Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($fcmTokens);
-                //       Log::info("token numbers: " . $res->body());
-                if ($res->status() === 200) {
-                    $status = true;
+                // Inizialmente impostiamo lo status a true, presumendo che tutto andrà bene
+                $status = true;
+
+                // Logga il numero totale di tokens
+                Log::info("Push notification total token count: " . count($fcmTokens));
+
+                // Suddividi l'array $fcmTokens in gruppi di 1000 token
+                $tokenBatches = array_chunk($fcmTokens, 999);
+                foreach ($tokenBatches as $index => $batch) {
+                    // Invia la notifica push per il batch corrente
+                    $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($batch);
+
+                    // Controlla lo status della risposta per ogni batch
+                    if ($res->status() === 200) {
+                        // Log success for the current batch
+                        Log::info("Push notification batch " . ($index + 1) . " sent successfully. Status: " . $res->status());
+                        Log::info("Push notification body: " . $res->body());
+                    } else {
+                        // Se anche un solo batch fallisce, impostiamo lo status a false
+                        $status = false;
+                        Log::info("Failed to send push notification batch " . ($index + 1) . ". Status: " . $res->status());
+                        Log::info("Push notification body: " . $res->body());
+                        // Non interrompiamo il ciclo per tentare di inviare tutti i batch, ma puoi scegliere di fare diversamente
+                    }
                 }
-                Log::info("push notification status: " . $res->status());
-                Log::info("push notification body: " . $res->body());
             } catch (\Exception $e) {
-                Log::info("push error" . $e->getMessage());
+                $status = false;
+                Log::info("Push notification error: " . $e->getMessage());
+            } finally {
+                // Aggiorna lo status della notifica push con il risultato finale
+                $this->pushNotification->status = $status;
+                $this->pushNotification->save();
+                // Log dello status finale della notifica push
+                Log::info("Final push notification status: " . ($status ? 'true' : 'false'));
             }
-            $this->pushNotification->status = $status;
-            $this->pushNotification->save();
-            Log::info("push notification status: {$this->pushNotification->status}");
         } catch (\Exception $e) {
             Log::info("push error" . $e->getMessage());
             $this->pushNotification->status = false;
