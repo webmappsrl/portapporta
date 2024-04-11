@@ -79,6 +79,8 @@ class ProcessPushNotification implements ShouldQueue
                 if ($res->status() === 200) {
                     $status = true;
                 }
+                Log::info("push notification status: " . $res->status());
+                Log::info("push notification body: " . $res->body());
             } catch (\Exception $e) {
                 Log::info("push error" . $e->getMessage());
             }
