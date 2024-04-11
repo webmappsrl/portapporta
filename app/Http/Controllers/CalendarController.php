@@ -15,6 +15,14 @@ use App\Models\UserType;
 
 class CalendarController extends Controller
 {
+    protected $logger;
+
+    public function __construct()
+    {
+        // Se il tuo controller base ha un costruttore, chiamalo
+        parent::__construct();
+        $this->logger = Log::channel('calendars');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -41,12 +49,12 @@ class CalendarController extends Controller
         if ($request->start_date) {
             $start_date = Carbon::parse($request->start_date);
         }
-        Log::info('start_date: ' . $start_date->format('d/m/Y'));
+        $this->logger->info('start_date: ' . $start_date->format('d/m/Y'));
         $stop_date = Carbon::today()->addDays(13);
         if ($request->stop_date) {
             $stop_date = Carbon::parse($request->stop_date);
         }
-        Log::info('stop_date: ' . $stop_date->format('d/m/Y'));
+        $this->logger->info('stop_date: ' . $stop_date->format('d/m/Y'));
         // ritorna i calendari compresi dallo start allo stop ordinati temporalmente
         $calendars = Calendar::where('zone_id', $user->zone_id)
             ->where('user_type_id', $user->user_type_id)
@@ -57,9 +65,9 @@ class CalendarController extends Controller
             return $this->sendError('No calendars matching.');
         }
         $diff_in_date_from_start_stop = CarbonPeriod::create($start_date, $stop_date)->toArray(); // tutti i giorni dallo start allo stop
-        Log::info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
+        $this->logger->info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
         $calendarIndex = 0;
-        Log::info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+        $this->logger->info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
         foreach ($diff_in_date_from_start_stop as $currentDay) {
             $currentCalendar = $calendars[$calendarIndex];
 
@@ -67,7 +75,7 @@ class CalendarController extends Controller
                 if (
                     in_array($currentDay->dayOfWeek, $currentCalendar->calendarItems->pluck('day_of_week')->toArray())
                 ) {
-                    Log::info('costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
+                    $this->logger->info('costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
                     foreach ($currentCalendar->calendarItems->where('day_of_week', $currentDay->dayOfWeek) as $item) {
                         $p = [];
                         $p['trash_types'] = $item->trashTypes->pluck('id')->toArray();
@@ -80,19 +88,19 @@ class CalendarController extends Controller
                         $data[$currentDay->format('Y-m-d')][] = $p;
                     }
                 } else {
-                    Log::info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
+                    $this->logger->info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
                 }
             }
             if ($currentDay > $currentCalendar->stop_date && count($calendars) - 1 > $calendarIndex) {
                 $calendarIndex++;
-                Log::info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+                $this->logger->info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
             }
         }
 
         // Everything it's fine: build and send output
         // \Carbon\Carbon::parse('today +2 day')->dayOfWeek
 
-        Log::info('numero giorni di calendario creati: ' . count($data));
+        $this->logger->info('numero giorni di calendario creati: ' . count($data));
         return $this->sendResponse($data, 'Calendar created.');
     }
 
@@ -108,12 +116,12 @@ class CalendarController extends Controller
         if ($request->start_date) {
             $start_date = Carbon::parse($request->start_date);
         }
-        Log::info('start_date: ' . $start_date->format('d/m/Y'));
+        $this->logger->info('start_date: ' . $start_date->format('d/m/Y'));
         $stop_date = Carbon::today()->addDays(13);
         if ($request->stop_date) {
             $stop_date = Carbon::parse($request->stop_date);
         }
-        Log::info('stop_date: ' . $stop_date->format('d/m/Y'));
+        $this->logger->info('stop_date: ' . $stop_date->format('d/m/Y'));
         $addresses = Address::where('user_id', $user->id)->get();
         $res = [];
         foreach ($addresses as $address) {
@@ -129,9 +137,9 @@ class CalendarController extends Controller
                 continue;
             }
             $diff_in_date_from_start_stop = CarbonPeriod::create($start_date, $stop_date)->toArray(); // tutti i giorni dallo start allo stop
-            Log::info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
+            $this->logger->info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
             $calendarIndex = 0;
-            Log::info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+            $this->logger->info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
             foreach ($diff_in_date_from_start_stop as $currentDay) {
                 $currentCalendar = $calendars[$calendarIndex];
 
@@ -139,7 +147,7 @@ class CalendarController extends Controller
                     if (
                         in_array($currentDay->dayOfWeek, $currentCalendar->calendarItems->pluck('day_of_week')->toArray())
                     ) {
-                        Log::info('costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
+                        $this->logger->info('costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
                         foreach ($currentCalendar->calendarItems->where('day_of_week', $currentDay->dayOfWeek) as $item) {
                             $p = [];
                             $p['trash_types'] = collect($item->trashTypes->toArray())->map(function ($trashType) {
@@ -177,12 +185,12 @@ class CalendarController extends Controller
                             }
                         }
                     } else {
-                        Log::info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
+                        $this->logger->info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
                     }
                 }
                 if ($currentDay > $currentCalendar->stop_date && count($calendars) - 1 > $calendarIndex) {
                     $calendarIndex++;
-                    Log::info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+                    $this->logger->info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
                 }
             }
             $elem['address'] = $address;

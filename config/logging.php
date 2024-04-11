@@ -120,6 +120,12 @@ return [
             'path' => storage_path('logs/push_notifications.log'),
             'level' => 'debug',
         ],
+
+        'calendars' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/calendars.log'),
+            'level' => 'debug',
+        ],
     ],
 
 ];
