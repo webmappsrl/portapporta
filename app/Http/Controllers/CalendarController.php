@@ -17,13 +17,6 @@ class CalendarController extends Controller
 {
     protected $logger;
 
-    public function __construct()
-    {
-        // Se il tuo controller base ha un costruttore, chiamalo
-        parent::__construct();
-        $this->middleware('auth');
-        $this->logger = Log::channel('calendars');
-    }
     /**
      * Display a listing of the resource.
      *
@@ -33,6 +26,7 @@ class CalendarController extends Controller
     {
         $user = Auth::user();
         $data = [];
+        $this->logger = Log::channel('calendars');
 
         if (is_null($user->zone)) {
             return $this->sendError('User has no zones.');
@@ -108,6 +102,7 @@ class CalendarController extends Controller
     public function v1index(Request $request)
     {
         $user = Auth::user();
+        $this->logger = Log::channel('calendars');
 
         $company = Company::find($request->id);
         if (count($company->calendars) == 0) {
