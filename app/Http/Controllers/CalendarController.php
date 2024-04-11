@@ -21,6 +21,7 @@ class CalendarController extends Controller
     {
         // Se il tuo controller base ha un costruttore, chiamalo
         parent::__construct();
+        $this->middleware('auth');
         $this->logger = Log::channel('calendars');
     }
     /**
