@@ -39,9 +39,12 @@ class ProcessTicket implements ShouldQueue
     public function handle()
     {
         $user = $this->ticket->user;
-        $address = $this->ticket->address;
-        $message = $address->address . ', ' . $address->house_number;
         if ($user->hasRole('vip')) {
+            $address = $this->ticket->address;
+            $message = '';
+            if (isset($address)) {
+                $message = $address->address . ', ' . $address->house_number;
+            }
             Log::info("Processing push VIP notifications: {$this->ticket->title}");
             Log::info("app company id: {$this->ticket->company_id}");
             // send push notification to dustyman
