@@ -277,7 +277,6 @@ class Company extends Resource
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->hideFromIndex()
-                ->disableDownload()
                 ->help(__('follow this <a href="https://capacitorjs.com/docs/guides/push-notifications-firebase" target="_blank">link</a>'))
                 ->storeAs(function () {
                     return 'GoogleService-Info.plist';
@@ -288,7 +287,6 @@ class Company extends Resource
                 ->disk('public')
                 ->path('resources/' . $this->model()->id)
                 ->hideFromIndex()
-                ->disableDownload()
                 ->help(__('follow this <a href="https://capacitorjs.com/docs/guides/push-notifications-firebase" target="_blank">link</a>'))
                 ->storeAs(function () {
                     return 'google-services.json';
