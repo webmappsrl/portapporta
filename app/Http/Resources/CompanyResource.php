@@ -22,6 +22,7 @@ class CompanyResource extends JsonResource
         $json = [
             'id' => $this->id,
             'name' => $this->name,
+            'app_name' => $this->app_name,
         ];
 
         if (!empty($this->sku)) {
