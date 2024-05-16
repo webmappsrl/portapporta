@@ -65,7 +65,9 @@ class Company extends Resource
         $iosLink = $this->ios_store_link;
         return [
             ID::make(__('ID'), 'id')->sortable(),
-            Text::make(__('name'), 'name')
+            Text::make(__('Company name'), 'name')
+                ->required(),
+            Text::make(__('App name'), 'app_name')
                 ->required(),
             Text::make('Admins', function ($request) {
                 $admins = $this->companyAdmins;
