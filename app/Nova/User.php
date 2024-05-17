@@ -163,7 +163,13 @@ class User extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new Actions\VerifyEmail())->showInline(),
+            (new Actions\VerifyEmail())
+                ->showInline(),
+            (new Actions\SendPushNotification())
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('super_admin');
+                }),
         ];
     }
 
