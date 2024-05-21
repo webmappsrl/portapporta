@@ -59,10 +59,17 @@ class User extends Resource
                 ->sortable()
                 ->rules('required', 'max:255'),
             Text::make('fcm_token')
-                ->sortable()->onlyOnForms(),
+                ->sortable()
+                ->onlyOnForms()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('super_admin');
+                }),
             Text::make(__('Company'), 'app_company_id')
                 ->required()
-                ->onlyOnForms(),
+                ->onlyOnForms()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('super_admin');
+                }),
             Text::make(__('Company'), 'app_company_id')
                 ->displayUsing(function ($value) {
                     return \App\Models\Company::find($value)?->name ?? 'ND';
@@ -177,6 +184,9 @@ class User extends Resource
 
     public static function afterCreate(NovaRequest $request, Model $model)
     {
+        if ($request->user()->hasRole('company_admin')) {
+            $model->app_company_id = $request->user()->app_company_id;
+        }
         if ($model->admin_company_id) {
             if ($model->hasRole('contributor')) {
                 $model->removeRole('contributor');
