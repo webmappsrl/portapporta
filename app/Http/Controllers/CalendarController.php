@@ -127,7 +127,7 @@ class CalendarController extends Controller
             $calendars = Calendar::where('zone_id', $address->zone_id)
                 ->where('user_type_id', $address->user_type_id)
                 ->whereDate('start_date', '<=', $start_date)
-                ->whereDate('stop_date', '>=', $stop_date)
+                ->orderBy('start_date', 'asc')
                 ->get();
             if (is_null($calendars) || count($calendars) === 0) {
                 continue;
