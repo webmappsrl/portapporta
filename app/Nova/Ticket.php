@@ -107,7 +107,7 @@ class Ticket extends Resource
                 $statusDisplay = $this->status ? ' (' . __($this->status) . ')' : '';
                 // Se la traduzione è diversa dalla chiave originale, usa quella tradotta
                 return  <<<HTML
-                <span style="color:red">$vip</span><span>$translated</span><span style="color:{$statusColor}">$statusDisplay</span> 
+                <span style="color:red">$vip</span><span>$translated</span><span style="color:{$statusColor}">$statusDisplay</span>
                 HTML;
             } else {
                 return __($this->ticket_type);
@@ -118,7 +118,6 @@ class Ticket extends Resource
                 'new' => 'New',
                 'doned' => 'Doned',
             ])
-            ->onlyOnForms()
             ->displayUsingLabels();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = Text::make(__('Name'), function () {
