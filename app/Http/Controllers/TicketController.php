@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TicketCreated;
+use App\Mail\TicketDeleted;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Traits\GeojsonableTrait;
@@ -42,6 +43,7 @@ class TicketController extends Controller
             $result = collect(Ticket::where('company_id', $request->id)
                 ->where('user_id', Auth::user()->id)
                 ->where('status', '!=', 'done')
+                ->where('status', '!=', 'deleted')
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->toArray());
@@ -286,6 +288,12 @@ class TicketController extends Controller
 
         // Response
         if ($res) {
+            $company = Company::find($ticket->company_id);
+            if ($company->ticket_email) {
+                foreach (explode(',', $company->ticket_email) as $recipient) {
+                    Mail::to($recipient)->send(new TicketDeleted($ticket, $company));
+                }
+            }
             return $this->sendResponse($ticket, 'Ticket updated.');
         } else {
             return $this->sendError('Update failed.');
