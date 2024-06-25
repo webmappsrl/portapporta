@@ -2,6 +2,7 @@
 
 namespace App\Nova\Actions;
 
+use App\Enums\TicketStatus;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
@@ -15,7 +16,7 @@ class TicketMarkAsAction extends Action
     use Queueable;
     protected $desiredValue;
     protected $field;
-    public function __construct($field = 'status', $value = 'done')
+    public function __construct($field = 'status', $value = TicketStatus::Done)
     {
         // Imposta lo value desiderato con il valore predefinito 'execute' se non specificato
         $this->desiredValue = $value;
@@ -28,7 +29,7 @@ class TicketMarkAsAction extends Action
      */
     public function name()
     {
-        return __($this->field) . ' ' . __('Mark as') . ' ' . __($this->desiredValue);
+        return __($this->field) . ' ' . __('Mark as') . ' ' . __($this->desiredValue->value);
     }
 
     /**
@@ -44,12 +45,12 @@ class TicketMarkAsAction extends Action
         foreach ($models as $model) {
             if (auth()->user()->hasRole('company_admin')) {
                 $model->update([
-                    $this->field => $this->desiredValue
+                    $this->field => $this->desiredValue->value
                 ]);
             }
         }
 
-        return Action::message('Ticket field' . $this->field . 'marked as' . $this->desiredValue . '!');
+        return Action::message('Ticket field' . $this->field . 'marked as' . $this->desiredValue->value . '!');
     }
 
     /**

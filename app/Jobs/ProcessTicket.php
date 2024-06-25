@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enum\TicketStatus;
 use App\Models\Address;
 use App\Models\Ticket;
 use App\Models\User;
@@ -73,7 +74,7 @@ class ProcessTicket implements ShouldQueue
                 //send push notification to vip
             } elseif ($this->event === 'updated') {
                 Log::info("UPDATED");
-                if ($this->ticket->status === 'done') {
+                if ($this->ticket->status === TicketStatus::Done) {
                     $vipFcmToken = [$user->fcm_token];
                     $title = 'Raccolta VIP eseguita';
                     try {
