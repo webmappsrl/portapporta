@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use App\Enums\TicketStatus;
 use App\Models\TrashType;
 use App\Nova\Actions\TicketMarkAsAction;
 use Wm\MapPoint\MapPoint;
@@ -99,25 +100,26 @@ class Ticket extends Resource
             $vip = '';
             if ($this->user->hasRole('vip')) {
                 $vip = '[VIP]';
-                $statusColor = 'yellow';
-                if ($this->status === 'done') {
-                    $statusColor = 'green';
-                }
                 $translated =  __($this->ticket_type);
-                $statusDisplay = $this->status ? ' (' . __($this->status) . ')' : '';
-                // Se la traduzione è diversa dalla chiave originale, usa quella tradotta
                 return  <<<HTML
-                <span style="color:red">$vip</span><span>$translated</span><span style="color:{$statusColor}">$statusDisplay</span>
+                <span style="color:red">$vip</span><span>$translated</span>
                 HTML;
             } else {
                 return __($this->ticket_type);
             }
         })->sortable()->readonly()->asHtml();
-        $fields[] =  Select::make(__('Status'), 'status')
-            ->options([
-                'new' => 'New',
-                'doned' => 'Doned',
-            ])
+        $fields[] =  Select::make(__('Status'), 'status', function ($res) {
+            $statusColor = 'orange';
+            switch ($this->status) {
+                case TicketStatus::Deleted:
+                    $statusColor = 'red';
+                    break;
+            }
+            return  <<<HTML
+            <span style="color:{$statusColor}">$this->status</span>
+            HTML;
+        })
+            ->options(TicketStatus::toArray())
             ->displayUsingLabels();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = Text::make(__('Name'), function () {
@@ -298,8 +300,8 @@ class Ticket extends Resource
                 ->canRun(function ($request, $model) {
                     return true;
                 }),
-            (new TicketMarkAsAction('status', 'done'))
-                ->confirmText('Are you sure you want to mark this ticket as done?')
+            (new TicketMarkAsAction('status', TicketStatus::Execute))
+                ->confirmText('Are you sure you want to mark this ticket as execute?')
                 ->confirmButtonText('Mark as done')
                 ->cancelButtonText("Don't mark as done")
                 ->showInline()
@@ -309,7 +311,7 @@ class Ticket extends Resource
                 ->canRun(function ($request, $model) {
                     return optional($model->user)->hasRole('vip');
                 }),
-            (new TicketMarkAsAction('status', 'new'))
+            (new TicketMarkAsAction('status', TicketStatus::New))
                 ->confirmText('Are you sure you want to mark this ticket as new?')
                 ->confirmButtonText('Mark as new')
                 ->cancelButtonText("Don't mark as new")
