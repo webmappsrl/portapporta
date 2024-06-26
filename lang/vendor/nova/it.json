@@ -584,5 +584,18 @@
     "Tickets": "Segnalazioni",
     "Tickets per type": "Segnalazioni per tipo",
     "leave blank for instant scheduling": "lascia vuoto per invio immediato",
-    "Email Verified": "Email verificata"
+    "Email Verified": "Email verificata",
+    "readed": "letto",
+    "execute": "eseguito",
+    "deleted": "eliminato",
+    "done": "fatto",
+    "Are you sure you want to mark this ticket as new?": "Sei sicuro di voler segnare questo ticket come new?",
+    "Mark as new": "Segna come new",
+    "Don't mark as new": "Non segnare come new",
+    "Are you sure you want to mark this ticket as read?": "Sei sicuro di voler segnare questo ticket come letto?",
+    "Mark as": "Segna come",
+    "Don't mark as read": "Non segnare come letto",
+    "Are you sure you want to mark this ticket as execute?": "Sei sicuro di voler segnare questo ticket come eseguito?",
+    "Mark as execute": "Segna come eseguito",
+    "Don't mark as execute": "Non segnare come eseguito"
 }
