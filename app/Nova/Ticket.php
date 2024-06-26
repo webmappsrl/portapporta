@@ -108,19 +108,6 @@ class Ticket extends Resource
                 return __($this->ticket_type);
             }
         })->sortable()->readonly()->asHtml();
-        $fields[] =  Select::make(__('Status'), 'status', function ($res) {
-            $statusColor = 'orange';
-            switch ($this->status) {
-                case TicketStatus::Deleted:
-                    $statusColor = 'red';
-                    break;
-            }
-            return  <<<HTML
-            <span style="color:{$statusColor}">$this->status</span>
-            HTML;
-        })
-            ->options(TicketStatus::toArray())
-            ->displayUsingLabels();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
         $fields[] = Text::make(__('Name'), function () {
             return $this->checkName($this->user->name);
@@ -132,7 +119,33 @@ class Ticket extends Resource
         $fields[] = Text::make(__('Phone'), function () {
             return $this->phone;
         })->onlyOnDetail()->readonly();
-        $fields[] = Boolean::make(__('Read'), 'is_read')->sortable()->filterable()->onlyOnIndex();
+        $fields[] =  Text::make(__('Status'), 'status', function ($res) {
+            $translated = __($this->status->value);
+            $statusColor = 'orange';
+            switch ($this->status) {
+                case TicketStatus::New:
+                    $statusColor = 'dodgerblue';
+                    break;
+                case TicketStatus::Readed:
+                    $statusColor = 'darkcyan';
+                    break;
+                case TicketStatus::Execute:
+                    $statusColor = 'yellowgreen';
+                    break;
+                case TicketStatus::Deleted:
+                    $statusColor = 'red';
+                    break;
+                case TicketStatus::Done:
+                    $statusColor = 'green';
+                    break;
+            }
+            return  <<<HTML
+            <span style="font-weight:bold; padding:1px 4px; background-color:{$statusColor}; color:white; border-radius:5px;">
+                $translated
+            </span>
+            HTML;
+        })->readonly()->asHtml();
+        // $fields[] = Boolean::make(__('Read'), 'is_read')->sortable()->filterable()->onlyOnIndex();
         if (isset($this->address)) {
             $fields[] = Text::make(__('Zone'), function () {
                 return $this->address->zone->label;
@@ -278,7 +291,18 @@ class Ticket extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new TicketMarkAsReadAction())
+            (new TicketMarkAsAction('status', TicketStatus::New))
+                ->confirmText('Are you sure you want to mark this ticket as new?')
+                ->confirmButtonText('Mark as new')
+                ->cancelButtonText("Don't mark as new")
+                ->showInline()
+                ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                })
+                ->canRun(function ($request, $model) {
+                    return optional($model->user)->hasRole('vip');
+                }),
+            (new TicketMarkAsAction('status', TicketStatus::Readed))
                 ->confirmText('Are you sure you want to mark this ticket as read?')
                 ->confirmButtonText('Mark as read')
                 ->cancelButtonText("Don't mark as read")
@@ -289,32 +313,10 @@ class Ticket extends Resource
                 ->canRun(function ($request, $model) {
                     return true;
                 }),
-            (new TicketMarkNotRead())
-                ->confirmText('Are you sure you want to mark this ticket as not read?')
-                ->confirmButtonText('Mark as not read')
-                ->cancelButtonText("Don't mark as not read")
-                ->showInline()
-                ->canSee(function ($request) {
-                    return $request->user()->hasRole('company_admin');
-                })
-                ->canRun(function ($request, $model) {
-                    return true;
-                }),
             (new TicketMarkAsAction('status', TicketStatus::Execute))
                 ->confirmText('Are you sure you want to mark this ticket as execute?')
-                ->confirmButtonText('Mark as done')
-                ->cancelButtonText("Don't mark as done")
-                ->showInline()
-                ->canSee(function ($request) {
-                    return $request->user()->hasRole('company_admin');
-                })
-                ->canRun(function ($request, $model) {
-                    return optional($model->user)->hasRole('vip');
-                }),
-            (new TicketMarkAsAction('status', TicketStatus::New))
-                ->confirmText('Are you sure you want to mark this ticket as new?')
-                ->confirmButtonText('Mark as new')
-                ->cancelButtonText("Don't mark as new")
+                ->confirmButtonText('Mark as execute')
+                ->cancelButtonText("Don't mark as execute")
                 ->showInline()
                 ->canSee(function ($request) {
                     return $request->user()->hasRole('company_admin');
