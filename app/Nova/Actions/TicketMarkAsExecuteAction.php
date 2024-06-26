@@ -29,7 +29,7 @@ class TicketMarkAsAction extends Action
      */
     public function name()
     {
-        return __($this->field) . ' ' . __('Mark as') . ' ' . __($this->desiredValue->value);
+        return __('Mark as') . ' ' . __($this->desiredValue->value);
     }
 
     /**
