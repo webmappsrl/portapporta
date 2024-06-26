@@ -6,6 +6,7 @@ enum TicketStatus: string
 {
 
     case New = 'new';
+    case Readed = 'readed';
     case Execute = 'execute';
     case Deleted = 'deleted';
     case Done = 'done';
@@ -14,6 +15,7 @@ enum TicketStatus: string
     {
         return [
             'new' => 'new',
+            'readed' => 'readed',
             'execute' => 'execute',
             'deleted' => 'deleted',
             'done' => 'done',
