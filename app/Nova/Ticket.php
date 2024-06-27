@@ -4,20 +4,18 @@ namespace App\Nova;
 
 use App\Enums\TicketStatus;
 use App\Models\TrashType;
-use App\Nova\Actions\TicketMarkAsAction;
-use Wm\MapPoint\MapPoint;
+use App\Models\Ticket as TicketModel;
+use App\Nova\Actions\TicketAnswerViaMail;
+use App\Nova\Actions\TicketStatusAction;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\URL;
-use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Fields\Select;
-use Illuminate\Support\Facades\DB;
-use App\Nova\Actions\TicketMarkNotRead;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use App\Nova\Actions\TicketMarkAsReadAction;
 use Laravel\Nova\Query\Search\SearchableRelation;
+use Illuminate\Support\Facades\DB;
+use Wm\MapPoint\MapPoint;
 
 class Ticket extends Resource
 {
@@ -26,7 +24,7 @@ class Ticket extends Resource
      *
      * @var string
      */
-    public static $model = \App\Models\Ticket::class;
+    public static $model = TicketModel::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -291,7 +289,7 @@ class Ticket extends Resource
     public function actions(NovaRequest $request)
     {
         return [
-            (new TicketMarkAsAction('status', TicketStatus::New))
+            (new TicketStatusAction(TicketStatus::New))
                 ->confirmText('Are you sure you want to mark this ticket as new?')
                 ->confirmButtonText('Mark as new')
                 ->cancelButtonText("Don't mark as new")
@@ -302,7 +300,7 @@ class Ticket extends Resource
                 ->canRun(function ($request, $model) {
                     return optional($model->user)->hasRole('vip');
                 }),
-            (new TicketMarkAsAction('status', TicketStatus::Readed))
+            (new TicketStatusAction(TicketStatus::Readed))
                 ->confirmText('Are you sure you want to mark this ticket as read?')
                 ->confirmButtonText('Mark as read')
                 ->cancelButtonText("Don't mark as read")
@@ -313,7 +311,7 @@ class Ticket extends Resource
                 ->canRun(function ($request, $model) {
                     return true;
                 }),
-            (new TicketMarkAsAction('status', TicketStatus::Execute))
+            (new TicketStatusAction(TicketStatus::Execute))
                 ->confirmText('Are you sure you want to mark this ticket as execute?')
                 ->confirmButtonText('Mark as execute')
                 ->cancelButtonText("Don't mark as execute")
@@ -324,7 +322,7 @@ class Ticket extends Resource
                 ->canRun(function ($request, $model) {
                     return optional($model->user)->hasRole('vip');
                 }),
-            (new \App\Nova\Actions\TicketAnswerViaMail())
+            (new TicketAnswerViaMail())
                 ->confirmText('Are you sure you want to send this answer to the user?')
                 ->confirmButtonText('Send')
                 ->cancelButtonText("Don't send")
@@ -337,7 +335,7 @@ class Ticket extends Resource
     }
 
 
-    private function checkName($string)
+    private function checkName($string): string
     {
         if (filter_var($string, FILTER_VALIDATE_EMAIL)) {
             // Se la stringa è un indirizzo email valido, restituisci una stringa vuota
