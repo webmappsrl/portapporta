@@ -10,17 +10,17 @@ use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class TicketMarkAsAction extends Action
+class TicketStatusAction extends Action
 {
     use InteractsWithQueue;
     use Queueable;
     protected $desiredValue;
     protected $field;
-    public function __construct($field = 'status', $value = TicketStatus::Done)
+    public function __construct($value = TicketStatus::Done)
     {
         // Imposta lo value desiderato con il valore predefinito 'execute' se non specificato
         $this->desiredValue = $value;
-        $this->field = $field;
+        $this->field = 'status';
     }
     /**
      * Get the displayable name of the action.
