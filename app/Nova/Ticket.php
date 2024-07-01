@@ -122,16 +122,16 @@ class Ticket extends Resource
             $statusColor = 'orange';
             switch ($this->status) {
                 case TicketStatus::New:
-                    $statusColor = 'dodgerblue';
+                    $statusColor = 'red';
                     break;
                 case TicketStatus::Readed:
-                    $statusColor = 'darkcyan';
+                    $statusColor = 'orange';
                     break;
                 case TicketStatus::Execute:
                     $statusColor = 'yellowgreen';
                     break;
                 case TicketStatus::Deleted:
-                    $statusColor = 'red';
+                    $statusColor = 'dodgerblue';
                     break;
                 case TicketStatus::Done:
                     $statusColor = 'green';
