@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePushNotificationRequest;
 use App\Http\Requests\UpdatePushNotificationRequest;
+use App\Models\Address;
 use App\Models\PushNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PushNotificationController extends Controller
 {
@@ -16,6 +19,23 @@ class PushNotificationController extends Controller
     public function index()
     {
         //
+    }
+
+    public function v1index(Request $request){
+        $user = Auth::user();
+        $addresses = Address::where('user_id', $user->id)->get();
+
+        $result = PushNotification::where('company_id', $request->id)
+            ->where('status', true)
+            ->where(function ($query) use ($addresses) {
+                foreach($addresses as $address) {
+                    $query->orWhereJsonContains('zone_ids', $address->zone_id);
+                }
+            })
+            ->get();
+
+        return $this->sendResponse($result, 'Push notification list.');
+
     }
 
     /**

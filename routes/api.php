@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UpdateUserController;
@@ -125,6 +126,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/{id}/ticket', [TicketController::class, 'v1store']);
         Route::get('/{id}/calendar', [CalendarController::class, 'v1index']);
         Route::get('/{id}/tickets', [TicketController::class, 'index']);
+        Route::get('/{id}/pushnotification', [PushNotificationController::class, 'v1index']);
     });
     Route::patch('/ticket/{ticket}', [TicketController::class, 'v1update'])->name('ticket.v1update');
     Route::middleware('auth:sanctum')->get('/address/delete/{id}', [AddressController::class, 'destroy']);
