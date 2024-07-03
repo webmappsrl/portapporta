@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enum\TicketStatus;
 use App\Models\Address;
 use App\Models\Ticket;
 use App\Models\User;
@@ -60,7 +61,7 @@ class ProcessTicket implements ShouldQueue
                     $fcmTokens =  $dustyManUsers->pluck('fcm_token')->toArray();
                     Log::info("notification send to users: " . json_encode($dustyManUsers->pluck('name')->toArray()));
                     Log::info("token numbers: " . json_encode($fcmTokens));
-                    $title = 'Raccolta VIP: ' . $user->name;
+                    $title = __('Raccolta VIP: ') . $user->name;
                     try {
                         $res =  Larafirebase::fromArray(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'])->sendNotification($fcmTokens);
                         Log::info("token numbers: " . $res->body());
@@ -73,9 +74,9 @@ class ProcessTicket implements ShouldQueue
                 //send push notification to vip
             } elseif ($this->event === 'updated') {
                 Log::info("UPDATED");
-                if ($this->ticket->status === 'done') {
+                if ($this->ticket->status === TicketStatus::Done) {
                     $vipFcmToken = [$user->fcm_token];
-                    $title = 'Raccolta VIP eseguita';
+                    $title = __('Raccolta VIP eseguita');
                     try {
                         $res =  Larafirebase::fromArray(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'])->sendNotification($vipFcmToken);
                         Log::info("token numbers: " . $res->body());
