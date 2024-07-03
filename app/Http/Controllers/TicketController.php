@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TicketStatus;
 use App\Mail\TicketCreated;
+use App\Mail\TicketDeleted;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Traits\GeojsonableTrait;
@@ -37,11 +39,12 @@ class TicketController extends Controller
                 $query->whereHas('roles', function ($subQuery) {
                     $subQuery->where('name', '=', 'vip');
                 });
-            })->where('company_id', $request->id)->where('status', 'new')->get()->toArray());
+            })->where('company_id', $request->id)->where('status', TicketStatus::New)->get()->toArray());
         } else {
             $result = collect(Ticket::where('company_id', $request->id)
                 ->where('user_id', Auth::user()->id)
-                ->where('status', '!=', 'done')
+                ->where('status', '!=', TicketStatus::Done)
+                ->where('status', '!=', TicketStatus::Deleted)
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->toArray());
@@ -286,6 +289,14 @@ class TicketController extends Controller
 
         // Response
         if ($res) {
+            if($ticket->status == TicketStatus::Deleted){
+                $company = Company::find($ticket->company_id);
+                if ($company->ticket_email) {
+                    foreach (explode(',', $company->ticket_email) as $recipient) {
+                        Mail::to($recipient)->send(new TicketDeleted($ticket, $company));
+                    }
+                }
+            }
             return $this->sendResponse($ticket, 'Ticket updated.');
         } else {
             return $this->sendError('Update failed.');

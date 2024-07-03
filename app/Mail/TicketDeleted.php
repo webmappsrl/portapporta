@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-class TicketCreated extends BaseTicket
+class TicketDeleted extends BaseTicket
 {
 
     /**
@@ -10,7 +10,7 @@ class TicketCreated extends BaseTicket
      *
      * @return $this
      */
-    public function build($view = 'emails.tickets.created')
+    public function build($view = 'emails.tickets.deleted')
     {
         parent::build($view);
     }
