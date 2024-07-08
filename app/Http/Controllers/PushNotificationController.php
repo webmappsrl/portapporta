@@ -32,6 +32,8 @@ class PushNotificationController extends Controller
                     $query->orWhereJsonContains('zone_ids', $address->zone_id);
                 }
             })
+            ->where('created_at', '>=', now()->subDays(30))
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return $this->sendResponse($result, 'Push notification list.');
