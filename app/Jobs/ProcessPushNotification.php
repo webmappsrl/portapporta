@@ -8,12 +8,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Kutia\Larafirebase\Facades\Larafirebase;
 use Illuminate\Support\Facades\Log;
 
 class ProcessPushNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     protected $pushNotification;
 
     public function __construct(PushNotification $pushNotification)
@@ -26,6 +26,8 @@ class ProcessPushNotification implements ShouldQueue
         $logger = Log::channel('push_notifications');
         $zones = $this->pushNotification->zone_ids;
         $status = true;
+        $batchStatus = $this->pushNotification->batch_status ?? [];
+        $usersByZone = [];
 
         $logger->info("Processing push notifications: {$this->pushNotification->title}");
         $logger->info("Company ID: {$this->pushNotification->company_id}, Message: {$this->pushNotification->message}");
@@ -35,41 +37,57 @@ class ProcessPushNotification implements ShouldQueue
             $appUsers = User::whereNotNull('fcm_token')
                 ->where('app_company_id', $this->pushNotification->company_id)->get();
 
-            $filteredUsers = $appUsers->filter(function ($user) use ($zones, $logger) {
+            $filteredUsers = $appUsers->filter(function ($user) use ($zones, &$usersByZone) {
                 $address = Address::where('user_id', $user->id)->first();
                 $inZone = $address && in_array($address->zone_id, $zones);
-                if ($inZone) $logger->info("User {$user->name} in zone {$address->zone_id}");
+                if ($inZone) {
+                    $usersByZone[$address->zone_id][] = $user->name;
+                }
                 return $inZone;
             });
             $fcmTokens = $filteredUsers->pluck('fcm_token')->toArray();
             $logger->info("Total tokens to send: " . count($fcmTokens));
 
+            // Log users by zone
+            foreach ($usersByZone as $zone => $users) {
+                $logger->info("Zone $zone: " . implode(', ', $users));
+            }
+
             $tokenBatches = array_chunk($fcmTokens, 999);
+            $allSuccess = true;
+
             foreach ($tokenBatches as $index => $batch) {
-                $attempt = 0;
-                $success = false;
-                while (!$success && $attempt < 3) { // Prova fino a 3 volte per ciascun batch
-                    $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($batch);
-                    if ($res->status() === 200) {
-                        $logger->info("Batch " . ($index + 1) . " sent successfully.");
-                        $success = true;
-                    } else {
-                        $logger->info("Failed to send batch " . ($index + 1) . ", attempt " . ($attempt + 1) . ", Status: " . $res->status());
-                        $attempt++;
-                        sleep(5); // Aspetta per 5 secondi prima del prossimo tentativo
-                    }
+                if (isset($batchStatus[$index]) && $batchStatus[$index] === 'success') {
+                    continue;
                 }
+
+                $success = SendBatchNotification::dispatchSync($this->pushNotification, $batch, $index);
+                $batchStatus[$index] = $success ? 'success' : 'failed';
                 if (!$success) {
-                    $status = false;
+                    $allSuccess = false;
+                }
+            }
+
+            // Retry failed batches
+            foreach ($batchStatus as $index => $status) {
+                if ($status === 'failed') {
+                    $batch = $tokenBatches[$index];
+                    $success = SendBatchNotification::dispatchSync($this->pushNotification, $batch, $index);
+                    $batchStatus[$index] = $success ? 'success' : 'failed';
+                    if (!$success) {
+                        $allSuccess = false;
+                    }
                 }
             }
         } catch (\Exception $e) {
             $status = false;
             $logger->info("Error processing push notifications: " . $e->getMessage());
         } finally {
-            $this->pushNotification->status = $status;
+            $this->pushNotification->status = $allSuccess;
+            $this->pushNotification->batch_status = $batchStatus;
             $this->pushNotification->save();
-            $logger->info("Final status: " . ($status ? 'true' : 'false'));
+
+            $logger->info("Final status: " . ($allSuccess ? 'true' : 'false'));
         }
     }
 }

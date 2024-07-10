@@ -10,7 +10,8 @@ class PushNotification extends Model
     use HasFactory;
     protected $casts = [
         'schedule_date' => 'datetime', // Aggiungi questo per castare il campo come 'datetime'
-        'zone_ids' => 'array'
+        'zone_ids' => 'array',
+        'batch_status' => 'array',
     ];
     protected $fillable = [
         'created_at',
