@@ -26,3 +26,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('push_notifications', function (Blueprint $table) {
+            $table->dropColumn('batch_status');
+        });
+    }
+};
