@@ -10,19 +10,15 @@ use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Fields\Color;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Number;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Fields\BelongsTo;
-use Datomatic\NovaMarkdownTui\MarkdownTui;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Murdercode\TinymceEditor\TinymceEditor;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Database\Eloquent\Model;
-use Kraftbit\NovaTinymce5Editor\NovaTinymce5Editor;
+use Laravel\Nova\Fields\Code;
 use Laravel\Nova\Fields\HasMany;
 
 class Company extends Resource
@@ -293,7 +289,14 @@ class Company extends Resource
                 ->storeAs(function () {
                     return 'google-services.json';
                 }),
-
+            Code::make('Form JSON', 'form_json')
+                ->json()
+                ->rules('required', 'json')
+                ->displayUsing(function ($value) {
+                    return json_decode($value);
+                })
+                ->help('Edit the form JSON here. Make sure the JSON structure is valid.')
+                ->hideFromIndex(),
         ];
     }
 
