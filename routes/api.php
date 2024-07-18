@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\RegisterController;
@@ -88,8 +89,8 @@ Route::get('email/resend', [VerificationController::class, 'resend'])->name('ver
 Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
 
 Route::prefix('v1')->group(function () {
-    Route::post('/register', [RegisterController::class, 'register']);
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/register', [RegisterController::class, 'v1register']);
+    Route::post('/login', [LoginController::class, 'v1login']);
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::patch('/fcm-token', [LoginController::class, 'updateToken']);
     // NO MIDDLEWARES
@@ -109,6 +110,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
             return new CentriRaccoltaResource(Company::findOrFail($id));
         });
+        Route::get('/{id}/form_json', [CompanyController::class, 'index']);
     });
 
     // AUTH
