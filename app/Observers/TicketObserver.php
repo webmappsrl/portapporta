@@ -17,7 +17,7 @@ class TicketObserver
     public function created(Ticket $ticket)
     {
         // Metti in coda la job per la data prestabilita
-        ProcessTicket::dispatch($ticket, 'created')->onConnection('database');
+        ProcessTicket::dispatch($ticket, 'created');
     }
 
     /**
@@ -29,7 +29,7 @@ class TicketObserver
     public function updated(Ticket $ticket)
     {
         Log::info("updated");
-        ProcessTicket::dispatch($ticket, 'updated')->onConnection('database');
+        ProcessTicket::dispatch($ticket, 'updated');
     }
 
     /**
