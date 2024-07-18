@@ -199,6 +199,7 @@ return [
         'production' => [
             'supervisor-1' => [
                 'connection' => 'redis_production',
+                'queue' => ['production'],
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
@@ -207,6 +208,7 @@ return [
         'develop' => [
             'supervisor-1' => [
                 'connection' => 'redis_develop',
+                'queue' => ['develop'],
                 'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
