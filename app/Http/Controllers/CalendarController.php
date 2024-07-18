@@ -122,6 +122,7 @@ class CalendarController extends Controller
         $res = [];
         foreach ($addresses as $address) {
             $data = [];
+            $currentDayIndex = 0;
 
             // ritorna i calendari compresi dallo start allo stop ordinati temporalmente
             $calendars = Calendar::where('zone_id', $address->zone_id)
@@ -136,29 +137,24 @@ class CalendarController extends Controller
             $this->logger->info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
             $calendarIndex = 0;
             $this->logger->info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
-            foreach ($diff_in_date_from_start_stop as $currentDay) {
+            while ($currentDayIndex < count($diff_in_date_from_start_stop)) {
+                $currentDay = $diff_in_date_from_start_stop[$currentDayIndex];
                 $currentCalendar = $calendars[$calendarIndex];
 
-                if ($currentDay >= $currentCalendar->start_date && $currentDay <= $currentCalendar->stop_date) { // se il giono è dopo lo start del calendario corrente
-                    if (
-                        in_array($currentDay->dayOfWeek, $currentCalendar->calendarItems->pluck('day_of_week')->toArray())
-                    ) {
+                if ($currentDay >= $currentCalendar->start_date && $currentDay <= $currentCalendar->stop_date) { // se il giorno è dopo lo start del calendario corrente
+                    if (in_array($currentDay->dayOfWeek, $currentCalendar->calendarItems->pluck('day_of_week')->toArray())) {
                         $this->logger->info('costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
                         foreach ($currentCalendar->calendarItems->where('day_of_week', $currentDay->dayOfWeek) as $item) {
                             $p = [];
                             $p['trash_types'] = collect($item->trashTypes->toArray())->map(function ($trashType) {
                                 if (isset($trashType["allowed"]) && $trashType["allowed"] !== null) {
-                                    // $trashType["allowed"] esiste ed è non-null, quindi possiamo procedere
-                                    $trashType["allowed"]  = $trashType["allowed"]["it"];
+                                    $trashType["allowed"] = $trashType["allowed"]["it"];
                                 } else {
-                                    // $trashType["allowed"] è null o non impostato, gestisci l'errore o imposta un valore di default
                                     $trashType["allowed"] = "";
                                 }
                                 if (isset($trashType["notallowed"]) && $trashType["notallowed"] !== null) {
-                                    // $trashType["allowed"] esiste ed è non-null, quindi possiamo procedere
-                                    $trashType["notallowed"]  = $trashType["notallowed"]["it"];
+                                    $trashType["notallowed"] = $trashType["notallowed"]["it"];
                                 } else {
-                                    // $trashType["allowed"] è null o non impostato, gestisci l'errore o imposta un valore di default
                                     $trashType["notallowed"] = "";
                                 }
                                 return $trashType;
@@ -170,25 +166,27 @@ class CalendarController extends Controller
                                 $baseDate = Carbon::parse($item->base_date);
                                 $diffInWeeks = $baseDate->diffInWeeks($currentDay);
 
-                                // Aggiungi solo se la differenza in settimane è un multiplo di 2
                                 if ($diffInWeeks % 2 == 0) {
                                     $p['base_date'] = $item->base_date;
                                     $data[$currentDay->format('Y-m-d')][] = $p;
                                 }
                             } else {
-                                // Codice per la frequenza non bi-settimanale
                                 $data[$currentDay->format('Y-m-d')][] = $p;
                             }
                         }
                     } else {
-                        $this->logger->info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
+                        $this->logger->info('giorno di calendario skippato perché non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
                     }
                 }
+
                 if ($currentDay > $currentCalendar->stop_date && count($calendars) - 1 > $calendarIndex) {
                     $calendarIndex++;
                     $this->logger->info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+                } else {
+                    $currentDayIndex++;
                 }
             }
+
             $elem['address'] = $address;
             $elem['address']['zone'] = Zone::find($address['zone_id']);
             $elem['address']['user_type'] = UserType::find($address['user_type_id']);
