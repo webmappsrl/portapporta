@@ -22,7 +22,7 @@ class PushNotificationObserver
         $pushNotification->save();
         // Metti in coda la job per la data prestabilita
         ProcessPushNotification::dispatch($pushNotification)
-            ->delay($pushNotification->schedule_date)->onConnection('database');
+            ->delay($pushNotification->schedule_date);
     }
 
     /**
