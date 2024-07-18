@@ -198,6 +198,7 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
+                'connection' => 'redis_production',
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
@@ -205,6 +206,7 @@ return [
         ],
         'develop' => [
             'supervisor-1' => [
+                'connection' => 'redis_develop',
                 'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
@@ -212,6 +214,7 @@ return [
         ],
         'local' => [
             'supervisor-1' => [
+                'connection' => 'redis_local',
                 'maxProcesses' => 3,
             ],
         ],
