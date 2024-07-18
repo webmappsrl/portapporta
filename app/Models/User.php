@@ -48,7 +48,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'app_company_id',
         'fiscal_code',
         'user_code',
-        'admin_company_id'
+        'admin_company_id',
+        'form_data'
     ];
 
     /**
