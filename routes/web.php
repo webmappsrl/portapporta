@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Jobs\TestJob;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,5 +17,9 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 Route::get('phpmyinfo', function () {
-    phpinfo(); 
+    phpinfo();
 })->name('phpmyinfo');
+Route::get('/test-horizon', function () {
+    TestJob::dispatch();
+    return 'Test job dispatched';
+});
