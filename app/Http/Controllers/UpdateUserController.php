@@ -70,6 +70,7 @@ class UpdateUserController extends Controller
             $authUser = Auth::user();
             $changes = [];
             $user = User::find($authUser->id);
+            $formData = json_decode($user->form_data, true) ?? [];
 
             if ($request->has('name')) {
                 $user->name = $request->name;
@@ -81,10 +82,12 @@ class UpdateUserController extends Controller
             }
             if ($request->has('user_code')) {
                 $user->user_code = $request->user_code;
+                $formData['user_code'] = $request->user_code;
                 array_push($changes, 'user_code');
             }
             if ($request->has('fiscal_code')) {
                 $user->fiscal_code = $request->fiscal_code;
+                $formData['fiscal_code'] = $request->fiscal_code;
                 array_push($changes, 'fiscal_code');
             }
             if ($request->has('fcm_token')) {
@@ -93,12 +96,14 @@ class UpdateUserController extends Controller
             }
             if ($request->has('phone_number')) {
                 $user->phone_number = $request->phone_number;
+                $formData['phone_number'] = $request->phone_number;
                 array_push($changes, 'phone_number');
             }
             if ($request->has('app_company_id')) {
-                $user->phone_number = $request->app_company_id;
+                $user->app_company_id = $request->app_company_id;
                 array_push($changes, 'app_company_id');
             }
+            $user->form_data = json_encode($formData);
             if ($request->has('addresses')) {
                 Log::info($request->addresses);
                 foreach ($request->addresses as $address) {
@@ -158,6 +163,10 @@ class UpdateUserController extends Controller
     public function get(Request $request)
     {
         $user = $request->user();
+        $formData = json_decode($user->form_data)??[];
+        foreach ($formData as $key => $value) {
+            $user->$key = $value;
+        }
         $query = Address::where('user_id', $user->id)->get();
         $addresses = collect($query)->map(function ($address, $key) {
             $address->location = $this->getLocation($address->location);
