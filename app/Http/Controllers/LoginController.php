@@ -82,7 +82,7 @@ class LoginController extends Controller
                 $success['token'] =  $user->createToken('access_token')->plainTextToken;
                 $success['name'] =  $user->name;
                 $success['email_verified_at'] =  $user->email_verified_at;
-                $formData = json_decode($user->form_data);
+                $formData = json_decode($user->form_data)??[];
                 foreach ($formData as $key => $value) {
                     $user->$key = $value;
                 }
