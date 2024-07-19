@@ -14,6 +14,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\MorphToMany;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Illuminate\Support\Facades\Log;
 
 class User extends Resource
 {
@@ -52,7 +53,7 @@ class User extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [
+        $fields =  [
             ID::make()->sortable(),
             Gravatar::make()->maxWidth(50),
             Text::make('Name')
@@ -94,7 +95,6 @@ class User extends Resource
             MorphToMany::make('Permissions', 'permissions', \Vyuldashev\NovaPermission\Permission::class)->canSee(function ($request) {
                 return $request->user()->hasRole('super_admin');
             }),
-
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
@@ -104,7 +104,7 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
-            Text::make('Phone Number')
+            /*             Text::make('Phone Number')
                 ->rules('nullable', 'regex:/^\d{10,}$/') // Aggiungi le regole di validazione necessarie
                 ->creationRules('unique:users,phone_number')
                 ->updateRules('unique:users,phone_number,{{resourceId}}'),
@@ -115,7 +115,7 @@ class User extends Resource
             Text::make('User code')
                 ->rules('nullable', 'max:16')
                 ->creationRules('unique:users,user_code')
-                ->updateRules('unique:users,user_code,{{resourceId}}'),
+                ->updateRules('unique:users,user_code,{{resourceId}}'), */
             Boolean::make(__('Email Verified'), 'email_verified_at')
                 ->displayUsing(function ($value) {
                     return isset($value);
@@ -126,6 +126,21 @@ class User extends Resource
 
             HasMany::make('Addresses')
         ];
+
+        $formData = $this->form_data ?? [];
+        foreach ($formData as $key => $value) {
+            $label = ucwords(str_replace('_', ' ', $key));
+            $fields[] = Text::make(__($label), "form_data[{$key}]")
+                ->resolveUsing(function ($value) use ($key) {
+                    Log::info($this->form_data[$key]);
+                    return $this->form_data[$key] ?? '';
+                })
+                ->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($key) {
+                    $formData = $request->input('form_data') ?? [];
+                    $model->form_data = $formData;
+                });
+        }
+        return $fields;
     }
 
     /**

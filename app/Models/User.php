@@ -83,7 +83,15 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->belongsTo(Company::class, 'app_company_id');
     }
+    public function getFormDataAttribute($value)
+    {
+        return json_decode($value, true);
+    }
 
+    public function setFormDataAttribute($value)
+    {
+        $this->attributes['form_data'] = json_encode($value);
+    }
 
     /**
      * Determine if the user can impersonate another user.
