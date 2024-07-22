@@ -95,6 +95,7 @@ class User extends Resource
             MorphToMany::make('Permissions', 'permissions', \Vyuldashev\NovaPermission\Permission::class)->canSee(function ($request) {
                 return $request->user()->hasRole('super_admin');
             }),
+
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
@@ -104,18 +105,6 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
-            /*             Text::make('Phone Number')
-                ->rules('nullable', 'regex:/^\d{10,}$/') // Aggiungi le regole di validazione necessarie
-                ->creationRules('unique:users,phone_number')
-                ->updateRules('unique:users,phone_number,{{resourceId}}'),
-            Text::make('Fiscal code')
-                ->rules('nullable', 'max:16')
-                ->creationRules('unique:users,fiscal_code')
-                ->updateRules('unique:users,fiscal_code,{{resourceId}}'),
-            Text::make('User code')
-                ->rules('nullable', 'max:16')
-                ->creationRules('unique:users,user_code')
-                ->updateRules('unique:users,user_code,{{resourceId}}'), */
             Boolean::make(__('Email Verified'), 'email_verified_at')
                 ->displayUsing(function ($value) {
                     return isset($value);
@@ -127,18 +116,46 @@ class User extends Resource
             HasMany::make('Addresses')
         ];
 
-        $formData = $this->form_data ?? [];
-        foreach ($formData as $key => $value) {
-            $label = ucwords(str_replace('_', ' ', $key));
-            $fields[] = Text::make(__($label), "form_data[{$key}]")
-                ->resolveUsing(function ($value) use ($key) {
-                    Log::info($this->form_data[$key]);
-                    return $this->form_data[$key] ?? '';
-                })
-                ->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($key) {
-                    $formData = $request->input('form_data') ?? [];
-                    $model->form_data = $formData;
-                });
+        if(isset($this["app_company_id"])){
+            $company = \App\Models\Company::find($this->app_company_id);
+            $formData = json_decode($company->form_json, true) ?? [];
+            $harcoded_fields = ['name', 'email', 'password', 'confirm_password'];
+
+            foreach ($formData as $field) {
+                if (in_array($field['id'], $harcoded_fields)) {
+                    continue;
+                }
+                $label = ucwords(str_replace('_', ' ', $field['label']));
+                $key = $field['id'];
+                $rules = [];
+
+                if (isset($field['validators'])) {
+                    foreach ($field['validators'] as $validator) {
+                        if ($validator['name'] === 'required') {
+                            $rules[] = 'required';
+                        } elseif ($validator['name'] === 'email') {
+                            $rules[] = 'email';
+                        } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
+                            $rules[] = 'min:' . $validator['value'];
+                        }
+                    }
+                }
+
+                if ($field['type'] === 'text') {
+                    $fields[] = Text::make(__($label), "form_data[{$key}]")
+                        ->resolveUsing(function ($value) use ($key) {
+                            Log::info('resolveUsing per ' . $key);
+                            return $this->form_data[$key] ?? '';
+                        })
+                        ->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($key) {
+                            Log::info('Request Attribute: ' . $requestAttribute);
+                            $formData = $model->form_data ?? [];
+                            $formData[$key] = $request->input($requestAttribute);
+                            $model->form_data = $formData;
+                        })
+                        ->rules('required');
+                }
+            }
         }
         return $fields;
     }
