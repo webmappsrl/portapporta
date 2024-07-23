@@ -70,7 +70,7 @@ class UpdateUserController extends Controller
             $authUser = Auth::user();
             $changes = [];
             $user = User::find($authUser->id);
-            $formData = json_decode($user->form_data, true) ?? [];
+            $formData = $user->form_data ?? [];
 
             if ($request->has('name')) {
                 $user->name = $request->name;
@@ -103,7 +103,7 @@ class UpdateUserController extends Controller
                 $user->app_company_id = $request->app_company_id;
                 array_push($changes, 'app_company_id');
             }
-            $user->form_data = json_encode($formData);
+            $user->form_data = $formData;
             if ($request->has('addresses')) {
                 Log::info($request->addresses);
                 foreach ($request->addresses as $address) {
@@ -185,7 +185,7 @@ class UpdateUserController extends Controller
     }
 
     private function setUserWithFormDataFields($user){
-        $formData = json_decode($user->form_data)??[];
+        $formData = $user->form_data??[];
         foreach ($formData as $key => $value) {
             $user->$key = $value;
         }
