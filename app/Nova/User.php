@@ -115,47 +115,29 @@ class User extends Resource
 
             HasMany::make('Addresses')
         ];
-
-        if(isset($this["app_company_id"])){
-            $company = \App\Models\Company::find($this->app_company_id);
-            $formData = json_decode($company->form_json, true) ?? [];
-            $harcoded_fields = ['name', 'email', 'password', 'confirm_password'];
-
-            foreach ($formData as $field) {
-                if (in_array($field['id'], $harcoded_fields)) {
-                    continue;
-                }
-                $label = ucwords(str_replace('_', ' ', $field['label']));
-                $key = $field['id'];
-                $rules = [];
-
-                if (isset($field['validators'])) {
-                    foreach ($field['validators'] as $validator) {
-                        if ($validator['name'] === 'required') {
-                            $rules[] = 'required';
-                        } elseif ($validator['name'] === 'email') {
-                            $rules[] = 'email';
-                        } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
-                            $rules[] = 'min:' . $validator['value'];
-                        }
+        $company = \App\Models\Company::find($this->app_company_id) ?? new \App\Models\Company();
+        $formData = json_decode($company->form_json, true) ?? [];
+        $harcoded_fields = ['name', 'email', 'password', 'password_confirmation', 'secondStep'];
+        foreach ($formData as $field) {
+            $key = $field['id'];
+            if (in_array($key, $harcoded_fields)) {
+                continue;
+            }
+            $rules = [];
+            if (isset($field['validators'])) {
+                foreach ($field['validators'] as $validator) {
+                    if ($validator['name'] === 'required') {
+                        $rules[] = 'required';
+                    } elseif ($validator['name'] === 'email') {
+                        $rules[] = 'email';
+                    } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
+                        $rules[] = 'min:' . $validator['value'];
                     }
                 }
-
-                if ($field['type'] === 'text') {
-                    $fields[] = Text::make(__($label), "form_data[{$key}]")
-                        ->resolveUsing(function ($value) use ($key) {
-                            Log::info('resolveUsing per ' . $key);
-                            return $this->form_data[$key] ?? '';
-                        })
-                        ->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($key) {
-                            Log::info('Request Attribute: ' . $requestAttribute);
-                            $formData = $model->form_data ?? [];
-                            $formData[$key] = $request->input($requestAttribute);
-                            $model->form_data = $formData;
-                        })
-                        ->rules('required');
-                }
             }
+            $label = ucwords(str_replace('_', ' ', $field['label']));
+            $fields[] = Text::make(__($label), "form_data->$key")
+                ->rules($rules);
         }
         return $fields;
     }
