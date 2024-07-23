@@ -162,11 +162,7 @@ class UpdateUserController extends Controller
     }
     public function get(Request $request)
     {
-        $user = $request->user();
-        $formData = json_decode($user->form_data)??[];
-        foreach ($formData as $key => $value) {
-            $user->$key = $value;
-        }
+        $user = $this->setUserWithFormDataFields($request->user());
         $query = Address::where('user_id', $user->id)->get();
         $addresses = collect($query)->map(function ($address, $key) {
             $address->location = $this->getLocation($address->location);
@@ -186,5 +182,14 @@ class UpdateUserController extends Controller
     private function getGeometryFromLocation($location)
     {
         return DB::select("SELECT ST_GeomFromText('POINT(" . $location[1] . " " . $location[0] . " )') as g")[0]->g;
+    }
+
+    private function setUserWithFormDataFields($user){
+        $formData = json_decode($user->form_data)??[];
+        foreach ($formData as $key => $value) {
+            $user->$key = $value;
+        }
+
+        return $user;
     }
 }
