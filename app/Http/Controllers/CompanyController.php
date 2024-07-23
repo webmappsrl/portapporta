@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
-    public function index(Request $request)
+    public function formJson(Request $request)
     {
         $company = Company::find($request->id);
         $formJson = json_decode($company->form_json, true);

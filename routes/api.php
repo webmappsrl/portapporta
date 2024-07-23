@@ -110,7 +110,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
             return new CentriRaccoltaResource(Company::findOrFail($id));
         });
-        Route::get('/{id}/form_json', [CompanyController::class, 'index']);
+        Route::get('/{id}/form_json', [CompanyController::class, 'formJson']);
     });
 
     // AUTH
