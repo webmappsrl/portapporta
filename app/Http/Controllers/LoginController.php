@@ -34,7 +34,6 @@ class LoginController extends Controller
                 $success['token'] =  $user->createToken('access_token')->plainTextToken;
                 $success['name'] =  $user->name;
                 $success['email_verified_at'] =  $user->email_verified_at;
-                $user->form_data = json_decode($user->form_data);
 
                 $query = Address::where('user_id', $user->id)->get();
                 $addresses = collect($query)->map(function ($address, $key) {
