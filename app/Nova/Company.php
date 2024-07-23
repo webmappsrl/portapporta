@@ -290,12 +290,9 @@ class Company extends Resource
                     return 'google-services.json';
                 }),
             Code::make('Form JSON', 'form_json')
-                ->json()
+                ->language('json')
                 ->rules('required', 'json')
-                ->displayUsing(function ($value) {
-                    return json_decode($value);
-                })
-                ->help('Edit the form JSON here. Make sure the JSON structure is valid.')
+                ->help('I campi \'name\', \'email\', \'password\', \'password_confirmation\' sono obbligatori.')
                 ->hideFromIndex(),
         ];
     }
