@@ -58,57 +58,6 @@ class LoginController extends Controller
         }
     }
 
-    public function v1login(Request $request)
-    {
-        try {
-            $request->validate([
-                'email' => ['required'],
-                'password' => ['required'],
-            ]);
-
-            if (Auth::attempt($request->only('email', 'password'))) {
-                $user = Auth::user();
-                if (!$user->hasRole('super_admin') && $user->app_company_id != $request->app_company_id) {
-                    $message = 'Non puoi accedere a questa app.';
-                    $company = Company::find($user->app_company_id);
-                    if ($company) {
-                        $message = $message . ' Sei registrato all\'app: ' . $company->name . '.';
-                    }
-                    throw ValidationException::withMessages([
-                        'email' => [$message]
-                    ]);
-                }
-                $success['token'] =  $user->createToken('access_token')->plainTextToken;
-                $success['name'] =  $user->name;
-                $success['email_verified_at'] =  $user->email_verified_at;
-                $formData = $user->form_data??[];
-                foreach ($formData as $key => $value) {
-                    $user->$key = $value;
-                }
-
-                $query = Address::where('user_id', $user->id)->get();
-                $addresses = collect($query)->map(function ($address, $key) {
-                    $address->location = $this->getLocation($address->location);
-                    return $address;
-                });
-
-                if (!$addresses->isEmpty()) {
-                    $user->addresses = json_decode($addresses);
-                }
-
-                $success['user'] = $user;
-
-                return $this->sendResponse($success, 'User login successfully.');
-            }
-
-            throw ValidationException::withMessages([
-                'email' => ['Le credenziali inserite non sono corrette.']
-            ]);
-        } catch (Exception $e) {
-            return $this->sendError($e->getMessage());
-        }
-    }
-
     public function logout()
     {
         Auth::logout();

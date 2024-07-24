@@ -56,7 +56,7 @@ class RegisterController extends Controller
         return $this->sendResponse($success, 'User register successfully.');
     }
 
-    public function v1register(Request $request)
+    public function v2register(Request $request)
     {
         try {
             $request->validate([
@@ -70,23 +70,12 @@ class RegisterController extends Controller
             return $this->sendError($e->getMessage());
         }
 
-        $formData = [];
-        if (!is_null($request->phone_number)) {
-            $formData['phone_number'] = $request->phone_number;
-        }
-        if (!is_null($request->fiscal_code)) {
-            $formData['fiscal_code'] = $request->fiscal_code;
-        }
-        if (!is_null($request->user_code)) {
-            $formData['user_code'] = $request->user_code;
-        }
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'app_company_id' => intval($request->app_company_id),
-            'form_data' => json_encode($formData)
+            'form_data' => $request->form_data //TODO: da jeson_encode?
 
         ]);
         $user->assignRole('contributor');

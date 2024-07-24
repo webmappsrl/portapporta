@@ -70,7 +70,6 @@ class UpdateUserController extends Controller
             $authUser = Auth::user();
             $changes = [];
             $user = User::find($authUser->id);
-            $formData = $user->form_data ?? [];
 
             if ($request->has('name')) {
                 $user->name = $request->name;
@@ -82,12 +81,10 @@ class UpdateUserController extends Controller
             }
             if ($request->has('user_code')) {
                 $user->user_code = $request->user_code;
-                $formData['user_code'] = $request->user_code;
                 array_push($changes, 'user_code');
             }
             if ($request->has('fiscal_code')) {
                 $user->fiscal_code = $request->fiscal_code;
-                $formData['fiscal_code'] = $request->fiscal_code;
                 array_push($changes, 'fiscal_code');
             }
             if ($request->has('fcm_token')) {
@@ -96,14 +93,12 @@ class UpdateUserController extends Controller
             }
             if ($request->has('phone_number')) {
                 $user->phone_number = $request->phone_number;
-                $formData['phone_number'] = $request->phone_number;
                 array_push($changes, 'phone_number');
             }
             if ($request->has('app_company_id')) {
-                $user->app_company_id = $request->app_company_id;
+                $user->phone_number = $request->app_company_id;
                 array_push($changes, 'app_company_id');
             }
-            $user->form_data = $formData;
             if ($request->has('addresses')) {
                 Log::info($request->addresses);
                 foreach ($request->addresses as $address) {
@@ -138,6 +133,69 @@ class UpdateUserController extends Controller
             return $this->sendError($e->getMessage());
         }
     }
+
+    public function v2Update(Request $request)
+    {
+        try {
+            $authUser = Auth::user();
+            $changes = [];
+            $user = User::find($authUser->id);
+
+            if ($request->has('name')) {
+                $user->name = $request->name;
+                array_push($changes, 'name');
+            }
+            if ($request->has('email')) {
+                $user->email = $request->email;
+                array_push($changes, 'email');
+            }
+            if ($request->has('form_data')) {
+                $user->form_data = array_merge($user->form_data, $request->form_data);
+                array_push($changes, 'form_data');
+            }
+            if ($request->has('fcm_token')) {
+                $user->fcm_token = $request->fcm_token;
+                array_push($changes, 'fcm_token');
+            }
+            if ($request->has('app_company_id')) {
+                $user->phone_number = $request->app_company_id;
+                array_push($changes, 'app_company_id');
+            }
+            if ($request->has('addresses')) {
+                Log::info($request->addresses);
+                foreach ($request->addresses as $address) {
+                    if (isset($address['id'])) {
+                        $updateAddressRequest = new UpdateAddressRequest();
+                        $updateAddressRequest['id'] =  $address['id'];
+                        $updateAddressRequest['address'] =  $address['address'];
+                        $updateAddressRequest['location'] =  $address['location'];
+                        (new AddressController())->update($updateAddressRequest);
+                    } else {
+                        $createAddressRequest = new UpdateAddressRequest();
+                        $createAddressRequest['address'] =  $address['address'];
+                        $createAddressRequest['location'] =  $address['location'];
+                        (new AddressController())->create($createAddressRequest);
+                    }
+                    array_push($changes, 'addresses');
+                }
+                $user->addresses;
+            }
+            if ($request->has('password') && $request->has('password_confirmation')) {
+                $user->password = Hash::make($request->password);
+                array_push($changes, 'password');
+            }
+            $user->save();
+            $success['user'] =  $user;
+            return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
+
+            throw ValidationException::withMessages([
+                'wrong' => ['Something get wrong']
+            ]);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+    }
+
     public function delete(Request $request)
     {
         try {
@@ -162,7 +220,7 @@ class UpdateUserController extends Controller
     }
     public function get(Request $request)
     {
-        $user = $this->setUserWithFormDataFields($request->user());
+        $user = $request->user();
         $query = Address::where('user_id', $user->id)->get();
         $addresses = collect($query)->map(function ($address, $key) {
             $address->location = $this->getLocation($address->location);
@@ -182,14 +240,5 @@ class UpdateUserController extends Controller
     private function getGeometryFromLocation($location)
     {
         return DB::select("SELECT ST_GeomFromText('POINT(" . $location[1] . " " . $location[0] . " )') as g")[0]->g;
-    }
-
-    private function setUserWithFormDataFields($user){
-        $formData = $user->form_data??[];
-        foreach ($formData as $key => $value) {
-            $user->$key = $value;
-        }
-
-        return $user;
     }
 }
