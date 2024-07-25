@@ -75,7 +75,7 @@ class RegisterController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'app_company_id' => intval($request->app_company_id),
-            'form_data' => $request->form_data //TODO: da jeson_encode?
+            'form_data' => $request->form_data
 
         ]);
         $user->assignRole('contributor');
