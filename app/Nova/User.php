@@ -14,6 +14,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\MorphToMany;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Illuminate\Support\Facades\Log;
 
 class User extends Resource
 {
@@ -52,7 +53,7 @@ class User extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [
+        $fields =  [
             ID::make()->sortable(),
             Gravatar::make()->maxWidth(50),
             Text::make('Name')
@@ -104,18 +105,6 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
-            Text::make('Phone Number')
-                ->rules('nullable', 'regex:/^\d{10,}$/') // Aggiungi le regole di validazione necessarie
-                ->creationRules('unique:users,phone_number')
-                ->updateRules('unique:users,phone_number,{{resourceId}}'),
-            Text::make('Fiscal code')
-                ->rules('nullable', 'max:16')
-                ->creationRules('unique:users,fiscal_code')
-                ->updateRules('unique:users,fiscal_code,{{resourceId}}'),
-            Text::make('User code')
-                ->rules('nullable', 'max:16')
-                ->creationRules('unique:users,user_code')
-                ->updateRules('unique:users,user_code,{{resourceId}}'),
             Boolean::make(__('Email Verified'), 'email_verified_at')
                 ->displayUsing(function ($value) {
                     return isset($value);
@@ -126,6 +115,34 @@ class User extends Resource
 
             HasMany::make('Addresses')
         ];
+        $formData = [];
+        $company = \App\Models\Company::find($this->app_company_id);
+        if ($company) {
+            $formData = json_decode($company->form_json, true) ?? [];
+        }
+        $harcoded_fields = ['name', 'email', 'password', 'password_confirmation', 'secondStep'];
+        foreach ($formData as $field) {
+            $key = $field['id'];
+            if (in_array($key, $harcoded_fields)) {
+                continue;
+            }
+            $rules = [];
+            if (isset($field['validators'])) {
+                foreach ($field['validators'] as $validator) {
+                    if ($validator['name'] === 'required') {
+                        $rules[] = 'required';
+                    } elseif ($validator['name'] === 'email') {
+                        $rules[] = 'email';
+                    } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
+                        $rules[] = 'min:' . $validator['value'];
+                    }
+                }
+            }
+            $label = ucwords(str_replace('_', ' ', $field['label']));
+            $fields[] = Text::make(__($label), "form_data->$key")
+                ->rules($rules);
+        }
+        return $fields;
     }
 
     /**
