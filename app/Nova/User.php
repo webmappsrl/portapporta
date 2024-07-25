@@ -115,31 +115,32 @@ class User extends Resource
 
             HasMany::make('Addresses')
         ];
+        $formData = [];
         $company = \App\Models\Company::find($this->app_company_id);
-        if($company){
+        if ($company) {
             $formData = json_decode($company->form_json, true) ?? [];
-            $harcoded_fields = ['name', 'email', 'password', 'password_confirmation', 'secondStep'];
-            foreach ($formData as $field) {
-                $key = $field['id'];
-                if (in_array($key, $harcoded_fields)) {
-                    continue;
-                }
-                $rules = [];
-                if (isset($field['validators'])) {
-                    foreach ($field['validators'] as $validator) {
-                        if ($validator['name'] === 'required') {
-                            $rules[] = 'required';
-                        } elseif ($validator['name'] === 'email') {
-                            $rules[] = 'email';
-                        } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
-                            $rules[] = 'min:' . $validator['value'];
-                        }
+        }
+        $harcoded_fields = ['name', 'email', 'password', 'password_confirmation', 'secondStep'];
+        foreach ($formData as $field) {
+            $key = $field['id'];
+            if (in_array($key, $harcoded_fields)) {
+                continue;
+            }
+            $rules = [];
+            if (isset($field['validators'])) {
+                foreach ($field['validators'] as $validator) {
+                    if ($validator['name'] === 'required') {
+                        $rules[] = 'required';
+                    } elseif ($validator['name'] === 'email') {
+                        $rules[] = 'email';
+                    } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
+                        $rules[] = 'min:' . $validator['value'];
                     }
                 }
-                $label = ucwords(str_replace('_', ' ', $field['label']));
-                $fields[] = Text::make(__($label), "form_data->$key")
-                    ->rules($rules);
             }
+            $label = ucwords(str_replace('_', ' ', $field['label']));
+            $fields[] = Text::make(__($label), "form_data->$key")
+                ->rules($rules);
         }
         return $fields;
     }
