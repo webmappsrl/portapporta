@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
-    public function register(Request $request)
-    {
+    public function register(Request $request){
         try {
             $request->validate([
                 'name' => ['required'],
@@ -34,6 +33,49 @@ class RegisterController extends Controller
             'phone_number' => $request->phone_number,
             'fiscal_code' => $request->fiscal_code,
             'user_code' => $request->user_code
+
+        ]);
+        $user->assignRole('contributor');
+        try {
+            Address::create([
+                'user_id' => $user->id,
+                'zone_id' => $request->zone_id,
+                'user_type_id' => $request->user_type_id,
+                'address' => $request->address,
+                'city' => $request->city,
+                'house_number' => $request->house_number,
+                'location' => $this->getGeometryFromLocation($request->location),
+            ]);
+        } catch (\Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
+        }
+
+        $success['token'] =  $user->createToken('access_token')->plainTextToken;
+        $success['name'] =  $user->name;
+        event(new Registered($user));
+        return $this->sendResponse($success, 'User register successfully.');
+    }
+
+    public function v2register(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => ['required'],
+                'app_company_id' => ['required'],
+                'email' => ['required', 'email', 'unique:users'],
+                'password' => ['required', 'min:8', 'confirmed'],
+                'password_confirmation' => ['required'],
+            ]);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'app_company_id' => intval($request->app_company_id),
+            'form_data' => $request->form_data
 
         ]);
         $user->assignRole('contributor');
