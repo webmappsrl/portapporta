@@ -29,7 +29,8 @@ class PushNotificationController extends Controller
             ->where('status', true)
             ->where(function ($query) use ($addresses) {
                 foreach($addresses as $address) {
-                    $query->orWhereJsonContains('zone_ids', $address->zone_id);
+                    $query->orWhereJsonContains('zone_ids', (string)$address->zone_id)
+                        ->orWhereJsonContains('zone_ids', (int)$address->zone_id);
                 }
             })
             ->where('created_at', '>=', now()->subDays(30))

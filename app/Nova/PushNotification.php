@@ -63,8 +63,15 @@ class PushNotification extends Resource
             Textarea::make(__('message'), 'message')->maxlength(178)->enforceMaxlength(),
             DateTime::make(__('Schedule date'), 'schedule_date')->help(__('leave blank for instant scheduling'))->sortable(),
             Boolean::make(__('Status'), 'status')->hideFromDetail()->hideWhenUpdating()->hideWhenCreating(),
-            MultiSelect::make(__('Zone'), 'zone_ids')->options($this->getZones())->default($this->getZones(['id']))->nullable(),
-        ];
+            MultiSelect::make(__('Zone'), 'zone_ids')
+                ->options($this->getZones())
+                ->default($this->getZones(['id']))
+                ->displayUsing(function ($value) {
+                    $user = Auth::user();
+                    return $user->companyWhereAdmin->zones->whereIn('id', $value)->pluck('label')->toArray();
+                })
+                ->nullable(),
+            ];
     }
     private function getZones($fields = ['label', 'id'])
     {
