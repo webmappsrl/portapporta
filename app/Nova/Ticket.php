@@ -130,6 +130,9 @@ class Ticket extends Resource
                 case TicketStatus::Execute:
                     $statusColor = 'yellowgreen';
                     break;
+                case TicketStatus::Collected:
+                    $statusColor = 'cadetblue';
+                    break;
                 case TicketStatus::Deleted:
                     $statusColor = 'dodgerblue';
                     break;
