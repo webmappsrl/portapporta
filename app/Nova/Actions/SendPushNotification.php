@@ -30,10 +30,12 @@ class SendPushNotification extends Action
                 $fcm_tokens[] = $user->fcm_token;
             }
         }
-        $res = Larafirebase::fromArray([
-            'title' => $fields->title,
-            'body' => $fields->message
-        ])->sendNotification($fcm_tokens);
+        $res = Larafirebase::withTitle($fields->title)
+                ->withBody($fields->message)
+                ->withSound('default')
+                ->withAdditionalData([
+                    'page_on_click' => '/home'
+                ])->sendNotification($fcm_tokens);
         if ($res->status() === 200) {
             return Action::message('push notification sended successfully!');
         } else {
