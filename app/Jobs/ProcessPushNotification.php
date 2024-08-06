@@ -49,7 +49,12 @@ class ProcessPushNotification implements ShouldQueue
                 $attempt = 0;
                 $success = false;
                 while (!$success && $attempt < 3) { // Prova fino a 3 volte per ciascun batch
-                    $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($batch);
+                    $res = Larafirebase::withTitle($this->pushNotification->title)
+                        ->withBody($this->pushNotification->message)
+                        ->withSound('default')
+                        ->withAdditionalData([
+                            'page_on_click' => '/push-notification'
+                        ])->sendNotification($batch);
                     if ($res->status() === 200) {
                         $logger->info("Batch " . ($index + 1) . " sent successfully.");
                         $success = true;
