@@ -11,10 +11,11 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Nova\Auth\Impersonatable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Traits\WmNovaFieldsTrait;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
-    use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles, WmNovaFieldsTrait;
 
     /**
      * The "booted" method of the model.

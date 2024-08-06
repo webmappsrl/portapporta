@@ -115,34 +115,17 @@ class User extends Resource
 
             HasMany::make('Addresses')
         ];
-        $formData = [];
+        $filtered_schema = [];
         $company = \App\Models\Company::find($this->app_company_id);
         if ($company) {
-            $formData = json_decode($company->form_json, true) ?? [];
+            $form_schema = json_decode($company->form_json, true) ?? [];
+            $filtered_schema = array_filter($form_schema, function($field) {
+                return !isset($field['only_fe']) || !$field['only_fe'];
+            });
         }
-        $harcoded_fields = ['name', 'email', 'password', 'password_confirmation', 'secondStep'];
-        foreach ($formData as $field) {
-            $key = $field['id'];
-            if (in_array($key, $harcoded_fields)) {
-                continue;
-            }
-            $rules = [];
-            if (isset($field['validators'])) {
-                foreach ($field['validators'] as $validator) {
-                    if ($validator['name'] === 'required') {
-                        $rules[] = 'required';
-                    } elseif ($validator['name'] === 'email') {
-                        $rules[] = 'email';
-                    } elseif ($validator['name'] === 'minLength' && isset($validator['value'])) {
-                        $rules[] = 'min:' . $validator['value'];
-                    }
-                }
-            }
-            $label = ucwords(str_replace('_', ' ', $field['label']));
-            $fields[] = Text::make(__($label), "form_data->$key")
-                ->rules($rules);
-        }
-        return $fields;
+        $formData = $this->jsonForm('form_data', $filtered_schema);
+
+        return array_merge($fields, $formData);
     }
 
     /**
