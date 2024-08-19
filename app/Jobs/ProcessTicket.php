@@ -85,7 +85,6 @@ class ProcessTicket implements ShouldQueue
                     try {
                         $res =  Larafirebase::withTitle($title)
                             ->withBody($message)
-                            ->withSound('default')
                             ->withAdditionalData([
                                 'page_on_click' => '/reports',
                                 'ticket_id' => $this->ticket->id

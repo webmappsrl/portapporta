@@ -29,8 +29,16 @@ class UpdateTicketStatus extends Command
      */
     public function handle()
     {
+        $daysAgo = Carbon::now();
+        for ($i = 0; $i < 3; $i++) {
+            $daysAgo->subDay();
+            if ($daysAgo->isWeekend()) {
+                $i--;
+            }
+        }
+
         $tickets = Ticket::where('status', 'collected')
-            ->where('updated_at', '<', Carbon::now()->subDay())
+            ->where('updated_at', '<', $daysAgo)
             ->get();
 
         foreach ($tickets as $ticket) {

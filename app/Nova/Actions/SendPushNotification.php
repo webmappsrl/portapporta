@@ -32,7 +32,6 @@ class SendPushNotification extends Action
         }
         $res = Larafirebase::withTitle($fields->title)
                 ->withBody($fields->message)
-                ->withSound('default')
                 ->withAdditionalData([
                     'page_on_click' => '/home'
                 ])->sendNotification($fcm_tokens);
