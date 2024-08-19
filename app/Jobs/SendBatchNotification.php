@@ -28,25 +28,16 @@ class SendBatchNotification implements ShouldQueue
     public function handle()
     {
         $logger = Log::channel('push_notifications');
-        $attempt = 0;
-        $success = false;
-
         $logger->info("Preparing to send batch " . ($this->batchIndex + 1));
 
-        while (!$success && $attempt < 3) {
-            $logger->info("Attempting to send batch " . ($this->batchIndex + 1) . ", attempt " . ($attempt + 1));
-            $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($this->batch);
+        $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($this->batch);
 
-            if ($res->status() === 200) {
-                $logger->info("Batch " . ($this->batchIndex + 1) . " sent successfully.");
-                $success = true;
-            } else {
-                $logger->info("Failed to send batch " . ($this->batchIndex + 1) . ", attempt " . ($attempt + 1) . ", Status: " . $res->status());
-                $attempt++;
-                sleep(5); // Aspetta per 5 secondi prima del prossimo tentativo
-            }
+        if ($res->status() === 200) {
+            $logger->info("Batch " . ($this->batchIndex + 1) . " sent successfully.");
+            return true;
+        } else {
+            $logger->error("Batch " . ($this->batchIndex + 1) . " failed to send.");
+            return false;
         }
-
-        return $success;
     }
 }

@@ -15,6 +15,7 @@ class ProcessPushNotification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $pushNotification;
+    protected $maxRetries = 3;
 
     public function __construct(PushNotification $pushNotification)
     {
@@ -25,7 +26,6 @@ class ProcessPushNotification implements ShouldQueue
     {
         $logger = Log::channel('push_notifications');
         $zones = $this->pushNotification->zone_ids;
-        $status = true;
         $batchStatus = $this->pushNotification->batch_status ?? [];
         $usersByZone = [];
 
@@ -54,33 +54,30 @@ class ProcessPushNotification implements ShouldQueue
             }
 
             $tokenBatches = array_chunk($fcmTokens, 999);
+            $logger->info("Total batches to send: " . count($tokenBatches));
             $allSuccess = true;
 
             foreach ($tokenBatches as $index => $batch) {
+                $retryCount = 0;
+                $success = false;
+
                 if (isset($batchStatus[$index]) && $batchStatus[$index] === 'success') {
                     continue;
                 }
 
-                $success = SendBatchNotification::dispatchSync($this->pushNotification, $batch, $index);
+                while (!$success && $retryCount < $this->maxRetries) {
+                    $logger->info("Sending batch " . ($index + 1) . ", attempt " . ($retryCount + 1));
+                    $success = SendBatchNotification::dispatchSync($this->pushNotification, $batch, $index);
+                    $retryCount++;
+                }
+
                 $batchStatus[$index] = $success ? 'success' : 'failed';
                 if (!$success) {
                     $allSuccess = false;
-                }
-            }
-
-            // Retry failed batches
-            foreach ($batchStatus as $index => $status) {
-                if ($status === 'failed') {
-                    $batch = $tokenBatches[$index];
-                    $success = SendBatchNotification::dispatchSync($this->pushNotification, $batch, $index);
-                    $batchStatus[$index] = $success ? 'success' : 'failed';
-                    if (!$success) {
-                        $allSuccess = false;
-                    }
+                    $logger->error("Batch " . ($index + 1) . " failed after $retryCount attempts.");
                 }
             }
         } catch (\Exception $e) {
-            $status = false;
             $logger->info("Error processing push notifications: " . $e->getMessage());
         } finally {
             $this->pushNotification->status = $allSuccess;
