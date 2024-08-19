@@ -8,7 +8,6 @@ enum TicketStatus: string
     case New = 'new';
     case Readed = 'readed';
     case Execute = 'execute';
-    case Collected = 'collected';
     case Deleted = 'deleted';
     case Done = 'done';
 
@@ -18,7 +17,6 @@ enum TicketStatus: string
             'new' => 'new',
             'readed' => 'readed',
             'execute' => 'execute',
-            'collected' => 'collected',
             'deleted' => 'deleted',
             'done' => 'done',
         ];

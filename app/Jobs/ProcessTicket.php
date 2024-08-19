@@ -79,7 +79,7 @@ class ProcessTicket implements ShouldQueue
                 //send push notification to vip
             } elseif ($this->event === 'updated') {
                 Log::info("UPDATED");
-                if ($this->ticket->status === TicketStatus::Collected) {
+                if ($this->ticket->status === TicketStatus::Execute) {
                     $vipFcmToken = [$user->fcm_token];
                     $title = __('Raccolta VIP eseguita');
                     try {

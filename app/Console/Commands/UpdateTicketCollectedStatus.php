@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -13,14 +14,14 @@ class UpdateTicketStatus extends Command
      *
      * @var string
      */
-    protected $signature = 'tickets:update-collected';
+    protected $signature = 'tickets:update-execute';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Update status of tickets collected for more than one day to done';
+    protected $description = 'Update status of tickets execute for more than one day to done';
 
     /**
      * Execute the console command.
@@ -37,7 +38,7 @@ class UpdateTicketStatus extends Command
             }
         }
 
-        $tickets = Ticket::where('status', 'collected')
+        $tickets = Ticket::where('status', TicketStatus::Execute)
             ->where('updated_at', '<', $daysAgo)
             ->get();
 
