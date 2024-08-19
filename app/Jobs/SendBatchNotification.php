@@ -30,7 +30,11 @@ class SendBatchNotification implements ShouldQueue
         $logger = Log::channel('push_notifications');
         $logger->info("Preparing to send batch " . ($this->batchIndex + 1));
 
-        $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($this->batch);
+        $res = Larafirebase::withTitle($this->pushNotification->title)
+            ->withBody($this->pushNotification->message)
+            ->withAdditionalData([
+                'page_on_click' => '/push-notification'
+            ])->sendNotification($this->batch);
 
         if ($res->status() === 200) {
             $logger->info("Batch " . ($this->batchIndex + 1) . " sent successfully.");
