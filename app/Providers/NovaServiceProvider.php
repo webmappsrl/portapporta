@@ -52,7 +52,18 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                     ])->icon('trash')->collapsable(),
                     MenuItem::resource(User::class)
                 ];
-            } else return $menu;
+            } else {
+                $menu->append(
+                    MenuSection::make('DEV', [
+                        MenuItem::externalLink('phpmyinfo', url('phpmyinfo'))->openInNewTab(),
+                        MenuItem::externalLink('Horizon', url('horizon'))->openInNewTab(),
+                        MenuItem::externalLink('Logs', url('logs'))->openInNewTab(),
+                    ])->canSee(function ($request) {
+                        return $request->user()->hasRole('super_admin');
+                    })
+                );
+                return $menu;
+            }
         });
         Nova::userMenu(function (Request $request, Menu $menu) {
 
@@ -61,7 +72,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                     MenuItem::make(
                         'Profile (company: ' . $request->user()->companyWhereAdmin->name . ')',
                         "/resources/users/{$request->user()->id} . '/edit'"
-                    )
+                    ),
                 );
             }
 

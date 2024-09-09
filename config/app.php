@@ -193,6 +193,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\CurlServiceProvider::class,
         App\Providers\HorizonServiceProvider::class,
+        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
     ],
 
     /*
