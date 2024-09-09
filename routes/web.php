@@ -23,3 +23,4 @@ Route::get('/test-horizon', function () {
     TestJob::dispatch();
     return 'Test job dispatched';
 });
+Route::get('/logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index'])->middleware('auth');
