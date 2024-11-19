@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Translatable\HasTranslations;
 
-class Waste extends Model
+class Waste extends ExportableModel
 {
     use HasFactory;
     use HasTranslations;

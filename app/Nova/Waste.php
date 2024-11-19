@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
 use Khalin\Nova4SearchableBelongsToFilter\NovaSearchableBelongsToFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
+use App\Nova\Actions\ExportWasteToExcel;
 
 class Waste extends Resource
 {
@@ -127,7 +128,9 @@ class Waste extends Resource
      */
     public function actions(NovaRequest $request)
     {
-        return [];
+        return [
+            (new ExportWasteToExcel())->onlyOnIndex()->standalone()
+        ];
     }
 
     /**
