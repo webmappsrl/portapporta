@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use App\Nova\Actions\ExportToExcel;
 use App\Nova\Filters\WasteBooleanFilter;
 use App\Nova\Filters\WasteCollectionCenterFilter;
 use App\Nova\Filters\WasteDeliveryFilter;
@@ -20,6 +21,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Khalin\Nova4SearchableBelongsToFilter\NovaSearchableBelongsToFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
 use App\Nova\Actions\ExportWasteToExcel;
+use Illuminate\Support\Facades\Auth;
 
 class Waste extends Resource
 {
@@ -128,8 +130,22 @@ class Waste extends Resource
      */
     public function actions(NovaRequest $request)
     {
+        $user = Auth::user();
+        $waste = Waste::where('company_id', $user->companyWhereAdmin->id)->with('trashType');
+        $columns = [
+            'id' => 'ID',
+            'pap' => __('PAP'),
+            'delivery' => __('Delivery'),
+            'collection_center' => __('Collection Center'),
+            'trashType.name' => __('Trash Type'),
+            'name' => __('Name'),
+            'where' => __('Where'),
+            'notes' => __('Notes')
+        ];
+        $relations = ['trashType' => 'name'];
+
         return [
-            (new ExportWasteToExcel())->onlyOnIndex()->standalone()
+            (new ExportToExcel($waste, $columns, $relations, 'wastes.xlsx'))->onlyOnIndex()->standalone()
         ];
     }
 
