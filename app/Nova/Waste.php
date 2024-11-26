@@ -132,21 +132,41 @@ class Waste extends Resource
     {
         $user = Auth::user();
         $waste = Waste::where('company_id', $user->companyWhereAdmin->id)->with('trashType');
-        $columns = [
-            'id' => 'ID',
-            'pap' => __('PAP'),
-            'delivery' => __('Delivery'),
-            'collection_center' => __('Collection Center'),
-            'trashType.name' => __('Trash Type'),
-            'name' => __('Name'),
-            'where' => __('Where'),
-            'notes' => __('Notes')
-        ];
-        $relations = ['trashType' => 'name'];
 
         return [
-            (new ExportToExcel($waste, $columns, $relations, 'wastes.xlsx'))->onlyOnIndex()->standalone()
+            (new ExportToExcel($waste, $this->getExportColumns(), $this->getExportRelations(), 'wastes.xlsx'))
+                ->onlyOnIndex()
+                ->standalone()
         ];
+    }
+
+    /**
+     * Get the columns for export
+     *
+     * @return array
+     */
+    private function getExportColumns(): array
+    {
+        return [
+            'id' => 'ID',
+            'pap' => 'PAP',
+            'delivery' => 'Delivery',
+            'collection_center' => 'Collection Center',
+            'trashType.name' => 'Trash Type',
+            'name' => 'Name',
+            'where' => 'Where',
+            'notes' => 'Notes'
+        ];
+    }
+
+    /**
+     * Get the relations for export
+     *
+     * @return array
+     */
+    private function getExportRelations(): array
+    {
+        return ['trashType' => 'name'];
     }
 
     /**

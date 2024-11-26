@@ -24,12 +24,13 @@ class ExportToExcel extends Action
         return __('Export to Excel');
     }
 
-    public function __construct($exportModels, $columns = [], $relations = [], $fileName = 'export.xlsx')
+    public function __construct($exportModels, $columns = [], $relations = [], $fileName = 'export.xlsx', $styleCallback = null)
     {
         $this->exportModels = $exportModels;
         $this->columns = $columns;
         $this->relations = $relations;
         $this->fileName = $fileName;
+        $this->styleCallback = $styleCallback;
     }
 
     /**
@@ -41,7 +42,7 @@ class ExportToExcel extends Action
      */
     public function handle(ActionFields $fields, Collection $models)
     {
-        Excel::store(new ModelToExcel($this->exportModels, $this->columns, $this->relations), $this->fileName, 'public');
+        Excel::store(new ModelToExcel($this->exportModels, $this->columns, $this->relations, $this->styleCallback), $this->fileName, 'public');
         $downloadUrl = Storage::url($this->fileName);
         File::delete($downloadUrl);
         return ActionResponse::openInNewTab($downloadUrl);
