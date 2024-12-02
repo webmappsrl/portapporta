@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -11,10 +13,10 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 /**
- * Class for exporting Eloquent models to Excel.
+ * Class for exporting Eloquent models to various spreadsheet formats.
  *
- * This class allows easy export of Eloquent model data to Excel files,
- * with support for custom columns, relationships and styles.
+ * This class enables easy export of Eloquent model data to Excel, CSV, and other
+ * spreadsheet formats, with support for custom columns, relationships, and styling.
  *
  * @implements FromCollection
  * @implements WithHeadings
@@ -25,19 +27,17 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  * @example
  * ```php
  * // Using key => value pairs for custom headers
- * $export = new ModelToExcel(
+ * $export = new ModelExporter(
  *     User::query(),
  *     ['name' => 'User Name', 'email' => 'Email Address', 'profile.phone' => 'Phone Number'],
  *     ['profile' => 'phone'],
- *     function($sheet) {
- *         return [
- *             1 => ['font' => ['bold' => true]]
- *         ];
- *     }
+ *     [
+ *         1 => ['font' => ['bold' => true]]
+ *     ]
  * );
  *
  * // Using array of strings for direct column names as headers
- * $export = new ModelToExcel(
+ * $export = new ModelExporter(
  *     User::query(),
  *     ['name', 'email'],
  *     ['profile' => 'phone']
@@ -48,7 +48,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  * @link https://docs.laravel-excel.com/ Laravel Excel Documentation
  * @link https://phpspreadsheet.readthedocs.io/en/latest/topics/styling/ PhpSpreadsheet Styling Documentation
  */
-class ModelToExcel implements FromCollection, WithHeadings, WithStyles, WithMapping, ShouldAutoSize
+class ModelExporter implements FromCollection, WithHeadings, WithStyles, WithMapping, ShouldAutoSize
 {
     private const DEFAULT_STYLE = [
         1 => [
@@ -66,41 +66,39 @@ class ModelToExcel implements FromCollection, WithHeadings, WithStyles, WithMapp
     /**
      * @var \Illuminate\Database\Eloquent\Builder Query builder for the model
      */
-    protected $query;
+    protected Builder $query;
 
     /**
      * @var array Columns to export ['column' => 'Header Label']
      */
-    protected $columns;
+    protected array $columns;
 
     /**
      * @var array Relations to include ['relation' => 'attribute']
      */
-    protected $relations;
+    protected array $relations;
 
     /**
      * @var callable Callback for style customization
      */
-    protected $styleCallback;
+    protected array $styles;
 
     /**
-     * Crea una nuova istanza di ModelToExcel.
+     * Creates a new instance of ModelExporter.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query Model query builder
      * @param array $columns Columns to export. Can be either:
      *                      - ['column' => 'Header Label'] for custom headers
      *                      - ['column1', 'column2'] to use column names as headers
      * @param array $relations Relations to include ['relation' => 'attribute']
-     * @param callable|null $styleCallback Callback for custom styling
+     * @param array $styles custom styling
      */
-    public function __construct($query, $columns = [], $relations = [], $styleCallback = null)
+    public function __construct($query, $columns = [], $relations = [], $styles = null)
     {
         $this->query = $query;
         $this->columns = $columns;
         $this->relations = $relations;
-        $this->styleCallback = $styleCallback ?? function($sheet) {
-            return self::DEFAULT_STYLE;
-        };
+        $this->styles = $styles ?? $this::DEFAULT_STYLE;
     }
 
     /**
@@ -111,7 +109,7 @@ class ModelToExcel implements FromCollection, WithHeadings, WithStyles, WithMapp
      *
      * @return \Illuminate\Support\Collection
      */
-    public function collection()
+    public function collection(): Collection
     {
         if (empty($this->columns)) {
             $data = $this->query->get();
@@ -161,9 +159,9 @@ class ModelToExcel implements FromCollection, WithHeadings, WithStyles, WithMapp
      * @return array Array of styles for the sheet
      * @link https://phpspreadsheet.readthedocs.io/en/latest/topics/styling/
      */
-    public function styles($sheet)
+    public function styles($sheet): array
     {
-        return ($this->styleCallback)($sheet);
+        return $this->styles;
     }
 
     /**

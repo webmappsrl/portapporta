@@ -2,25 +2,20 @@
 
 namespace App\Nova;
 
-use App\Nova\Actions\ExportToExcel;
-use App\Nova\Filters\WasteBooleanFilter;
+use App\Enums\ExportFormat;
+use App\Nova\Actions\ExportTo;
 use App\Nova\Filters\WasteCollectionCenterFilter;
 use App\Nova\Filters\WasteDeliveryFilter;
 use App\Nova\Filters\WastePap;
 use App\Nova\Filters\WasteTrashTypeFilter;
-use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
-use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
-use Khalin\Nova4SearchableBelongsToFilter\NovaSearchableBelongsToFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
-use App\Nova\Actions\ExportWasteToExcel;
 use Illuminate\Support\Facades\Auth;
 
 class Waste extends Resource
@@ -134,7 +129,7 @@ class Waste extends Resource
         $waste = Waste::where('company_id', $user->companyWhereAdmin->id)->with('trashType');
 
         return [
-            (new ExportToExcel($waste, $this->getExportColumns(), $this->getExportRelations(), 'wastes.xlsx'))
+            (new ExportTo($waste, $this->getExportColumns(), $this->getExportRelations(), 'wastes'))
                 ->onlyOnIndex()
                 ->standalone()
         ];
