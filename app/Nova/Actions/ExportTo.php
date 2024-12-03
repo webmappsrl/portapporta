@@ -67,15 +67,21 @@ class ExportTo extends Action
      */
     public function handle(ActionFields $fields, Collection $models)
     {
+        $exportPath = 'exports';
+
         $format = isset($fields->format) ? $fields->format : $this->defaultFormat;
         $fileName = $this->fileName . '.' . ExportFormat::from($format)->extension();
+        $this->ensureExportFolderExists($exportPath);
+        $this->clearExportFolder($exportPath);
+        $filePath = $exportPath . '/' . $fileName;
+
         Excel::store(
             new ModelExporter($this->exportModels, $this->columns, $this->relations, $this->styles),
-            $fileName,
+            $filePath,
             'public',
             $format,
         );
-        $downloadUrl = Storage::url($fileName);
+        $downloadUrl = Storage::url($filePath);
         return ActionResponse::openInNewTab($downloadUrl);
     }
 
@@ -88,6 +94,22 @@ class ExportTo extends Action
                 ->placeholder(__("Seleziona il formato dell'esportazione"))
                 ->help(__("Seleziona il formato dell'esportazione"))
         ];
+    }
+
+    private function ensureExportFolderExists(string $folderPath)
+    {
+        if (!Storage::exists($folderPath)) {
+            Storage::makeDirectory($folderPath);
+        }
+    }
+
+    private function clearExportFolder(string $folderPath)
+    {
+        $files = Storage::disk('public')->allFiles($folderPath);
+
+        foreach ($files as $file) {
+            Storage::disk('public')->delete($file);
+        }
     }
 
 }

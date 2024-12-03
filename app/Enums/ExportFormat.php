@@ -10,8 +10,6 @@ enum ExportFormat: string
     case CSV = Excel::CSV;
     case ODS = Excel::ODS;
     case XLS = Excel::XLS;
-    case HTML = Excel::HTML;
-    case DOMPDF = Excel::DOMPDF;
 
     public function label(): string
     {
@@ -20,8 +18,6 @@ enum ExportFormat: string
             self::CSV => 'CSV',
             self::ODS => 'ODS',
             self::XLS => 'Excel 97-2003 (XLS)',
-            self::HTML => 'HTML Document',
-            self::DOMPDF => 'PDF (Dompdf)',
         };
     }
 
@@ -32,8 +28,6 @@ enum ExportFormat: string
             self::CSV => 'csv',
             self::ODS => 'ods',
             self::XLS => 'xls',
-            self::HTML => 'html',
-            self::DOMPDF => 'pdf',
         };
     }
 
