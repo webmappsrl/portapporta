@@ -6,12 +6,20 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\UserType;
 use App\Models\Zone;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class RegisterControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
+
+    private function assertErrorResponse($response, $expectedMessage)
+    {
+        $this->assertSame(400, $response->status());
+        $content = json_decode($response->content(), true);
+        $this->assertFalse($content['success']);
+        $this->assertStringContainsString($expectedMessage, $content['message']);
+    }
 
     public function testRegisterNameFieldRequired()
     {
@@ -19,10 +27,7 @@ class RegisterControllerTest extends TestCase
             'email' => 'team@webmapp.it',
             'password' => 'webmapp'
         ]);
-        $this->assertSame(400, $response->status());
-        $content = json_decode($response->content(), true);
-        $this->assertFalse($content['success']);
-        $this->assertStringContainsString('The name field is required', $content['message']);
+        $this->assertErrorResponse($response, 'The name field is required');
     }
 
     public function testRegisterAppCompanyIdFieldRequired()
@@ -32,10 +37,7 @@ class RegisterControllerTest extends TestCase
             'password' => 'webmapp',
             'name' => 'myName'
         ]);
-        $this->assertSame(400, $response->status());
-        $content = json_decode($response->content(), true);
-        $this->assertFalse($content['success']);
-        $this->assertStringContainsString('The app company id field is required', $content['message']);
+        $this->assertErrorResponse($response, 'The app company id field is required');
     }
 
     public function testRegisterPasswordMustBeAtLeast8()
@@ -45,12 +47,8 @@ class RegisterControllerTest extends TestCase
             'password' => 'webmapp',
             'name' => 'myName',
             'app_company_id' => 10
-
         ]);
-        $this->assertSame(400, $response->status());
-        $content = json_decode($response->content(), true);
-        $this->assertFalse($content['success']);
-        $this->assertStringContainsString('The password must be at least 8 characters', $content['message']);
+        $this->assertErrorResponse($response, 'The password must be at least 8 characters');
     }
 
     public function testRegisterPasswordConfirmationDoesNotMatchNoField()
@@ -62,10 +60,7 @@ class RegisterControllerTest extends TestCase
             'name' => 'myName',
             'app_company_id' => 10
         ]);
-        $this->assertSame(400, $response->status());
-        $content = json_decode($response->content(), true);
-        $this->assertFalse($content['success']);
-        $this->assertStringContainsString('The password confirmation does not match', $content['message']);
+        $this->assertErrorResponse($response, 'The password confirmation does not match');
     }
 
     public function testRegisterDuplicateEmail()
@@ -80,10 +75,7 @@ class RegisterControllerTest extends TestCase
             'app_company_id' => 10
         ]);
 
-        $this->assertSame(400, $response->status());
-        $content = json_decode($response->content(), true);
-        $this->assertFalse($content['success']);
-        $this->assertStringContainsString('The email has already been taken', $content['message']);
+        $this->assertErrorResponse($response, 'The email has already been taken');
     }
 
     public function testRegisterSuccess()
