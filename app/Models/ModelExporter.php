@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
+
 /**
  * Class for exporting Eloquent models to various spreadsheet formats.
  *
@@ -50,7 +51,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  */
 class ModelExporter implements FromCollection, WithHeadings, WithStyles, WithMapping, ShouldAutoSize
 {
-    private const DEFAULT_STYLE = [
+    const DEFAULT_STYLE = [
         1 => [
             'font' => [
                 'bold' => true,
@@ -93,12 +94,12 @@ class ModelExporter implements FromCollection, WithHeadings, WithStyles, WithMap
      * @param array $relations Relations to include ['relation' => 'attribute']
      * @param array $styles custom styling
      */
-    public function __construct($query, $columns = [], $relations = [], $styles = null)
+    public function __construct($query, $columns = [], $relations = [], $styles = self::DEFAULT_STYLE)
     {
         $this->query = $query;
         $this->columns = $columns;
         $this->relations = $relations;
-        $this->styles = $styles ?? $this::DEFAULT_STYLE;
+        $this->styles = $styles;
     }
 
     /**

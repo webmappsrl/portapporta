@@ -11,7 +11,6 @@ enum ExportFormat: string
     case ODS = Excel::ODS;
     case XLS = Excel::XLS;
     case HTML = Excel::HTML;
-    case MPDF = Excel::MPDF;
     case DOMPDF = Excel::DOMPDF;
 
     public function label(): string
@@ -22,7 +21,6 @@ enum ExportFormat: string
             self::ODS => 'ODS',
             self::XLS => 'Excel 97-2003 (XLS)',
             self::HTML => 'HTML Document',
-            self::MPDF => 'PDF (Mpdf)',
             self::DOMPDF => 'PDF (Dompdf)',
         };
     }
@@ -35,7 +33,7 @@ enum ExportFormat: string
             self::ODS => 'ods',
             self::XLS => 'xls',
             self::HTML => 'html',
-            self::MPDF, self::DOMPDF => 'pdf',
+            self::DOMPDF => 'pdf',
         };
     }
 

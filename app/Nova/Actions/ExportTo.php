@@ -47,7 +47,7 @@ class ExportTo extends Action
         $columns = [],
         $relations = [],
         $fileName = 'export',
-        $styles = null,
+        $styles = ModelExporter::DEFAULT_STYLE,
         $defaultFormat = ExportFormat::XLSX->value
     ){
         $this->exportModels = $exportModels;
@@ -76,7 +76,6 @@ class ExportTo extends Action
             $format,
         );
         $downloadUrl = Storage::url($fileName);
-        File::delete($downloadUrl);
         return ActionResponse::openInNewTab($downloadUrl);
     }
 

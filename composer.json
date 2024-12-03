@@ -24,7 +24,6 @@
         "laravel/tinker": "^2.7",
         "maatwebsite/excel": "^3.1",
         "manogi/nova-tiptap": "^3.2",
-        "mpdf/mpdf": "^8.2",
         "murdercode/nova4-tinymce-editor": "^1.0",
         "predis/predis": "^2.2",
         "rap2hpoutre/laravel-log-viewer": "^2.4",
