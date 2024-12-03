@@ -24,3 +24,6 @@ Route::get('/test-horizon', function () {
     return 'Test job dispatched';
 });
 Route::get('/logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index'])->middleware('auth');
+Route::get('/download-export/{fileName}', [\App\Http\Controllers\ExportDownloadController::class, 'download'])
+    ->name('download.export')
+    ->middleware('signed');
