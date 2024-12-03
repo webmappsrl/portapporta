@@ -7,8 +7,8 @@ use App\Models\ModelExporter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Actions\ActionResponse;
 use Laravel\Nova\Fields\ActionFields;
@@ -67,22 +67,23 @@ class ExportTo extends Action
      */
     public function handle(ActionFields $fields, Collection $models)
     {
-        $exportPath = 'exports';
-
         $format = isset($fields->format) ? $fields->format : $this->defaultFormat;
-        $fileName = $this->fileName . '.' . ExportFormat::from($format)->extension();
-        $this->ensureExportFolderExists($exportPath);
-        $this->clearExportFolder($exportPath);
-        $filePath = $exportPath . '/' . $fileName;
+        $uniqueId = now()->timestamp;
+        $fileName = $this->fileName . '_' . $uniqueId . '.' . ExportFormat::from($format)->extension();
+
 
         Excel::store(
             new ModelExporter($this->exportModels, $this->columns, $this->relations, $this->styles),
-            $filePath,
+            $fileName,
             'public',
             $format,
         );
-        $downloadUrl = Storage::url($filePath);
-        return ActionResponse::openInNewTab($downloadUrl);
+        $signedUrl = URL::temporarySignedRoute(
+            'download.export',
+            now()->addMinutes(5),
+            ['fileName' => $fileName]
+        );
+        return ActionResponse::openInNewTab($signedUrl);
     }
 
     public function fields(NovaRequest $request)
@@ -94,22 +95,6 @@ class ExportTo extends Action
                 ->placeholder(__("Seleziona il formato dell'esportazione"))
                 ->help(__("Seleziona il formato dell'esportazione"))
         ];
-    }
-
-    private function ensureExportFolderExists(string $folderPath)
-    {
-        if (!Storage::exists($folderPath)) {
-            Storage::makeDirectory($folderPath);
-        }
-    }
-
-    private function clearExportFolder(string $folderPath)
-    {
-        $files = Storage::disk('public')->allFiles($folderPath);
-
-        foreach ($files as $file) {
-            Storage::disk('public')->delete($file);
-        }
     }
 
 }
