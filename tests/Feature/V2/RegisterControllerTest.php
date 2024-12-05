@@ -7,23 +7,29 @@ use App\Models\User;
 use App\Models\UserType;
 use App\Models\Zone;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
 class RegisterControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
+    private static string $REGISTER_ENDPOINT = '/api/v2/register';
+
     private function assertErrorResponse($response, $expectedMessage)
     {
-        $this->assertSame(400, $response->status());
-        $content = json_decode($response->content(), true);
-        $this->assertFalse($content['success']);
-        $this->assertStringContainsString($expectedMessage, $content['message']);
+        $response->assertStatus(400)
+                 ->assertJson([
+                     'success' => false,
+                 ])
+                 ->assertJsonPath('message', fn ($message) =>
+                     str_contains($message, $expectedMessage)
+                 );
     }
 
     public function testRegisterNameFieldRequired()
     {
-        $response = $this->post('/api/v2/register', [
+        $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmapp'
         ]);
@@ -32,7 +38,7 @@ class RegisterControllerTest extends TestCase
 
     public function testRegisterAppCompanyIdFieldRequired()
     {
-        $response = $this->post('/api/v2/register', [
+        $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmapp',
             'name' => 'myName'
@@ -42,7 +48,7 @@ class RegisterControllerTest extends TestCase
 
     public function testRegisterPasswordMustBeAtLeast8()
     {
-        $response = $this->post('/api/v2/register', [
+        $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmapp',
             'name' => 'myName',
@@ -53,7 +59,7 @@ class RegisterControllerTest extends TestCase
 
     public function testRegisterPasswordConfirmationDoesNotMatchNoField()
     {
-        $response = $this->post('/api/v2/register', [
+        $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
             'password_confirmation' => 'ppambewppambew',
@@ -67,7 +73,7 @@ class RegisterControllerTest extends TestCase
     {
         $existingUser = User::factory()->create(['email' => 'team@webmapp.it']);
 
-        $response = $this->post('/api/v2/register', [
+        $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
             'password_confirmation' => 'webmappwebmapp',
@@ -84,7 +90,7 @@ class RegisterControllerTest extends TestCase
         $u = UserType::factory()->create();
         $c = Company::factory()->create();
 
-        $response = $this->post('/api/v2/register', [
+        $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
             'password_confirmation' => 'webmappwebmapp',
@@ -96,9 +102,16 @@ class RegisterControllerTest extends TestCase
             'location' => [10, 45],
             'address' => 'via da qua',
         ]);
-        $this->assertSame(200, $response->status());
-        $content = json_decode($response->content());
-        $this->assertSame(true, $content->success);
-        $this->assertNotEmpty($content->data);
+
+        $response->assertOk()
+                 ->assertJson(fn (AssertableJson $json) =>
+                     $json->where('success', true)
+                          ->has('message')
+                          ->has('data', fn (AssertableJson $json) =>
+                              $json->has('name')
+                                   ->has('token')
+                          )
+
+                 );
     }
 }
