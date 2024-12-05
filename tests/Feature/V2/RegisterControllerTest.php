@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\V2;
 
+use App\Models\Address;
 use App\Models\Company;
 use App\Models\User;
 use App\Models\UserType;
 use App\Models\Zone;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
@@ -90,17 +92,24 @@ class RegisterControllerTest extends TestCase
         $u = UserType::factory()->create();
         $c = Company::factory()->create();
 
+        $userData = [
+            'form_data' => ['phone_number' => '3333333333', 'fiscal_code' => 'PPPPPP1P11P111P'],
+            'app_company_id' => $c->id,
+        ];
+        $addressData = [
+            'zone_id' => $z->id,
+            'user_type_id' => $u->id,
+            'address' => 'via da qua',
+            'location' => [10, 45],
+        ];
+
         $response = $this->post(self::$REGISTER_ENDPOINT, [
             'email' => 'team@webmapp.it',
             'password' => 'webmappwebmapp',
             'password_confirmation' => 'webmappwebmapp',
             'name' => 'myName',
-            'form_data' => ['phone_number' => '3333333333', 'fiscal_code' => 'PPPPPP1P11P111P'],
-            'app_company_id' => $c->id,
-            'zone_id' => $z->id,
-            'user_type_id' => $u->id,
-            'location' => [10, 45],
-            'address' => 'via da qua',
+            ...$userData,
+            ...$addressData
         ]);
 
         $response->assertOk()
@@ -113,5 +122,24 @@ class RegisterControllerTest extends TestCase
                           )
 
                  );
+
+        $user = User::where('email', 'team@webmapp.it')->first();
+        $this->assertNotNull($user);
+        foreach ($userData as $key => $value) {
+            $this->assertEquals($value, $user->{$key});
+        }
+
+        $address = Address::where([
+            'user_id' => $user->id,
+            'zone_id' => $z->id
+        ])->first();
+        foreach ($addressData as $key => $value) {
+            if ($key === 'location') {
+                $expectedLocation = DB::select("SELECT ST_GeomFromText('POINT(" . $value[0] . " " . $value[1] . ")', 4326) as g")[0]->g;
+                $this->assertEquals($expectedLocation, $address->{$key});
+            } else {
+                $this->assertEquals($value, $address->{$key});
+            }
+        }
     }
 }
