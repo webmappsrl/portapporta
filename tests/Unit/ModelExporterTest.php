@@ -29,6 +29,7 @@ class ModelExporterTest extends TestCase
                 'name' => 'John',
                 'surname' => 'Doe',
                 'email' => 'john@example.com',
+                'is_active' => true,
                 'profile_id' => 11
             ],
             [
@@ -36,6 +37,7 @@ class ModelExporterTest extends TestCase
                 'name' => 'Jane',
                 'surname' => 'Smith',
                 'email' => 'jane@example.com',
+                'is_active' => false,
                 'profile_id' => 22
             ],
         ]);
@@ -165,5 +167,21 @@ class ModelExporterTest extends TestCase
         $styles = $exporter->styles($this->createMock(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::class));
 
         $this->assertEquals($customStyles, $styles);
+    }
+
+    public function testMapWithBooleanValues()
+    {
+        $exporter = new ModelExporter($this->queryMock);
+        $mapped = $exporter->map($this->usersWithProfiles->first());
+
+        $this->assertEquals([
+            'id' => 1,
+            'name' => 'John',
+            'surname' => 'Doe',
+            'email' => 'john@example.com',
+            'is_active' => __('Yes'),
+            'profile_id' => 11,
+            'profile' => (object)['id' => 11, 'phone' => '1234567890']
+        ], $mapped);
     }
 }
