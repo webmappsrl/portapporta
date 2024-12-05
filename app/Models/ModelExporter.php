@@ -123,7 +123,7 @@ class ModelExporter implements FromCollection, WithHeadings, WithStyles, WithMap
 
             foreach ($this->columns as $key => $value) {
                 $column = is_numeric($key) ? $value : $key;
-                $result[$column] = $item[$column];
+                $result[$column] = data_get($item, $column);
             }
 
             foreach ($this->relations as $relation => $attribute) {
@@ -180,7 +180,7 @@ class ModelExporter implements FromCollection, WithHeadings, WithStyles, WithMap
             return Schema::getColumnListing($table);
         }
 
-        return collect($this->columns)->map(function ($value, $key) {
+        return collect($this->columns)->values()->map(function ($value) {
             return __($value);
         })->toArray();
     }
