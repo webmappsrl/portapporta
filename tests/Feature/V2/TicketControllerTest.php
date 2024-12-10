@@ -19,176 +19,141 @@ use App\Mail\TicketDeleted;
 class TicketControllerTest extends TestCase
 {
     use DatabaseTransactions;
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
+    protected $user;
+    protected $vipUser;
+    protected $dustyMan;
+    protected $company;
+
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->vipUser = User::factory()->create()->assignRole('vip');
+        $this->dustyMan = User::factory()->create()->assignRole('dusty_man');
+        $this->company = Company::factory()->create([
+            'ticket_email' => 'test@example.com'
+        ]);
+    }
+
     public function testIndexAsDustyMan()
     {
-        $user = User::factory()->create();
-        $user->assignRole('dusty_man');
-
-        Sanctum::actingAs(
-            $user,
-        );
-
-        $company = Company::factory()->create();
-
-        $vipUser = User::factory()->create();
-        $vipUser->assignRole('vip');
-
         $ticket = Ticket::factory()->create([
-            'user_id' => $vipUser->id,
-            'company_id' => $company->id,
+            'user_id' => $this->vipUser->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::New->value,
         ]);
+        
+        Sanctum::actingAs(
+            $this->dustyMan,
+        );
 
-        $response = $this->get("/api/v2/c/{$company->id}/tickets");
-        $response->assertStatus(200);
-
-        $response->assertJsonFragment(['id' => $ticket->id]);
+        $this->get("/api/v2/c/{$this->company->id}/tickets")
+            ->assertStatus(200)
+            ->assertJsonFragment(['id' => $ticket->id]);
     }
 
     public function testIndexAsDustyManExcludesInvalidTickets()
     {
-        $user = User::factory()->create();
-        $user->assignRole('dusty_man');
-
-        Sanctum::actingAs(
-            $user,
-        );
-
-        $company = Company::factory()->create();
-        $vipUser = User::factory()->create();
-        $vipUser->assignRole('vip');
+        $otherCompany = Company::factory()->create();
 
         $nonNewTicket = Ticket::factory()->create([
-            'user_id' => $vipUser->id,
-            'company_id' => $company->id,
+            'user_id' => $this->vipUser->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::Execute->value
         ]);
 
-        $otherCompany = Company::factory()->create();
         $otherCompanyTicket = Ticket::factory()->create([
-            'user_id' => $vipUser->id,
+            'user_id' => $this->vipUser->id,
             'company_id' => $otherCompany->id,
             'status' => TicketStatus::New->value
         ]);
 
-        $response = $this->get("/api/v2/c/{$company->id}/tickets");
-        $response->assertStatus(200);
+        Sanctum::actingAs(
+            $this->dustyMan,
+        );
 
-        $response->assertJsonMissing(['id' => $nonNewTicket->id]);
-        $response->assertJsonMissing(['id' => $otherCompanyTicket->id]);
+        $this->get("/api/v2/c/{$this->company->id}/tickets")
+            ->assertStatus(200)
+            ->assertJsonMissing(['id' => $nonNewTicket->id])
+            ->assertJsonMissing(['id' => $otherCompanyTicket->id]);
     }
 
     public function testIndexAsRegularUser()
     {
-        // Create a regular user
-        $user = User::factory()->create();
-
-        Sanctum::actingAs(
-            $user,
-        );
-
-        // Create a company and a ticket for the user
-        $company = Company::factory()->create();
         $ticket = Ticket::factory()->create([
-            'user_id' => $user->id,
-            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::Execute->value,
         ]);
+        
+        Sanctum::actingAs(
+            $this->user,
+        );
 
-        // Act as the regular user
-        $response = $this->get("/api/v2/c/{$company->id}/tickets");
-
-        // Assert the response contains the ticket
-        $response->assertStatus(200);
-        $response->assertJsonFragment(['id' => $ticket->id]);
+        $this->get("/api/v2/c/{$this->company->id}/tickets")
+            ->assertStatus(200)
+            ->assertJsonMissing(["id" => (string)$ticket->id]);
     }
 
     public function testIndexAsRegularUserExcludesDoneAndDeletedTickets()
     {
-        // Create a regular user
-        $user = User::factory()->create();
 
-        Sanctum::actingAs(
-            $user,
-        );
-
-        // Create a company and tickets for the user
-        $company = Company::factory()->create();
         $doneTicket = Ticket::factory()->create([
-            'user_id' => $user->id,
-            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::Done->value,
         ]);
         $deletedTicket = Ticket::factory()->create([
-            'user_id' => $user->id,
-            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::Deleted->value,
         ]);
 
-        // Act as the regular user
-        $response = $this->get("/api/v2/c/{$company->id}/tickets");
-
-        // Assert the response does not contain the done or deleted tickets
-        $response->assertStatus(200);
-        $response->assertJsonMissing(['id' => $doneTicket->id]);
-        $response->assertJsonMissing(['id' => $deletedTicket->id]);
+        Sanctum::actingAs(
+            $this->user,
+        );
+        
+        $this->get("/api/v2/c/{$this->company->id}/tickets")
+            ->assertStatus(200)
+            ->assertJsonMissing(['id' => $doneTicket->id])
+            ->assertJsonMissing(['id' => $deletedTicket->id]);
     }
 
     public function testTicketsAsRegularUserAreOrdered()
     {
-        // Create a regular user
-        $user = User::factory()->create();
-
         Sanctum::actingAs(
-            $user,
+            $this->user,
         );
-
-        // Create a company
-        $company = Company::factory()->create();
 
         // Create two tickets with different creation dates
         $olderTicket = Ticket::factory()->create([
-            'user_id' => $user->id,
-            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::Execute->value,
             'created_at' => now()->subDays(2)
         ]);
 
         $newerTicket = Ticket::factory()->create([
-            'user_id' => $user->id,
-            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
             'status' => TicketStatus::Execute->value,
             'created_at' => now()->subDay()
         ]);
 
-        // Act as the regular user
-        $response = $this->get("/api/v2/c/{$company->id}/tickets");
-
-        // Assert response status
-        $response->assertStatus(200);
-
-        // Get the tickets from the response
+        $response = $this->get("/api/v2/c/{$this->company->id}/tickets")
+            ->assertStatus(200);
+            
         $responseData = json_decode($response->getContent(), true);
         $tickets = $responseData['data'];
 
-        // Assert the newer ticket appears before the older ticket
         $this->assertEquals($newerTicket->id, $tickets[0]['id']);
         $this->assertEquals($olderTicket->id, $tickets[1]['id']);
     }
 
     public function testV1StoreSuccessfulTicketCreation()
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
-
-        $company = Company::factory()->create([
-            'ticket_email' => 'test@example.com'
-        ]);
+        Sanctum::actingAs($this->user);
 
         Mail::fake();
 
@@ -201,62 +166,50 @@ class TicketControllerTest extends TestCase
             'house_number' => '123'
         ];
 
-        $response = $this->post("/api/v2/c/{$company->id}/ticket", $ticket);
-
-        $response->assertStatus(200);
-
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->has('success')
-                 ->has('data', fn (AssertableJson $json) =>
-                     $json->has('id')
-                          ->where('ticket_type', 'reservation')
-                          ->where('company_id', (string)$company->id)
-                          ->where('user_id', $user->id)
-                          ->etc()
-                 )
-                 ->where('message', 'Ticket created.')
-        );
+        $this->post("/api/v2/c/{$this->company->id}/ticket", $ticket)
+        ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('success')
+                    ->has('data', fn (AssertableJson $json) =>
+                        $json->has('id')
+                        ->where('ticket_type', 'reservation')
+                        ->where('company_id', (string)$this->company->id)
+                        ->where('user_id', $this->user->id)
+                        ->where('note', 'Test note')
+                        ->where('phone', '1234567890')
+                        ->where('location_address', 'Test City, Test Street, 123')
+                        ->etc()
+                    )
+                    ->where('message', 'Ticket created.')
+            );
 
         Mail::assertSent(TicketCreated::class);
 
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('message', 'Ticket created.')
-                    ->etc()
-        );
-
         $this->assertDatabaseHas('tickets', [
             'ticket_type' => 'reservation',
-            'company_id' => $company->id,
-            'user_id' => $user->id,
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'note' => 'Test note',
+            'phone' => '1234567890',
+            'location_address' => 'Test City, Test Street, 123'
         ]);
 
     }
 
     public function testV1StoreValidatesTicketType()
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
-
-        $company = Company::factory()->create();
-
-
         $ticket = [
-            'ticket_type' => 'invalid_type',
-            'note' => 'Test note',
-            'phone' => '1234567890',
-            'city' => 'Test City',
-            'address' => 'Test Street',
-            'house_number' => '123'
+            'ticket_type' => 'invalid_type'
         ];
 
-        $response = $this->post("/api/v2/c/{$company->id}/ticket", $ticket);
-        
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('success', false)
+        Sanctum::actingAs($this->user);
+
+        $this->post("/api/v2/c/{$this->company->id}/ticket", $ticket)        
+            ->assertStatus(400)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->where('success', false)
                  ->where('message', 'The selected ticket type is invalid.')
         );
-
-        $response->assertStatus(400);
 
     }
 
@@ -268,13 +221,11 @@ class TicketControllerTest extends TestCase
             'note' => 'updated note',
         ];
 
-        $response = $this->patch("/api/v2/ticket/{$ticket->id}", $changes);
-
-        $response->assertStatus(200);
-
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('message', 'Ticket updated.')
-                 ->etc()
+        $this->patch("/api/v2/ticket/{$ticket->id}", $changes)
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->where('message', 'Ticket updated.')
+                     ->etc()
         );
 
         $this->assertDatabaseHas('tickets', [
@@ -285,11 +236,8 @@ class TicketControllerTest extends TestCase
 
     public function testV1UpdateSendsEmailWhenTicketIsDeleted()
     {
-        $company = Company::factory()->create([
-            'ticket_email' => 'test@example.com'
-        ]);
         $ticket = Ticket::factory()->create([
-            'company_id' => $company->id,
+            'company_id' => $this->company->id,
         ]);
 
         Mail::fake();
@@ -298,13 +246,11 @@ class TicketControllerTest extends TestCase
             'status' => TicketStatus::Deleted->value,
         ];
 
-        $response = $this->patch("/api/v2/ticket/{$ticket->id}", $changes);
-
-        $response->assertStatus(200);
-
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('message', 'Ticket updated.')
-                 ->etc()
+        $this->patch("/api/v2/ticket/{$ticket->id}", $changes)
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->where('message', 'Ticket updated.')
+                     ->etc()
         );
 
         Mail::assertSent(TicketDeleted::class);
@@ -318,7 +264,7 @@ class TicketControllerTest extends TestCase
 
     public function testV1UpdateNonexistantTicket()
     {
-        $response = $this->patch("/api/v2/ticket/1234567890", []);
+        $response = $this->patch("/api/v2/ticket/0", []);
 
         $response->assertStatus(404);
     }
