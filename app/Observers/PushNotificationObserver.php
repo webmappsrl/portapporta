@@ -25,6 +25,24 @@ class PushNotificationObserver
             ->delay($pushNotification->schedule_date);
     }
 
+
+    /**
+     * Handle the PushNotification "saving" event.
+     *
+     * @param  \App\Models\PushNotification  $pushNotification
+     * @return void
+     */
+    public function saving(PushNotification $pushNotification)
+    {
+        if ($pushNotification->isDirty(['batch_status'])) {
+            $arrLength = count($pushNotification->batch_status);
+            $arrTruesLength = count(array_filter($pushNotification->batch_status));
+            if ($arrLength === $arrTruesLength) {
+                $pushNotification->status = true;
+            }
+        }
+    }
+
     /**
      * Handle the PushNotification "updated" event.
      *
