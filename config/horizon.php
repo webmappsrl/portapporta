@@ -198,8 +198,7 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'connection' => 'redis_production',
-                'queue' => ['production'],
+                'connection' => 'redis',
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
@@ -207,17 +206,18 @@ return [
         ],
         'develop' => [
             'supervisor-1' => [
-                'connection' => 'redis_develop',
-                'queue' => ['develop'],
-                'maxProcesses' => 4,
+                'connection' => 'redis',
+                'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
         ],
         'local' => [
             'supervisor-1' => [
-                'connection' => 'redis_local',
-                'maxProcesses' => 3,
+                'connection' => 'redis',
+                'maxProcesses' => 10,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
             ],
         ],
     ],
