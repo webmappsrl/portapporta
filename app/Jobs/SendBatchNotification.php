@@ -43,8 +43,11 @@ class SendBatchNotification implements ShouldQueue
         //     '*' => Http::response('Hello World', 200, ['Headers']),
         // ]);
 
-
-        $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($this->batch);
+        $res = Larafirebase::withTitle($this->pushNotification->title)
+            ->withBody($this->pushNotification->message)
+            ->withAdditionalData([
+                'page_on_click' => '/push-notification'
+            ])->sendNotification($this->batch);
 
         //get the last version of batch_status
         $updatedPushNotification = PushNotification::find($this->pushNotification->id);

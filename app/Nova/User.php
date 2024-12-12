@@ -14,6 +14,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\MorphToMany;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Illuminate\Support\Facades\Log;
 
 class User extends Resource
 {
@@ -52,7 +53,7 @@ class User extends Resource
      */
     public function fields(NovaRequest $request)
     {
-        return [
+        $fields =  [
             ID::make()->sortable(),
             Gravatar::make()->maxWidth(50),
             Text::make('Name')
@@ -104,18 +105,6 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
-            Text::make('Phone Number')
-                ->rules('nullable', 'regex:/^\d{10,}$/') // Aggiungi le regole di validazione necessarie
-                ->creationRules('unique:users,phone_number')
-                ->updateRules('unique:users,phone_number,{{resourceId}}'),
-            Text::make('Fiscal code')
-                ->rules('nullable', 'max:16')
-                ->creationRules('unique:users,fiscal_code')
-                ->updateRules('unique:users,fiscal_code,{{resourceId}}'),
-            Text::make('User code')
-                ->rules('nullable', 'max:16')
-                ->creationRules('unique:users,user_code')
-                ->updateRules('unique:users,user_code,{{resourceId}}'),
             Boolean::make(__('Email Verified'), 'email_verified_at')
                 ->displayUsing(function ($value) {
                     return isset($value);
@@ -126,6 +115,17 @@ class User extends Resource
 
             HasMany::make('Addresses')
         ];
+        $filtered_schema = [];
+        $company = \App\Models\Company::find($this->app_company_id);
+        if ($company) {
+            $form_schema = json_decode($company->form_json, true) ?? [];
+            $filtered_schema = array_filter($form_schema, function($field) {
+                return !isset($field['only_fe']) || !$field['only_fe'];
+            });
+        }
+        $formData = $this->jsonForm('form_data', $filtered_schema);
+
+        return array_merge($fields, $formData);
     }
 
     /**
