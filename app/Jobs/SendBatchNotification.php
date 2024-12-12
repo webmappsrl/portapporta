@@ -2,10 +2,11 @@
 
 namespace App\Jobs;
 
-use App\Models\PushNotification;
 use Exception;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
+use App\Models\PushNotification;
+use FirebaseNotificationsService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -44,19 +45,19 @@ class SendBatchNotification implements ShouldQueue
         // ]);
 
 
-        $res = Larafirebase::fromArray(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message])->sendNotification($this->batch);
+        $res = FirebaseNotificationsService::getService()->sendNotification(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message], $this->batch);
 
         //get the last version of batch_status
         $updatedPushNotification = PushNotification::find($this->pushNotification->id);
         $batchStatus = $updatedPushNotification->batch_status;
         $humanIndex = $this->batchIndex + 1;
-        if ($res->status() === 200) {
+        if ($res) {
             $logger->info("Batch $humanIndex sent successfully.");
             $batchStatus[$this->batchIndex] = 'success';
             $updatedPushNotification->batch_status = $batchStatus;
             $updatedPushNotification->save();
         } else {
-            $message = "Batch $humanIndex failed to send." . $res->body();
+            $message = "Batch $humanIndex failed to send.";
             $logger->error($message);
             throw new Exception($message); //the job fails here
         }

@@ -3,12 +3,13 @@
 namespace App\Nova\Actions;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Collection;
-use Laravel\Nova\Actions\Action;
-use Laravel\Nova\Fields\ActionFields;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Actions\Action;
+use FirebaseNotificationsService;
+use Illuminate\Support\Collection;
+use Laravel\Nova\Fields\ActionFields;
+use Illuminate\Queue\InteractsWithQueue;
+use Laravel\Nova\Http\Requests\NovaRequest;
 use Kutia\Larafirebase\Facades\Larafirebase;
 
 class SendPushNotification extends Action
@@ -30,11 +31,11 @@ class SendPushNotification extends Action
                 $fcm_tokens[] = $user->fcm_token;
             }
         }
-        $res = Larafirebase::fromArray([
+        $res = FirebaseNotificationsService::getService()->sendNotification([
             'title' => $fields->title,
             'body' => $fields->message
-        ])->sendNotification($fcm_tokens);
-        if ($res->status() === 200) {
+        ], $fcm_tokens);
+        if ($res) {
             return Action::message('push notification sended successfully!');
         } else {
             return Action::message('push notification sended wrong!');

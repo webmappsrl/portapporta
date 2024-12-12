@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Address;
 use App\Models\Ticket;
 use App\Models\User;
+use FirebaseNotificationsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -62,8 +63,11 @@ class ProcessTicket implements ShouldQueue
                     Log::info("token numbers: " . json_encode($fcmTokens));
                     $title = 'Raccolta VIP: ' . $user->name;
                     try {
-                        $res =  Larafirebase::fromArray(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'])->sendNotification($fcmTokens);
-                        Log::info("token numbers: " . $res->body());
+                        $res = FirebaseNotificationsService::getService()->sendNotification(
+                            ['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'],
+                            $fcmTokens
+                        );
+                        Log::info("token numbers: " . $res);
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
@@ -77,8 +81,8 @@ class ProcessTicket implements ShouldQueue
                     $vipFcmToken = [$user->fcm_token];
                     $title = 'Raccolta VIP eseguita';
                     try {
-                        $res =  Larafirebase::fromArray(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'])->sendNotification($vipFcmToken);
-                        Log::info("token numbers: " . $res->body());
+                        $res = FirebaseNotificationsService::getService()->sendNotification(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'], $vipFcmToken);
+                        Log::info("token numbers: " . $res);
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
