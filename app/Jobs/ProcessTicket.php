@@ -2,17 +2,17 @@
 
 namespace App\Jobs;
 
-use App\Models\Address;
-use App\Models\Ticket;
 use App\Models\User;
-use FirebaseNotificationsService;
+use App\Models\Ticket;
+use App\Models\Address;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Kutia\Larafirebase\Facades\Larafirebase;
-use Illuminate\Support\Facades\Log;
+use App\Services\FirebaseNotificationsService;
 
 
 class ProcessTicket implements ShouldQueue
