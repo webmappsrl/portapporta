@@ -1,16 +1,19 @@
 <?php
 
+namespace App\Services;
+
+
 use Kreait\Firebase\Messaging\CloudMessage;
 
 
 class FirebaseNotificationsService
 {
 
-  public function sendNotifications($title, $body, $tokens)
+  public function sendNotification($data, $tokens)
   {
     $messaging = app('firebase.messaging');
     $message = CloudMessage::fromArray([
-      'notification' => ['title' => $title, 'body' => $body],
+      'notification' => $data,
     ]);
 
     $result = $messaging->sendMulticast($message, $tokens);
