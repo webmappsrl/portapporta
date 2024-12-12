@@ -51,16 +51,16 @@ class SendBatchNotification implements ShouldQueue
         $updatedPushNotification = PushNotification::find($this->pushNotification->id);
         $batchStatus = $updatedPushNotification->batch_status;
         $humanIndex = $this->batchIndex + 1;
-        if ($res) {
-            $logger->info("Batch $humanIndex sent successfully.");
-            $batchStatus[$this->batchIndex] = 'success';
-            $updatedPushNotification->batch_status = $batchStatus;
-            $updatedPushNotification->save();
-        } else {
-            $message = "Batch $humanIndex failed to send.";
-            $logger->error($message);
-            throw new Exception($message); //the job fails here
-        }
+        // if ($res) {
+        $logger->info("Batch $humanIndex sent successfully.");
+        $batchStatus[$this->batchIndex] = 'success';
+        $updatedPushNotification->batch_status = $batchStatus;
+        $updatedPushNotification->save();
+        // } else {
+        //     $message = "Batch $humanIndex failed to send.";
+        //     $logger->error($message);
+        //     throw new Exception($message); //the job fails here
+        // }
     }
 
     //https://laravel.com/docs/8.x/queues#time-based-attempts
