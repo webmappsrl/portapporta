@@ -5,12 +5,12 @@ namespace App\Nova\Actions;
 use Illuminate\Bus\Queueable;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Actions\Action;
-use FirebaseNotificationsService;
 use Illuminate\Support\Collection;
 use Laravel\Nova\Fields\ActionFields;
 use Illuminate\Queue\InteractsWithQueue;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Kutia\Larafirebase\Facades\Larafirebase;
+use App\Services\FirebaseNotificationsService;
 
 class SendPushNotification extends Action
 {

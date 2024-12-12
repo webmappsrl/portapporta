@@ -6,7 +6,6 @@ use Exception;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use App\Models\PushNotification;
-use FirebaseNotificationsService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Kutia\Larafirebase\Facades\Larafirebase;
+use App\Services\FirebaseNotificationsService;
 
 class SendBatchNotification implements ShouldQueue
 {
