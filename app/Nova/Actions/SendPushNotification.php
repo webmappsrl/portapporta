@@ -35,11 +35,8 @@ class SendPushNotification extends Action
             'title' => $fields->title,
             'body' => $fields->message
         ], $fcm_tokens);
-        if ($res) {
-            return Action::message('push notification sended successfully!');
-        } else {
-            return Action::message('push notification sended wrong!');
-        }
+
+        return Action::message('push notification sended successfully!');
     }
 
     /**

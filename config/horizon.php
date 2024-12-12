@@ -188,7 +188,7 @@ return [
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 128,
+            'memory' => 512,
             'tries' => 1,
             'timeout' => 60,
             'nice' => 0,
@@ -200,21 +200,24 @@ return [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'maxProcesses' => 10,
-                'tries' => 4
+                'tries' => 4,
+                'memory' => 512,
             ],
         ],
         'develop' => [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'maxProcesses' => 10,
-                'tries' => 4
+                'tries' => 4,
+                'memory' => 512,
             ],
         ],
         'local' => [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'maxProcesses' => 10,
-                'tries' => 4
+                'tries' => 4,
+                'memory' => 512,
             ],
         ],
     ],

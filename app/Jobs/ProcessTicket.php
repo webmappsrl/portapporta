@@ -67,7 +67,6 @@ class ProcessTicket implements ShouldQueue
                             ['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'],
                             $fcmTokens
                         );
-                        Log::info("token numbers: " . $res);
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
@@ -82,7 +81,6 @@ class ProcessTicket implements ShouldQueue
                     $title = 'Raccolta VIP eseguita';
                     try {
                         $res = FirebaseNotificationsService::getService()->sendNotification(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'], $vipFcmToken);
-                        Log::info("token numbers: " . $res);
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
