@@ -15,5 +15,6 @@ class PushNotification extends Model
     ];
     protected $fillable = [
         'created_at',
+        'batch_status'
     ];
 }
