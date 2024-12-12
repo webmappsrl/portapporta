@@ -66,11 +66,12 @@ class ProcessPushNotification implements ShouldQueue
         $jobs = [];
         foreach ($tokenBatches as $index => $batch) {
             $jobs[] = new SendBatchNotification($this->pushNotification, $batch, $index);
-            $batchStatus[$index] = false; //set false as default batch status
+            $batchStatus[$index] = 'failed'; //set failed as default batch status
         }
-        $this->pushNotification->update(['batch_status' => $batchStatus]);
+        $this->pushNotification->batch_status = $batchStatus;
+        $this->pushNotification->save();
 
-        //jobs are jained, we execute batches 1 per time to avoid problems with db writes on batch_status column
+        //jobs are chained, we execute batches 1 per time to avoid problems with db writes on batch_status column
         Bus::batch([$jobs])->name("Push notification: {$this->pushNotification->id}")->dispatch();
     }
 }

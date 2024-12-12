@@ -200,24 +200,21 @@ return [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+                'tries' => 4
             ],
         ],
         'develop' => [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+                'tries' => 4
             ],
         ],
         'local' => [
             'supervisor-1' => [
                 'connection' => 'redis',
                 'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+                'tries' => 4
             ],
         ],
     ],
