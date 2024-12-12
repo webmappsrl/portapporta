@@ -71,30 +71,6 @@ return [
             'after_commit' => false,
         ],
 
-        'redis_production' => [
-            'driver' => 'redis',
-            'connection' => 'redis_production',
-            'queue' => env('REDIS_QUEUE', 'production'),
-            'retry_after' => 90,
-            'block_for' => null,
-        ],
-
-        'redis_develop' => [
-            'driver' => 'redis',
-            'connection' => 'redis_develop',
-            'queue' => env('REDIS_QUEUE', 'develop'),
-            'retry_after' => 90,
-            'block_for' => null,
-        ],
-
-        'redis_local' => [
-            'driver' => 'redis',
-            'connection' => 'redis_local',
-            'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 90,
-            'block_for' => null,
-        ],
-
     ],
 
     /*

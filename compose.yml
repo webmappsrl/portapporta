@@ -1,0 +1,65 @@
+services:
+  php:
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    # user: root
+    build: ./docker/configs/phpfpm
+    restart: always
+    container_name: "php_${APP_NAME}"
+    image: wm-phpfpm:8.2.15-fpm
+    ports:
+      - ${DOCKER_PHP_PORT}:9000
+      - ${DOCKER_SERVE_PORT}:8000
+    volumes:
+      - ".:/var/www/html/${DOCKER_PROJECT_DIR_NAME}"
+    working_dir: "/var/www/html/${DOCKER_PROJECT_DIR_NAME}"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - pap
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: "postgres_${APP_NAME}"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?err}
+      POSTGRES_USER_PASSWORD: ${DB_PASSWORD:?err}
+      POSTGRES_USER: ${DB_USERNAME:?err}
+      POSTGRES_DB: ${DB_DATABASE:?err}
+    volumes:
+      - "./docker/volumes/postgresql/data:/var/lib/postgresql/data"
+    ports:
+      - ${DOCKER_PSQL_PORT}:5432
+    networks:
+      - pap
+  redis:
+    image: redis:latest
+    container_name: "redis_${APP_NAME}"
+    restart: always
+    # ports:
+    #     - 6379:6379
+    networks:
+      - pap
+  mailpit:
+    container_name: "mailpit_${APP_NAME}"
+    image: "axllent/mailpit:latest"
+    ports:
+      - "${FORWARD_MAILPIT_PORT:-1025}:1025"
+      - "${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025"
+    networks:
+      - pap
+  firebase:
+    container_name: "firebase_${APP_NAME}"
+    image: "andreysenov/firebase-tools:latest"
+    ports:
+      - "${FIREBASE_EMULATOR_PORT:-4000}:4000"
+    entrypoint:
+      ["firebase", "emulators:start", "--only", "pubsub", "--project", "pap"]
+    expose:
+      - 8085
+    volumes:
+      - "./docker/volumes/firebase:/home/node"
+networks:
+  pap:
+    driver: bridge
