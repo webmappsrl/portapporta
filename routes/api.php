@@ -129,7 +129,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}/tickets', [TicketController::class, 'index']);
         Route::get('/{id}/pushnotification', [PushNotificationController::class, 'v1index']);
     });
-    Route::patch('/ticket/{ticket}', [TicketController::class, 'v1update'])->name('ticket.v1update');
+    Route::patch('/ticket/{ticket}', [TicketController::class, 'v1update']);
     Route::middleware('auth:sanctum')->get('/address/delete/{id}', [AddressController::class, 'destroy']);
     Route::middleware('auth:sanctum')->post('/address/update', [AddressController::class, 'update']);
     Route::middleware('auth:sanctum')->post('/address/create', [AddressController::class, 'create']);
