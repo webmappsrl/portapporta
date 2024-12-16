@@ -7,7 +7,7 @@ use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class UpdateTicketStatus extends Command
+class UpdateTicketCollectedStatus extends Command
 {
     /**
      * The name and signature of the console command.
