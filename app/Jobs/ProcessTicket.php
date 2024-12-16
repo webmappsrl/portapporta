@@ -3,16 +3,15 @@
 namespace App\Jobs;
 
 use App\Enums\TicketStatus;
-use App\Models\Address;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Kutia\Larafirebase\Facades\Larafirebase;
-use Illuminate\Support\Facades\Log;
+use App\Services\FirebaseNotificationsService;
 
 
 class ProcessTicket implements ShouldQueue
@@ -63,13 +62,19 @@ class ProcessTicket implements ShouldQueue
                     Log::info("token numbers: " . json_encode($fcmTokens));
                     $title = __('Raccolta VIP: ') . $user->name;
                     try {
-                        $res =  Larafirebase::withTitle($title)
-                            ->withBody($message)
-                            ->withAdditionalData([
+
+
+                        $res = FirebaseNotificationsService::getService()->sendNotification(
+                            [
+                                'title' => $title,
+                                'body' => $message
+                            ],
+                            $fcmTokens,
+                            [
                                 'page_on_click' => '/dusty-man-reports',
                                 'ticket_id' => $this->ticket->id
-                            ])->sendNotification($fcmTokens);
-                        Log::info("token numbers: " . $res->body());
+                            ]
+                        );
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
@@ -83,13 +88,14 @@ class ProcessTicket implements ShouldQueue
                     $vipFcmToken = [$user->fcm_token];
                     $title = __('Raccolta VIP eseguita');
                     try {
-                        $res =  Larafirebase::withTitle($title)
-                            ->withBody($message)
-                            ->withAdditionalData([
+                        $res = FirebaseNotificationsService::getService()->sendNotification(
+                            ['title' => $title, 'body' => $message],
+                            $vipFcmToken,
+                            [
                                 'page_on_click' => '/reports',
                                 'ticket_id' => $this->ticket->id
-                            ])->sendNotification($vipFcmToken);
-                        Log::info("token numbers: " . $res->body());
+                            ]
+                        );
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
