@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('horizon:snapshot')->everyFiveMinutes();
+        $schedule->command('tickets:update-execute')->dailyAt('22:00');
     }
 
     /**

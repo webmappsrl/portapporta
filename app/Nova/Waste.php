@@ -2,23 +2,21 @@
 
 namespace App\Nova;
 
-use App\Nova\Filters\WasteBooleanFilter;
+use App\Enums\ExportFormat;
+use App\Nova\Actions\ExportTo;
 use App\Nova\Filters\WasteCollectionCenterFilter;
 use App\Nova\Filters\WasteDeliveryFilter;
 use App\Nova\Filters\WastePap;
 use App\Nova\Filters\WasteTrashTypeFilter;
-use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
-use Illuminate\Support\Facades\DB;
 use Laravel\Nova\Fields\BelongsTo;
-use Khalin\Nova4SearchableBelongsToFilter\NovaSearchableBelongsToFilter;
 use Laravel\Nova\Query\Search\SearchableRelation;
+use Illuminate\Support\Facades\Auth;
 
 class Waste extends Resource
 {
@@ -127,7 +125,43 @@ class Waste extends Resource
      */
     public function actions(NovaRequest $request)
     {
-        return [];
+        $user = Auth::user();
+        $waste = Waste::where('company_id', $user->companyWhereAdmin->id)->with('trashType');
+
+        return [
+            (new ExportTo($waste, $this->getExportColumns(), $this->getExportRelations(), 'wastes'))
+                ->onlyOnIndex()
+                ->standalone()
+        ];
+    }
+
+    /**
+     * Get the columns for export
+     *
+     * @return array
+     */
+    private function getExportColumns(): array
+    {
+        return [
+            'id' => 'ID',
+            'pap' => 'PAP',
+            'delivery' => 'Delivery',
+            'collection_center' => 'Collection Center',
+            'trashType.name' => 'Trash Type',
+            'name' => 'Name',
+            'where' => 'Where',
+            'notes' => 'Notes'
+        ];
+    }
+
+    /**
+     * Get the relations for export
+     *
+     * @return array
+     */
+    private function getExportRelations(): array
+    {
+        return ['trashType' => 'name'];
     }
 
     /**

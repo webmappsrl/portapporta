@@ -45,7 +45,17 @@ class SendBatchNotification implements ShouldQueue
         // ]);
 
 
-        $res = FirebaseNotificationsService::getService()->sendNotification(['title' => $this->pushNotification->title, 'body' => $this->pushNotification->message], $this->batch);
+        $res = FirebaseNotificationsService::getService()->sendNotification(
+            [
+                'title' => $this->pushNotification->title,
+                'body' => $this->pushNotification->message
+            ],
+            $this->batch,
+            [
+                'page_on_click' => '/push-notification'
+            ]
+        );
+
 
         //get the last version of batch_status
         $updatedPushNotification = PushNotification::find($this->pushNotification->id);

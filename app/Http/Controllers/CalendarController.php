@@ -118,6 +118,9 @@ class CalendarController extends Controller
             $stop_date = Carbon::parse($request->stop_date);
         }
         $this->logger->info('stop_date: ' . $stop_date->format('d/m/Y'));
+        if($start_date >= $stop_date) {
+            return $this->sendError('The dates are not valid.');
+        }
         $addresses = Address::where('user_id', $user->id)->get();
         $res = [];
         foreach ($addresses as $address) {
