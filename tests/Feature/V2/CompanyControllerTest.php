@@ -19,7 +19,7 @@ class CompanyControllerTest extends TestCase
         parent::setUp();
         $this->company = Company::factory()->create(
             [
-                'form_json' => '{"name": "John", "age": 30}'
+                'form_json' => json_encode(['name' => 'John', 'age' => 30])
             ]
         );
         $this->anotherCompany = Company::factory()->create();
@@ -31,7 +31,10 @@ class CompanyControllerTest extends TestCase
             ->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('success', true)
-                ->where('data', json_decode($this->company->form_json, true))
+                ->has('data', fn (AssertableJson $json) =>
+                    $json->where('name', 'John')
+                         ->where('age', 30)
+                )
                 ->where('message', 'Json of the registration form fields.')
         );
     }
