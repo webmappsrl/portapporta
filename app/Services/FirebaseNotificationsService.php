@@ -9,11 +9,20 @@ use Kreait\Firebase\Messaging\CloudMessage;
 class FirebaseNotificationsService
 {
 
-  public function sendNotification($data, $tokens): array
+  /**
+   * https://firebase-php.readthedocs.io/en/7.16.0/cloud-messaging.html#initializing-the-messaging-component
+   *
+   * @param [type] $notificationData
+   * @param [type] $tokens
+   * @param [type] $messageData
+   * @return array
+   */
+  public function sendNotification($notificationData, $tokens, $messageData = []): array
   {
     $messaging = app('firebase.messaging');
     $message = CloudMessage::fromArray([
-      'notification' => $data,
+      'notification' => $notificationData,
+      'data' => $messageData
     ]);
 
     /**
