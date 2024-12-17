@@ -7,14 +7,14 @@ use App\Models\Address;
 use App\Models\Company;
 use App\Models\PushNotification;
 use App\Models\Zone;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 class PushNotificationControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private string $baseUrl;
     private Company $company;
@@ -51,7 +51,8 @@ class PushNotificationControllerTest extends TestCase
 
     private function createPushNotification(Zone $zone, bool $isRecent = true): PushNotification
     {
-        return PushNotification::factory()->create([
+        PushNotification::unsetEventDispatcher();
+        $notification =  PushNotification::factory()->create([
             'company_id' => $this->company->id,
             'status' => true,
             'zone_ids' => [$zone->id],
@@ -59,6 +60,8 @@ class PushNotificationControllerTest extends TestCase
             'title' => 'Test Notification Title',
             'message' => 'Test Notification Message'
         ]);
+        PushNotification::setEventDispatcher(app('events'));
+        return $notification;
     }
 
     public function testUnauthorizedAccessDenied()
@@ -89,7 +92,7 @@ class PushNotificationControllerTest extends TestCase
 
         $this->createUserWithZone($user, $zone);
         Sanctum::actingAs($user, ['*']);
-        $address = $this->createAddress($user, $zone);
+        $this->createAddress($user, $zone);
         $notification = $this->createPushNotification($zone);
 
         $response = $this->get($this->baseUrl);
@@ -98,7 +101,16 @@ class PushNotificationControllerTest extends TestCase
             ->assertJson(fn (AssertableJson $json) =>
                 $json->has('success')
                     ->where('success', true)
-                    ->has('data', 1)
+                    ->has('data', fn (AssertableJson $json) =>
+                        $json->whereType('0', 'array')
+                            ->first(fn (AssertableJson $json) =>
+                                $json->where('id', $notification->id)
+                                    ->where('title', $notification->title)
+                                    ->where('message', $notification->message)
+                                    ->where('status', $notification->status)
+                                    ->etc()
+                            )
+                    )
                     ->etc()
             );
     }
