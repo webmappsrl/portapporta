@@ -13,7 +13,11 @@ class VerificationController extends Controller
             return $this->sendError("Invalid/Expired url provided.");
         }
 
-        $user = User::findOrFail($user_id);
+        try {
+            $user = User::findOrFail($user_id);
+        } catch (\Exception $e) {
+            return $this->sendError("User not found.");
+        }
 
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
@@ -36,7 +40,11 @@ class VerificationController extends Controller
             return $this->sendError([], "you are not registered");
         }
         $userID = $userFromAuth->id;
-        $user = User::findOrFail($userID);
+        try {
+            $user = User::findOrFail($userID);
+        } catch (\Exception $e) {
+            return $this->sendError([], "User not found.");
+        }
 
         if ($user->hasVerifiedEmail()) {
             return $this->sendResponse([], "Email already verified.");
