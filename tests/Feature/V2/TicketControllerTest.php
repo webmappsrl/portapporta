@@ -26,8 +26,12 @@ class TicketControllerTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        Role::create(['name' => 'vip']);
-        Role::create(['name' => 'dusty_man']);
+        if (!Role::where('name', 'vip')->exists()) {
+            Role::create(['name' => 'vip']);
+        }
+        if (!Role::where('name', 'dusty_man')->exists()) {
+            Role::create(['name' => 'dusty_man']);
+        }
         $this->user = User::factory()->create();
         $this->vipUser = User::factory()->create()->assignRole('vip');
         $this->dustyMan = User::factory()->create()->assignRole('dusty_man');
