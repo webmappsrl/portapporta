@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\User;
@@ -15,7 +13,7 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TicketCreated;
 use App\Mail\TicketDeleted;
-
+use Spatie\Permission\Models\Role;
 class TicketControllerTest extends TestCase
 {
     use DatabaseTransactions;
@@ -28,6 +26,12 @@ class TicketControllerTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
+        if (!Role::where('name', 'vip')->exists()) {
+            Role::create(['name' => 'vip']);
+        }
+        if (!Role::where('name', 'dusty_man')->exists()) {
+            Role::create(['name' => 'dusty_man']);
+        }
         $this->user = User::factory()->create();
         $this->vipUser = User::factory()->create()->assignRole('vip');
         $this->dustyMan = User::factory()->create()->assignRole('dusty_man');
@@ -36,6 +40,7 @@ class TicketControllerTest extends TestCase
         ]);
     }
 
+    /** @test */
     public function testIndexAsDustyMan()
     {
         $ticket = Ticket::factory()->create([
@@ -53,6 +58,7 @@ class TicketControllerTest extends TestCase
             ->assertJsonFragment(['id' => $ticket->id]);
     }
 
+    /** @test */
     public function testIndexAsDustyManExcludesInvalidTickets()
     {
         $otherCompany = Company::factory()->create();
@@ -79,6 +85,7 @@ class TicketControllerTest extends TestCase
             ->assertJsonMissing(['id' => $otherCompanyTicket->id]);
     }
 
+    /** @test */
     public function testIndexAsRegularUser()
     {
         $ticket = Ticket::factory()->create([
@@ -96,6 +103,7 @@ class TicketControllerTest extends TestCase
             ->assertJsonMissing(["id" => (string)$ticket->id]);
     }
 
+    /** @test */
     public function testIndexAsRegularUserExcludesDoneAndDeletedTickets()
     {
 
@@ -120,12 +128,9 @@ class TicketControllerTest extends TestCase
             ->assertJsonMissing(['id' => $deletedTicket->id]);
     }
 
+    /** @test */
     public function testTicketsAsRegularUserAreOrdered()
     {
-        Sanctum::actingAs(
-            $this->user,
-        );
-
         // Create two tickets with different creation dates
         $olderTicket = Ticket::factory()->create([
             'user_id' => $this->user->id,
@@ -141,6 +146,10 @@ class TicketControllerTest extends TestCase
             'created_at' => now()->subDay()
         ]);
 
+        Sanctum::actingAs(
+            $this->user,
+        );
+
         $response = $this->get("/api/v2/c/{$this->company->id}/tickets")
             ->assertStatus(200);
             
@@ -151,6 +160,7 @@ class TicketControllerTest extends TestCase
         $this->assertEquals($olderTicket->id, $tickets[1]['id']);
     }
 
+    /** @test */
     public function testV1StoreSuccessfulTicketCreation()
     {
         Sanctum::actingAs($this->user);
@@ -196,6 +206,7 @@ class TicketControllerTest extends TestCase
 
     }
 
+    /** @test */
     public function testV1StoreValidatesTicketType()
     {
         $ticket = [
@@ -213,6 +224,7 @@ class TicketControllerTest extends TestCase
 
     }
 
+    /** @test */
     public function testV1Update()
     {
         $ticket = Ticket::factory()->create();
@@ -234,6 +246,7 @@ class TicketControllerTest extends TestCase
         ]);
     }
 
+    /** @test */
     public function testV1UpdateSendsEmailWhenTicketIsDeleted()
     {
         $ticket = Ticket::factory()->create([
@@ -262,6 +275,7 @@ class TicketControllerTest extends TestCase
         ]);
     }
 
+    /** @test */
     public function testV1UpdateNonexistantTicket()
     {
         $response = $this->patch("/api/v2/ticket/0", []);
