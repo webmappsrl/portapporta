@@ -186,5 +186,5 @@ Route::prefix('v2')->group(function () {
     Route::middleware('auth:sanctum')->post('/address/create', [AddressController::class, 'create']);
     Route::middleware('auth:sanctum')->get('/address/index', [AddressController::class, 'index']);
     Route::get('email/resend', [VerificationController::class, 'resend']);
-    Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->middleware('signed');
+    Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->middleware('signed')->name('verificationV2.verify');
 });
