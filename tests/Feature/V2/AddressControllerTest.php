@@ -1,17 +1,17 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\V2;
 
-use App\Models\Address;
-use App\Models\User;
-use App\Models\Zone;
-use App\Models\UserType;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
+use App\Models\UserType;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Sanctum\Sanctum;
+use Tests\Feature\V2\FeatureTestV2UtilsFunctions;
+
 class AddressControllerTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, FeatureTestV2UtilsFunctions;
 
     private $user;
     private $fakeUser;
@@ -19,38 +19,32 @@ class AddressControllerTest extends TestCase
     private $userType;
     private $address;
     private $fakeAddress;
-    private $newAddress;
+    private $newFieldsForAddress;
+    private $fieldsToCheckForAddress;
     const prefixForTheAPI = '/api/v2/address';
-    
-
+    const responseMessages = [
+        'addressCorreclyRetrieved' => 'calendar types',
+        'addressCorrectlyCreated' => 'address correctly created',
+        'addressCorrectlyUpdated' => 'address correctly updated',
+        'addressCorrectlyDeleted' => 'address correctly deleted',
+        'theAddressIsNotPropertyOfTheUser' => 'address is not propery of this user',
+        'theAddressIsNotAvalaiableOnDb' => 'address no avalaiable on db',
+        'userHasNoAddresses' => 'calendar types',
+        'missedRequiredFields' => 'missed required fields',
+        'invalidLocation' => '',
+        'unauthorized' => '',
+    ];
 
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Create basic test data   
-        $this->userType = UserType::factory()->create();
-        $this->zone = Zone::factory()->create();
-        $this->user = User::factory()->create([
-            'zone_id' => $this->zone->id
-            ]
-        );
-        $this->address = Address::factory()->create([
-            'user_id' => $this->user->id,
-            'zone_id' => $this->zone->id,
-            'address' => '123 Test Street',
-            'location' => 'POINT(10 45)',
-        ]);
-
-        $this->fakeUser = User::factory()->create();
-        $this->fakeAddress = Address::factory()->create([
-            'user_id' => $this->fakeUser->id,
-            'zone_id' => $this->zone->id,
-            'address' => '123 Test Street',
-            'location' => 'POINT(10 45)',
-        ]);
-
-        $this->newAddress = [
+        $this->userType = $this->createUserType();
+        $this->zone = $this->createZone();
+        $this->user = $this->createUser($this->zone);
+        $this->address = $this->createAddress($this->user, $this->zone);
+        $this->fakeUser = $this->createUser($this->zone);
+        $this->fakeAddress = $this->createAddress($this->fakeUser, $this->zone);
+        $this->newFieldsForAddress = [
             'user_id' => $this->user->id,
             'zone_id' => $this->zone->id,
             'user_type_id' => $this->userType->id,
@@ -59,237 +53,182 @@ class AddressControllerTest extends TestCase
             'city' => 'London',
             'house_number' => '221b'
         ];
-
-        // Create relationship between zone and userType
         $this->zone->userTypes()->attach($this->userType->id);
-
-
-        
+        $this->fieldsToCheckForAddress = $this->createFieldsToCheckForAddress($this->address);
     }
 
     /** @test */
     public function testIndex()
     {
         Sanctum::actingAs($this->user);
-
-        $this->get(self::prefixForTheAPI . '/index')
-            ->assertStatus(200)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'calendar types')
-                ->has('success')
-                ->has('data.zones.0', fn ($json) =>
-                    $json->where('id', $this->zone->id)
-                        ->where('comune', $this->zone->comune)
-                        ->where('label', $this->zone->label)
-                        ->where('import_id', $this->zone->import_id)
-                        ->has('avalaible_user_types.0', fn ($json) =>
-                            $this->assertUserType($json)
-                        )
-                        ->has('addresses.0', fn ($json) =>
-                            $this->assertAddress($json)
-                        )
-                )
-            );
+        $response = $this->get(self::prefixForTheAPI . '/index');
+        $this->assertSuccessResponse(
+            $response, 
+            self::responseMessages['userHasNoAddresses']
+        );
+        $response->assertJson(fn ($json) =>
+            $json->has('data.zones.0', fn ($json) =>
+                $this->assertZoneData($json, $this->zone)
+            )
+            ->etc()
+        );
     }
 
-
+    /** @test */
     public function testIndexWithoutAuthenticatedUser(){
-        $this->get(self::prefixForTheAPI . '/index')
-            ->assertStatus(403);
+        $this->assertErrorResponse(
+            $this->get(self::prefixForTheAPI . '/index'), 
+            self::responseMessages['unauthorized'],
+            403
+        );
     }
 
+    /** @test */
     public function testIndexWithUserWithoutAddresses(){
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
-
-        $this->get(self::prefixForTheAPI . '/index')
-            ->assertStatus(200)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                    ->where('message', 'calendar types')
-                    ->has('success')
-                    ->has('data')
-                    ->where('data.zones', [])
-            );
+        Sanctum::actingAs($this->user);
+        $this->assertSuccessResponse(
+            $this->get(self::prefixForTheAPI . '/index'),
+            self::responseMessages['userHasNoAddresses']
+        );
     }
 
     /** @test */
     public function testCreate(){
-
         Sanctum::actingAs($this->user);
-
-        $request = $this->post(self::prefixForTheAPI . '/create', $this->newAddress)
-            ->assertStatus(200)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'address correctly created')
-                ->has('success')
-                ->has('data.address')
-            );
-        $this->newAddress['id'] = $request->json()['data']['address']['id'];
-        $this->assertThatAddressIsInDatabase($this->newAddress['id'], $this->newAddress);
+        $request = $this->post(self::prefixForTheAPI . '/create', $this->newFieldsForAddress);
+        $this->assertSuccessResponse(
+            $request, 
+            self::responseMessages['addressCorrectlyCreated']
+        );
+        $this->newFieldsForAddress['id'] = $request->json()['data']['address']['id'];
+        $this->assertThatAddressIsInDatabase($this->newFieldsForAddress['id'], $this->newFieldsForAddress);
     }
 
+    /** @test */
     public function testCreateWithoutAuthenticatedUser(){
-        $this->post(self::prefixForTheAPI . '/create', $this->newAddress)
-            ->assertStatus(403);
+        $this->assertErrorResponse(
+            $this->post(self::prefixForTheAPI . '/create', $this->newFieldsForAddress), 
+            self::responseMessages['unauthorized'],
+            403
+        );
     }
 
+    /** @test */
     public function testCreateWithoutRequiredFields(){
+        $this->newFieldsForAddress['address'] = null;
+        $this->newFieldsForAddress['city'] = null;
+        $this->newFieldsForAddress['location'] = null;
         Sanctum::actingAs($this->user);
-
-        $this->newAddress['address'] = null;
-        $this->newAddress['city'] = null;
-        $this->newAddress['location'] = null;
-
-        $this->post(self::prefixForTheAPI . '/create', $this->newAddress)
-            ->assertStatus(400)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'missed required fields')
-                ->where('success', false)
-            );
+        $this->assertErrorResponse(
+            $this->post(self::prefixForTheAPI . '/create', $this->newFieldsForAddress), 
+            self::responseMessages['missedRequiredFields'],
+            400
+        );
     }
+
+    /** @test */
     public function testCreateWithInvalidLocation(){
         Sanctum::actingAs($this->user);
-
-        $this->newAddress['location'] = 'invalid';
-
-        $request = $this->post(self::prefixForTheAPI . '/create', $this->newAddress)
-            ->assertStatus(400)
-            ->assertJson(fn ($json) =>
-                $json->has('message') // Questo messaggio contiene un'eccezione non gestita
-                    ->where('success', false)
-            );
+        $this->newFieldsForAddress['location'] = 'invalid';
+        $this->assertErrorResponse(
+            $this->post(self::prefixForTheAPI . '/create', $this->newFieldsForAddress), 
+            self::responseMessages['invalidLocation'],
+            400
+        );
 
     }
 
     /** @test */
     public function testUpdate(){
         Sanctum::actingAs($this->user);
-
-        $this->newAddress['id'] = $this->address->id;
-
-        $this->post(self::prefixForTheAPI . '/update', $this->newAddress)
-        ->assertStatus(200)
-        ->assertJson(fn ($json) =>
-            $json->has('message')
-                ->where('message', 'address correctly updated')
-                ->has('success')
-                ->has('data.address')
-            );
-
-        $this->assertThatAddressIsInDatabase($this->newAddress['id'] , $this->newAddress);
+        $this->newFieldsForAddress['id'] = $this->address->id;
+        $this->assertSuccessResponse(
+            $this->post(self::prefixForTheAPI . '/update', $this->newFieldsForAddress), 
+            self::responseMessages['addressCorrectlyUpdated']
+        );
+        $this->assertThatAddressIsInDatabase($this->newFieldsForAddress['id'] , $this->newFieldsForAddress);
     }
 
+    /** @test */
     public function testUpdateWithoutAuthenticatedUser(){
-        $this->post(self::prefixForTheAPI . '/update', $this->newAddress)
-            ->assertStatus(403);
+        $this->assertErrorResponse(
+            $this->post(self::prefixForTheAPI . '/update', $this->newFieldsForAddress), 
+            self::responseMessages['unauthorized'],
+            403
+        );
     }
 
+    /** @test */
     public function testUpdateWithNonexistentAddress(){ 
         Sanctum::actingAs($this->user);
-
-        $this->newAddress['id'] = 0;
-
-        $this->post(self::prefixForTheAPI . '/update', $this->newAddress)
-            ->assertStatus(400)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'address no avalaiable on db')
-                ->where('success', false)
-            );
+        $this->newFieldsForAddress['id'] = 0;
+        $this->assertErrorResponse(
+            $this->post(self::prefixForTheAPI . '/update', $this->newFieldsForAddress), 
+            self::responseMessages['theAddressIsNotAvalaiableOnDb'], 
+            400
+        );
     }
 
+    /** @test */
     public function testUpdateWithAddressNotPropertyOfTheUser(){
         Sanctum::actingAs($this->user);
-
-        $this->newAddress['id'] = $this->fakeAddress->id;
-
-        $this->post(self::prefixForTheAPI . '/update', $this->newAddress)
-            ->assertStatus(400)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'address is not propery of this user')
-                ->where('success', false)
-            );
+        $this->newFieldsForAddress['id'] = $this->fakeAddress->id;
+        $this->assertErrorResponse(
+            $this->post(self::prefixForTheAPI . '/update', $this->newFieldsForAddress), 
+            self::responseMessages['theAddressIsNotPropertyOfTheUser'], 
+            400
+        );
     }
     
     /** @test */
     public function testDelete(){
         Sanctum::actingAs($this->user);
-        
-        $this->get(self::prefixForTheAPI . '/delete/' . $this->address->id)
-            ->assertStatus(200)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'address correctly deleted')
-                ->has('success')
-                ->has('data.address', fn ($json) =>
-                    $this->assertAddress($json),
-                )
-            );
-        
+        $response = $this->get(self::prefixForTheAPI . '/delete/' . $this->address->id);
+        $this->assertSuccessResponse(
+            $response, 
+            self::responseMessages['addressCorrectlyDeleted']
+        );
+        $response->assertJson(fn ($json) =>
+            $json->has('data.address', fn ($json) =>
+                $this->assertAddressData($json, $this->fieldsToCheckForAddress)
+            )
+            ->etc()
+        );
         $this->assertDatabaseMissing('addresses', [
             'id' => $this->address->id
         ]);
     }
 
-
+    /** @test */
     public function testDeleteWithoutAuthenticatedUser(){
-        $this->get(self::prefixForTheAPI . '/delete/' . $this->address->id)
-            ->assertStatus(403);
+        $this->assertErrorResponse(
+            $this->get(self::prefixForTheAPI . '/delete/' . $this->address->id), 
+            self::responseMessages['unauthorized'],
+            403
+        );
     }
 
-
+    /** @test */
     public function testDeleteWithNonexistentAddress(){
         Sanctum::actingAs($this->user);
 
-        $this->get(self::prefixForTheAPI . '/delete/' . 0)
-            ->assertStatus(400)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'address no avalaiable on db')
-                ->where('success', false)
-            );
+        $this->assertErrorResponse(
+            $this->get(self::prefixForTheAPI . '/delete/' . 0), 
+            self::responseMessages['theAddressIsNotAvalaiableOnDb'],
+            400
+        );
     }
 
+    /** @test */
     public function testDeleteWithAddressNotPropertyOfTheUser(){
         Sanctum::actingAs($this->user);
 
-        
-        $this->get(self::prefixForTheAPI . '/delete/' . $this->fakeAddress->id)
-            ->assertStatus(400)
-            ->assertJson(fn ($json) =>
-                $json->has('message')
-                ->where('message', 'address is not propery of this user')
-                ->where('success', false)
-            );
+        $this->assertErrorResponse(
+            $this->get(self::prefixForTheAPI . '/delete/' . $this->fakeAddress->id), 
+            self::responseMessages['theAddressIsNotPropertyOfTheUser'],
+            400
+        );
     }
-
-
-    // Utility functions
-
-
-    private function assertUserType($userTypeJson)
-    {
-        $userTypeJson->where('id', $this->userType->id)
-                     ->where('label', $this->userType->getTranslations('label'));
-    }
-    
-    private function assertAddress($addressJson)
-    {
-        $addressJson->where('id', $this->address->id)
-                   ->where('zone_id', $this->zone->id)
-                   ->where('user_type_id', $this->address->user_type_id)
-                   ->where('address', '123 Test Street')
-                   ->has('location')
-                   ->where('city', $this->address->city)
-                   ->where('house_number', $this->address->house_number)
-                   ->etc();
-    }
-
 
     private function assertThatAddressIsInDatabase($addressId, $fieldsToCheck){
         $this->assertDatabaseHas('addresses', [
@@ -300,5 +239,25 @@ class AddressControllerTest extends TestCase
             'zone_id' => $fieldsToCheck['zone_id'],
             'user_type_id' => $fieldsToCheck['user_type_id']
         ]);
+    }
+
+    private function assertZoneData($json, $zone){
+        $json->where('id', $zone->id)
+            ->where('comune', $zone->comune)
+            ->where('label', $zone->label)
+            ->where('import_id', $zone->import_id)
+            ->has('avalaible_user_types.0', fn ($json) =>
+                $this->assertUserTypeData($json, $this->userType)
+            )
+            ->has('addresses.0', fn ($json) =>
+                $this->assertAddressData($json, $this->fieldsToCheckForAddress)
+            )
+            ->etc();
+    }
+
+    private function assertUserTypeData(AssertableJson $json, UserType $userType): AssertableJson
+    {
+        return $json->where('id', $userType->id)
+                     ->where('label', $userType->getTranslations('label'));
     }
 }

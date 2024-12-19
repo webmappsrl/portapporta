@@ -1,77 +1,82 @@
 <?php
 namespace Tests\Feature\V2;
+
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
-use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Carbon\Carbon;
-use App\Models\Company;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Tests\Feature\V2\FeatureTestV2UtilsFunctions;
 class VerificationControllerTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, FeatureTestV2UtilsFunctions;
+
     private $verifiedUser;
     private $company;   
     private $unverifiedUser;
     const API_PREFIX = 'api/v2/';
+    const responseMessages = [
+        'invalidSignature' => 'Invalid signature.',
+        'userNotFound' => 'User not found.',
+        'emailAlreadyVerified' => 'Email already verified.',
+        'emailNotRegistered' => 'you are not registered',
+        'emailVerificationLinkSent' => 'Email verification link sent on your email id',
+    ];
+
     public function setUp(): void
     {
         parent::setUp();
-        $this->company = Company::factory()->create();
-        $this->verifiedUser = User::factory()->create(['app_company_id' => $this->company->id, 'email' => 'test@test.com']);
-        $this->unverifiedUser = User::factory()->unverified()->create(['app_company_id' => $this->company->id, 'email' => 'test2@test.com']);
+        $this->company = $this->createCompany();
+        $this->verifiedUser = $this->createUser(company: $this->company, extraAttributes: ['email' => 'test@test.com']);
+        $this->unverifiedUser = $this->createUser(company: $this->company, extraAttributes: ['email' => 'test2@test.com', 'email_verified_at' => null]);
     }
 
     /** @test */
     public function VerifyTestWithUserNotVerified()
     {
-        $this->get($this->getSignatureForUser($this->unverifiedUser))
-            ->assertStatus(200)
-            ->assertViewIs('auth.verifyemail')
-            ->assertViewHas('already_validated', false);
-
+        $this->assertFromViewIfUserIsValidated($this->unverifiedUser, false);
         $this->assertTrue($this->unverifiedUser->fresh()->hasVerifiedEmail());
     }
 
     /** @test */
     public function VerifyTestWithUserAlreadyVerified()
     {
-        $this->get($this->getSignatureForUser($this->verifiedUser))
-            ->assertStatus(200)
-            ->assertViewIs('auth.verifyemail')
-            ->assertViewHas('already_validated', true);
+        $this->assertFromViewIfUserIsValidated($this->verifiedUser, true);
     }
 
     /** @test */
     public function VerifyTestWithInvalidSignature()
     {
-        $this->get($this->getSignatureForUser($this->unverifiedUser, false))
-            ->assertStatus(400)
-            ->assertJson(['message' => 'Invalid signature.']);
+        $this->assertErrorResponse(
+            $this->get($this->getSignatureForUser($this->unverifiedUser, false)),
+            self::responseMessages['invalidSignature'],
+            400
+        );
     }
 
     /** @test */
     public function VerifyTestWithUserNotExisting()
     {
         $this->unverifiedUser->id = 0;
-        $this->get($this->getSignatureForUser($this->unverifiedUser))
-            ->assertStatus(400)
-            ->assertJson(['message' => 'User not found.']);
+        $this->assertErrorResponse(
+            $this->get($this->getSignatureForUser($this->unverifiedUser)),
+            self::responseMessages['userNotFound'],
+            400
+        );
     }
 
-
     /** @test */
-
     public function ResendTest()
     {
         Notification::fake();
         Sanctum::actingAs($this->unverifiedUser);
-        $this->get(self::API_PREFIX . 'email/resend')
-            ->assertStatus(200)
-            ->assertJson(['message' => 'Email verification link sent on your email id']);
-
+        $this->assertSuccessResponse(
+            $this->get(self::API_PREFIX . 'email/resend'),
+            self::responseMessages['emailVerificationLinkSent'],
+            200
+        );
         Notification::assertSentTo($this->unverifiedUser, VerifyEmail::class);
     }
 
@@ -79,17 +84,22 @@ class VerificationControllerTest extends TestCase
     public function ResendTestWithUserAlreadyVerified()
     {
         Sanctum::actingAs($this->verifiedUser);
-        $this->get(self::API_PREFIX . 'email/resend')
-            ->assertStatus(200)
-            ->assertJson(['message' => 'Email already verified.']);
+        $this->assertSuccessResponse(
+            $this->get(self::API_PREFIX . 'email/resend'),
+            self::responseMessages['emailAlreadyVerified'],
+            200
+        );
     }
 
     /** @test */
     public function ResendTestWithUserNotRegistered()
     {
-        $this->get(self::API_PREFIX . 'email/resend')
-            ->assertStatus(400)
-            ->assertJson(['data' => 'you are not registered']);
+        $this->assertErrorResponse(
+            $this->get(self::API_PREFIX . 'email/resend'),
+            self::responseMessages['emailNotRegistered'],
+            400,
+            true
+        );
     }
 
     /** @test */
@@ -97,9 +107,19 @@ class VerificationControllerTest extends TestCase
     {
         $this->unverifiedUser->id = 0;
         Sanctum::actingAs($this->unverifiedUser);
-        $this->get(self::API_PREFIX . 'email/resend')
-            ->assertStatus(400)
-            ->assertJson(['data' => 'User not found.']);
+        $this->assertErrorResponse(
+            $this->get(self::API_PREFIX . 'email/resend'),
+            self::responseMessages['userNotFound'],
+            400,
+            true
+        );
+    }
+
+    private function assertFromViewIfUserIsValidated($user, $alreadyValidated){
+        $this->get($this->getSignatureForUser($user))
+            ->assertStatus(200)
+            ->assertViewIs('auth.verifyemail')
+            ->assertViewHas('already_validated', $alreadyValidated);
     }
 
     private function getSignatureForUser($user, $valid = true)
