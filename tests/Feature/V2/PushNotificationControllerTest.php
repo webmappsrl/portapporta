@@ -11,42 +11,27 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Tests\Feature\V2\FeatureTestV2UtilsFunctions;
 
 class PushNotificationControllerTest extends TestCase
 {
-    use DatabaseTransactions;
-
+    use DatabaseTransactions, FeatureTestV2UtilsFunctions;
     private string $baseUrl;
     private Company $company;
+    private User $user;
+    private User $fakeUser;
+    private Zone $userZone;
+    private Address $address;
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->company = Company::factory()->create();
+        $this->userZone = $this->createZone($this->company);
+        $this->user = $this->createUser($this->userZone, $this->company);
+        $this->fakeUser = $this->createUser();
+        $this->address = $this->createAddress($this->user, $this->userZone);
         $this->baseUrl = "/api/v2/c/{$this->company->id}/pushnotification";
-    }
-
-    private function createAuthenticatedUser(array $attributes = []): User
-    {
-        $user = User::factory()->create($attributes);
-        Sanctum::actingAs($user, ['*']);
-        return $user;
-    }
-
-    private function createUserWithZone(User $user, Zone $zone): void
-    {
-        $user->companyWhereAdmin()->associate($this->company);
-        $user->zone_id = $zone->id;
-        $user->save();
-    }
-
-    private function createAddress(User $user, Zone $zone): Address
-    {
-        return Address::factory()->create([
-            'user_id' => $user->id,
-            'zone_id' => $zone->id,
-            'address' => '123 Test Street'
-        ]);
     }
 
     private function createPushNotification(Zone $zone, bool $isRecent = true): PushNotification
@@ -64,98 +49,79 @@ class PushNotificationControllerTest extends TestCase
         return $notification;
     }
 
+    private function assertThatHasNoData($response): void{
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->has('data', 0)
+            ->etc()
+        );
+    }
+
+    private function assertThatDataMatchesNotification($response, PushNotification $notification){
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->has('data', fn (AssertableJson $json) =>
+                $json->whereType('0', 'array')
+                    ->first(fn (AssertableJson $json) =>
+                        $json->where('id', $notification->id)
+                            ->where('title', $notification->title)
+                            ->where('message', $notification->message)
+                            ->where('status', $notification->status)
+                            ->etc()
+                    )->etc()
+            )->etc()
+        );
+    }
+
+
+    /** @test */
     public function testUnauthorizedAccessDenied()
     {
         $response = $this->get($this->baseUrl);
         $this->assertSame(403, $response->status());
     }
 
+    /** @test */
     public function testEmptyNotificationsForUser()
     {
-        $this->createAuthenticatedUser();
+        Sanctum::actingAs($this->fakeUser, ['*']);
 
         $response = $this->get($this->baseUrl);
-
-        $response->assertOk()
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->has('success')
-                    ->where('success', true)
-                    ->has('data', 0)
-                    ->etc()
-            );
+        $this->assertSuccessResponse($response, "Push notification list.");
+        $this->assertThatHasNoData($response);
     }
 
+    /** @test */
     public function testPushNotificationListReturnsSuccess()
     {
-        $user = User::factory()->create();
-        $zone = Zone::factory()->create(['company_id' => $this->company->id]);
 
-        $this->createUserWithZone($user, $zone);
-        Sanctum::actingAs($user, ['*']);
-        $this->createAddress($user, $zone);
-        $notification = $this->createPushNotification($zone);
+        Sanctum::actingAs($this->user, ['*']);
+        $notification = $this->createPushNotification($this->userZone);
 
         $response = $this->get($this->baseUrl);
 
-        $response->assertOk()
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->has('success')
-                    ->where('success', true)
-                    ->has('data', fn (AssertableJson $json) =>
-                        $json->whereType('0', 'array')
-                            ->first(fn (AssertableJson $json) =>
-                                $json->where('id', $notification->id)
-                                    ->where('title', $notification->title)
-                                    ->where('message', $notification->message)
-                                    ->where('status', $notification->status)
-                                    ->etc()
-                            )
-                    )
-                    ->etc()
-            );
+        $this->assertSuccessResponse($response, "Push notification list.");
+        $this->assertThatDataMatchesNotification($response, $notification);
     }
 
+    /** @test */
     public function testPushNotificationListReturnsEmptyForOldNotifications()
     {
-        $user = User::factory()->create();
-        $zone = Zone::factory()->create(['company_id' => $this->company->id]);
-
-        $this->createUserWithZone($user, $zone);
-        Sanctum::actingAs($user, ['*']);
-        $this->createAddress($user, $zone);
-        $this->createPushNotification($zone, false);
+        Sanctum::actingAs($this->user, ['*']);
+        $this->createPushNotification($this->userZone, false);
 
         $response = $this->get($this->baseUrl);
-
-        $response->assertOk()
-                 ->assertJson(fn (AssertableJson $json) =>
-                     $json->has('success')
-                          ->where('success', true)
-                          ->has('data', 0)
-                          ->etc()
-                 );
+        $this->assertSuccessResponse($response, "Push notification list.");
+        $this->assertThatHasNoData($response);
     }
 
+    /** @test */
     public function testPushNotificationNotVisibleForDifferentZone()
     {
-        $user = User::factory()->create();
-        $userZone = Zone::factory()->create(['company_id' => $this->company->id]);
-        $notificationZone = Zone::factory()->create(['company_id' => $this->company->id]);
-
-        $this->createUserWithZone($user, $userZone);
-        Sanctum::actingAs($user, ['*']);
-        $this->createAddress($user, $userZone);
+        $notificationZone = $this->createZone($this->company);
+        Sanctum::actingAs($this->user, ['*']);
         $this->createPushNotification($notificationZone);
 
         $response = $this->get($this->baseUrl);
-
-        $response->assertOk()
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->has('success')
-                    ->where('success', true)
-                    ->has('data', 0)
-                    ->etc()
-            );
+        $this->assertSuccessResponse($response, "Push notification list.");
+        $this->assertThatHasNoData($response);
     }
-
 }

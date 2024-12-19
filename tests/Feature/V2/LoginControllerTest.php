@@ -1,141 +1,137 @@
 <?php
-namespace Tests\Feature;
+namespace Tests\Feature\V2;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Company;
-use App\Models\Zone;
 use Illuminate\Testing\Fluent\AssertableJson;
-use App\Models\Address;
-
+use Tests\Feature\V2\FeatureTestV2UtilsFunctions;
+use Spatie\Permission\Models\Role;
 class LoginControllerTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, FeatureTestV2UtilsFunctions;
     private $user;
     private $company;
     private $anotherCompany;
     private $address;
     private $zone;
+    private $fieldsToCheckForAddress;
+    private $fieldsToCheckForUser;
     const API_PREFIX = '/api/v2/';
+    const responseMessages = [
+        'loginSuccessful' => 'User login successfully.',
+        'loginWithWrongEmail' => 'Le credenziali inserite non sono corrette.',
+        'loginWithWrongAppCompanyIdButSuperAdmin' => 'User login successfully.',
+    ];
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->company = Company::factory()->create();
-        $this->anotherCompany = Company::factory()->create();
-        $this->user = User::factory()->create([
-            'app_company_id' => $this->company->id,
-            'password' => bcrypt('password')
-        ]);
-        $this->zone = Zone::factory()->create();
-        $this->address = Address::factory()->create([
+        if(!Role::where('name', 'super_admin')->exists()) {
+            Role::create(['name' => 'super_admin']);
+        }
+        $this->company = $this->createCompany();
+        $this->anotherCompany = $this->createCompany();
+        $this->zone = $this->createZone();
+        $this->user = $this->createUser($this->zone, $this->company);
+        $this->address = $this->createAddress($this->user, $this->zone);
+
+        $this->fieldsToCheckForAddress = [
+            'id' => $this->address->id,
             'user_id' => $this->user->id,
-            'address' => 'Via Roma 1',
+            'address' => $this->address->address,
+            'city' => $this->address->city,
+            'location' => $this->address->location,
+            'house_number' => $this->address->house_number,
             'zone_id' => $this->zone->id,
-            'location' => 'POINT(10 45)',
-        ]);
+            'user_type_id' => $this->address->user_type_id,
+        ];
+        $this->fieldsToCheckForUser = [
+            'id' => $this->user->id,
+            'name' => $this->user->name,
+            'email' => $this->user->email,
+            'app_company_id' => $this->user->app_company_id,
+            'zone_id' => $this->user->zone_id,
+            'addresses' => $this->fieldsToCheckForAddress,
+        ];
     }
 
+    /** @test */
     public function testLoginIsSuccessful()
     {
-        $this->post(self::API_PREFIX . 'login', [
+        $response = $this->post(self::API_PREFIX . 'login', [
             'email' => $this->user->email,
             'password' => 'password', 
             'app_company_id' => $this->company->id
-        ])
-        ->assertStatus(200)
-        ->assertJson(function (AssertableJson $json) {
-            $json->where('success', true)
-                ->has('data', function (AssertableJson $json) {
-                    $json->has('token')
-                        ->where('name', $this->user->name)
-                        ->has('email_verified_at')
-                        ->has('user', function ($json) {
-                            $this->assertUserData($json)
-                            ->etc();
-                    });
-                })
-                ->where('message', 'User login successfully.');
-        });
+        ]);
+        $this->assertSuccessResponse($response, self::responseMessages['loginSuccessful']);
+        $this->assertThatRequestHasTheCorrectUserAndUserFields($response);
     }
 
+    /** @test */
     public function testLoginWithWrongEmail()
     {
-        $this->post(self::API_PREFIX . 'login', [
-            'email' => 'wrong@test.com',
-            'password' => 'password', 
-            'app_company_id' => $this->company->id
-        ])
-        ->assertStatus(400)
-        ->assertJson(function (AssertableJson $json) {
-            $json->where('success', false)
-                ->where('message', 'Le credenziali inserite non sono corrette.');
-        });
-    }
+        $this->assertErrorResponse(
+            $this->post(self::API_PREFIX . 'login', [
+                'email' => 'wrong@test.com',
+                'password' => 'password', 
+                'app_company_id' => $this->company->id
+            ]),
+            self::responseMessages['loginWithWrongEmail']
+        );
+    }   
 
+    /** @test */
     public function testLoginWithWrongAppCompanyId()
     {
-        $this->post(self::API_PREFIX . 'login', [
-            'email' => $this->user->email,
-            'password' => 'password', 
-            'app_company_id' => $this->anotherCompany->id
-        ])
-        ->assertStatus(400)
-        ->assertJson(function (AssertableJson $json) {
-            $json->where('success', false)
-                ->where('message', 'Non puoi accedere a questa app. Sei registrato all\'app: ' . $this->company->name . '.');
-        });
+        $this->assertErrorResponse(
+            $this->post(self::API_PREFIX . 'login', [
+                'email' => $this->user->email,
+                'password' => 'password', 
+                'app_company_id' => $this->anotherCompany->id
+            ]),
+            'Non puoi accedere a questa app. Sei registrato all\'app: ' . $this->company->name . '.',
+        );
     }
 
+    /** @test */
     public function testLoginWithWrongAppCompanyIdButSuperAdmin()
     {
         $this->user->assignRole('super_admin');
-        $this->post(self::API_PREFIX . 'login', [
+        $response = $this->post(self::API_PREFIX . 'login', [
             'email' => $this->user->email,
             'password' => 'password', 
             'app_company_id' => $this->anotherCompany->id
-        ])
-        ->assertStatus(200)
-        ->assertJson(function (AssertableJson $json) {
-            $json->where('success', true)
-                ->has('data', function (AssertableJson $json) {
-                    $json->has('token')
-                        ->where('name', $this->user->name)
-                        ->has('email_verified_at')
-                        ->has('user', function ($json) {
-                            $this->assertUserData($json)
-                            ->etc();
-                        });
-                })
-                ->where('message', 'User login successfully.');
-        });
+        ]);
+        $this->assertSuccessResponse($response, self::responseMessages['loginWithWrongAppCompanyIdButSuperAdmin']);
+        $this->assertThatRequestHasTheCorrectUserAndUserFields($response);
     }
 
-
-    // Funzioni di utility per i test
-
-
-    private function assertUserData(AssertableJson $json) : AssertableJson
+    private function assertThatRequestHasTheCorrectUserAndUserFields($response): void
     {
-        return $json
-            ->where('id', $this->user->id)
-            ->where('name', $this->user->name)
-            ->where('email', $this->user->email)
-            ->where('app_company_id', $this->user->app_company_id)
-            ->where('zone_id', $this->user->zone_id)
-            ->has('addresses.0', function ($json) {
-                $this->assertAddressData($json);
-            });
-    }
-
-    private function assertAddressData(AssertableJson $json) : AssertableJson
-    {
-        return $json
-            ->where('address', $this->address->address)
-            ->has('location', function (AssertableJson $json) {
-                $json->where('0', 10)
-                    ->where('1', 45);
+        $response->assertJson(function (AssertableJson $json) {
+            $json->has('data', function (AssertableJson $json) {
+                $json->where('name', $this->user->name)
+                    ->has('user', function ($json) {
+                        $this->assertUserData($json, $this->fieldsToCheckForUser)
+                        ->etc();
+                    })
+                ->etc();
             })
             ->etc();
+        }); 
+    }
+
+    private function assertUserData(AssertableJson $json, array $fieldsToCheckForUser): AssertableJson
+    {
+        foreach ($fieldsToCheckForUser as $key => $value) {
+            if ($key == 'addresses') {
+                $json->has('addresses.0', function ($json) use ($value) {
+                    $this->assertAddressData($json, $value);
+                });
+            } else {
+                $json->where($key, $value);
+            }
+        }
+        return $json->etc();
     }
 }
+

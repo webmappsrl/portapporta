@@ -1,11 +1,10 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\V2;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\User;
-use App\Models\Address;
 use App\Models\Calendar;
 use App\Models\Zone;
 use App\Models\UserType;
@@ -15,10 +14,10 @@ use Carbon\Carbon;
 use App\Models\CalendarItem;
 use App\Models\TrashType;
 use Illuminate\Testing\Fluent\AssertableJson;
-
+use Tests\Feature\V2\FeatureTestV2UtilsFunctions;
 class CalendarControllerTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, FeatureTestV2UtilsFunctions;
     private $user;
     private $address;
     private $calendar;
@@ -29,6 +28,12 @@ class CalendarControllerTest extends TestCase
     private $trashType;
     private $calendarItem;
     const API_PREFIX = '/api/v2/c/';
+    const responseMessages = [
+        'calendarCreated' => 'Calendar created.',
+        'companyHasNoCalendars' => 'Company has no calendars.',
+        'datesAreNotValid' => 'The dates are not valid.',
+        'unauthenticatedUser' => ''
+    ];
 
     public function setUp(): void
     {
@@ -37,15 +42,9 @@ class CalendarControllerTest extends TestCase
         $this->zone = Zone::factory()->create();
         $this->userType = UserType::factory()->create();
         $this->company = Company::factory()->create();
-        $this->trashType = TrashType::factory()->create();
         $this->otherCompany = Company::factory()->create();
-        $this->address = Address::factory()->create([
-            'user_id' => $this->user->id, 
-            'zone_id' => $this->zone->id,
-            'address' => '123 Test Street',
-            'location' => 'POINT(10 45)',
-            'user_type_id' => $this->userType->id,
-        ]);
+        $this->trashType = TrashType::factory()->create();
+        $this->address = $this->createAddress($this->user, $this->zone, ['user_type_id' => $this->userType->id]);
         $this->calendar = Calendar::factory()->create([
             'zone_id' => $this->address->zone_id,
             'company_id' => $this->company->id,
@@ -63,66 +62,67 @@ class CalendarControllerTest extends TestCase
         $this->calendarItem->trashTypes()->attach($this->trashType->id);
     }
 
-    // Test per la funzione index
+    /** @test */
     public function testV1Index()
     {
         Sanctum::actingAs($this->user);
-        $this->get(self::API_PREFIX . $this->company->id . '/calendar')
-            ->assertStatus(200)
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->has('success')
-                    ->where('success', true)
-                    ->where('message', 'Calendar created.')
-                    ->has('data.0', function ($json) {
-                    $json->has('address', function ($json) {
-                        $this->verifyAddressData($json);
-                    })
-                    ->has('calendar', function ($json) {
-                        $this->verifyThereIsTomorrowInCalendarData($json)
-                        ->etc(); // Ignora i dati di altri giorni per il test
-                    });
-                })
-            );
+        $response = $this->get(self::API_PREFIX . $this->company->id . '/calendar');
+        $this->assertSuccessResponse(
+            $response,
+            self::responseMessages['calendarCreated']
+        );
+        $response->assertJson(fn (AssertableJson $json) =>
+            $this->verifyCalendarHasCorrectAddressesAndTrashTypes($json)
+            ->etc()
+        );
     }
 
-    // Se una compagnia non ha calendari, devo ricevere un errore 400
+    /** @test */
     public function testV1IndexNoCalendarsReturnsError()
     {
         Sanctum::actingAs($this->user);
 
-        $this->get(self::API_PREFIX . $this->otherCompany->id . '/calendar')
-            ->assertStatus(400)
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->has('success')
-                    ->where('success', false)
-                    ->where('message', 'Company has no calendars.')
-            );
+        $this->assertErrorResponse(
+            $this->get(self::API_PREFIX . $this->otherCompany->id . '/calendar'),
+            self::responseMessages['companyHasNoCalendars'],
+            400
+        );
     }
 
-    // Se le date non sono valide, devo ricevere un errore 400
+    /** @test */
     public function testV1IndexInvalidDatesReturnsError()
     {
         Sanctum::actingAs($this->user);
 
-        $this->get(self::API_PREFIX . $this->company->id . '/calendar?start_date=2023-12-31&stop_date=2023-12-01')
-            ->assertStatus(400)
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->has('success')
-                    ->where('success', false)
-                    ->where('message', 'The dates are not valid.')
-            );
+        $this->assertErrorResponse(
+            $this->get(self::API_PREFIX . $this->company->id . '/calendar?start_date=2023-12-31&stop_date=2023-12-01'),
+            self::responseMessages['datesAreNotValid'],
+            400
+        );
     }
     
-    // Se l'utente non è autenticato, devo ricevere un errore 403
+    /** @test */
     public function testV1IndexUnauthenticatedUserReturnsError()
     {
-        $this->get(self::API_PREFIX . $this->company->id . '/calendar')
-            ->assertStatus(403);
+        $this->assertErrorResponse(
+            $this->get(self::API_PREFIX . $this->company->id . '/calendar'),
+            self::responseMessages['unauthenticatedUser'],
+            403
+        );
     }
 
-    
-    // Funzioni private di utilità // 
-
+    // Verificare che il calendario contenga i dati corretti
+    private function verifyCalendarHasCorrectAddressesAndTrashTypes(AssertableJson $json): AssertableJson{
+        return $json->has('data.0', function ($json) {
+            $json->has('address', function ($json) {
+                $this->verifyAddressData($json);
+            })
+            ->has('calendar', function ($json) {
+                $this->verifyThereIsTomorrowInCalendarData($json)
+                ->etc(); // Ignora i dati di altri giorni per il test
+            });
+        });
+    }
 
     // Verificare i dati dell'indirizzo
     private function verifyAddressData(AssertableJson $json): AssertableJson    {
