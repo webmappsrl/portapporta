@@ -113,4 +113,21 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasRole('company_admin');
     }
+
+    public function populateFormData(){
+        $form_data = [];
+        if(isset($this->phone_number)){
+            $form_data['phone_number'] = $this->phone_number;
+        }
+        if(isset($this->fiscal_code)){
+            $form_data['fiscal_code'] = $this->fiscal_code;
+        }
+        if(isset($this->user_code)){
+            $form_data['user_code'] = $this->user_code;
+        }
+        $this->form_data = $form_data;
+        $this->timestamps = false;
+        $this->saveQuietly();
+    }
 }
+

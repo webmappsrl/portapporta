@@ -36,6 +36,7 @@ class RegisterController extends Controller
 
         ]);
         $user->assignRole('contributor');
+        $user->populateFormData();
         try {
             Address::create([
                 'user_id' => $user->id,
