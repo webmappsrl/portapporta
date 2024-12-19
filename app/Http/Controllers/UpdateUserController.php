@@ -123,6 +123,7 @@ class UpdateUserController extends Controller
                 array_push($changes, 'password');
             }
             $user->save();
+            $user->populateFormData();
             $success['user'] =  $user;
             return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
 
