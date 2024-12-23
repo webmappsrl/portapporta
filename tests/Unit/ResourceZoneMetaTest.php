@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Resources;
+namespace Tests\Unit;
 
 use App\Http\Resources\ZoneMetaResource;
 use App\Models\UserType;
