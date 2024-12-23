@@ -11,10 +11,11 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Nova\Auth\Impersonatable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Traits\WmNovaFieldsTrait;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
-    use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, Impersonatable, HasRoles, WmNovaFieldsTrait;
 
     /**
      * The "booted" method of the model.
@@ -48,7 +49,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'app_company_id',
         'fiscal_code',
         'user_code',
-        'admin_company_id'
+        'admin_company_id',
+        'form_data'
     ];
 
     /**
@@ -82,7 +84,15 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->belongsTo(Company::class, 'app_company_id');
     }
+    public function getFormDataAttribute($value)
+    {
+        return json_decode($value, true);
+    }
 
+    public function setFormDataAttribute($value)
+    {
+        $this->attributes['form_data'] = json_encode($value);
+    }
 
     /**
      * Determine if the user can impersonate another user.
@@ -103,4 +113,21 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->hasRole('company_admin');
     }
+
+    public function populateFormData(){
+        $form_data = [];
+        if(isset($this->phone_number)){
+            $form_data['phone_number'] = $this->phone_number;
+        }
+        if(isset($this->fiscal_code)){
+            $form_data['fiscal_code'] = $this->fiscal_code;
+        }
+        if(isset($this->user_code)){
+            $form_data['user_code'] = $this->user_code;
+        }
+        $this->form_data = $form_data;
+        $this->timestamps = false;
+        $this->saveQuietly();
+    }
 }
+

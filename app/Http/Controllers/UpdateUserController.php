@@ -123,6 +123,7 @@ class UpdateUserController extends Controller
                 array_push($changes, 'password');
             }
             $user->save();
+            $user->populateFormData();
             $success['user'] =  $user;
             return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
 
@@ -133,6 +134,69 @@ class UpdateUserController extends Controller
             return $this->sendError($e->getMessage());
         }
     }
+
+    public function v2Update(Request $request)
+    {
+        try {
+            $authUser = Auth::user();
+            $changes = [];
+            $user = User::find($authUser->id);
+
+            if ($request->has('name')) {
+                $user->name = $request->name;
+                array_push($changes, 'name');
+            }
+            if ($request->has('email')) {
+                $user->email = $request->email;
+                array_push($changes, 'email');
+            }
+            if ($request->has('form_data')) {
+                $user->form_data = array_merge($user->form_data, $request->form_data);
+                array_push($changes, 'form_data');
+            }
+            if ($request->has('fcm_token')) {
+                $user->fcm_token = $request->fcm_token;
+                array_push($changes, 'fcm_token');
+            }
+            if ($request->has('app_company_id')) {
+                $user->phone_number = $request->app_company_id;
+                array_push($changes, 'app_company_id');
+            }
+            if ($request->has('addresses')) {
+                Log::info($request->addresses);
+                foreach ($request->addresses as $address) {
+                    if (isset($address['id'])) {
+                        $updateAddressRequest = new UpdateAddressRequest();
+                        $updateAddressRequest['id'] =  $address['id'];
+                        $updateAddressRequest['address'] =  $address['address'];
+                        $updateAddressRequest['location'] =  $address['location'];
+                        (new AddressController())->update($updateAddressRequest);
+                    } else {
+                        $createAddressRequest = new UpdateAddressRequest();
+                        $createAddressRequest['address'] =  $address['address'];
+                        $createAddressRequest['location'] =  $address['location'];
+                        (new AddressController())->create($createAddressRequest);
+                    }
+                    array_push($changes, 'addresses');
+                }
+                $user->addresses;
+            }
+            if ($request->has('password') && $request->has('password_confirmation')) {
+                $user->password = Hash::make($request->password);
+                array_push($changes, 'password');
+            }
+            $user->save();
+            $success['user'] =  $user;
+            return $this->sendResponse($success, implode(",", $changes) . ': changed successfully.');
+
+            throw ValidationException::withMessages([
+                'wrong' => ['Something get wrong']
+            ]);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+    }
+
     public function delete(Request $request)
     {
         try {

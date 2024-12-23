@@ -31,10 +31,16 @@ class SendPushNotification extends Action
                 $fcm_tokens[] = $user->fcm_token;
             }
         }
-        $res = FirebaseNotificationsService::getService()->sendNotification([
-            'title' => $fields->title,
-            'body' => $fields->message
-        ], $fcm_tokens);
+        $res = FirebaseNotificationsService::getService()->sendNotification(
+            [
+                'title' => $fields->title,
+                'body' => $fields->message
+            ],
+            $fcm_tokens,
+            [
+                'page_on_click' => '/home'
+            ]
+        );
 
         return Action::message('push notification sended successfully!');
     }

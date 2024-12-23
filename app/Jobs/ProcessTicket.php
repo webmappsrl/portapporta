@@ -2,16 +2,15 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
+use App\Enums\TicketStatus;
 use App\Models\Ticket;
-use App\Models\Address;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Kutia\Larafirebase\Facades\Larafirebase;
 use App\Services\FirebaseNotificationsService;
 
 
@@ -61,11 +60,20 @@ class ProcessTicket implements ShouldQueue
                     $fcmTokens =  $dustyManUsers->pluck('fcm_token')->toArray();
                     Log::info("notification send to users: " . json_encode($dustyManUsers->pluck('name')->toArray()));
                     Log::info("token numbers: " . json_encode($fcmTokens));
-                    $title = 'Raccolta VIP: ' . $user->name;
+                    $title = __('Raccolta VIP: ') . $user->name;
                     try {
+
+
                         $res = FirebaseNotificationsService::getService()->sendNotification(
-                            ['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'],
-                            $fcmTokens
+                            [
+                                'title' => $title,
+                                'body' => $message
+                            ],
+                            $fcmTokens,
+                            [
+                                'page_on_click' => '/dusty-man-reports',
+                                'ticket_id' => $this->ticket->id
+                            ]
                         );
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
@@ -76,11 +84,18 @@ class ProcessTicket implements ShouldQueue
                 //send push notification to vip
             } elseif ($this->event === 'updated') {
                 Log::info("UPDATED");
-                if ($this->ticket->status === 'done') {
+                if ($this->ticket->status === TicketStatus::Execute) {
                     $vipFcmToken = [$user->fcm_token];
-                    $title = 'Raccolta VIP eseguita';
+                    $title = __('Raccolta VIP eseguita');
                     try {
-                        $res = FirebaseNotificationsService::getService()->sendNotification(['title' => $title, 'body' => $message, 'data' => ['ticket_id' => $this->ticket->id], 'sound' => 'default'], $vipFcmToken);
+                        $res = FirebaseNotificationsService::getService()->sendNotification(
+                            ['title' => $title, 'body' => $message],
+                            $vipFcmToken,
+                            [
+                                'page_on_click' => '/reports',
+                                'ticket_id' => $this->ticket->id
+                            ]
+                        );
                     } catch (\Exception $e) {
                         Log::info("push error" . $e->getMessage());
                     }
