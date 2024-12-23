@@ -151,7 +151,7 @@ class UpdateUserController extends Controller
                 array_push($changes, 'email');
             }
             if ($request->has('form_data')) {
-                $user->form_data = array_merge($user->form_data, $request->form_data);
+                $user->form_data = array_merge($user->form_data ?? [], $request->form_data);
                 array_push($changes, 'form_data');
             }
             if ($request->has('fcm_token')) {
