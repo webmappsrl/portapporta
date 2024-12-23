@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Resources;
+namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Models\Waste;
