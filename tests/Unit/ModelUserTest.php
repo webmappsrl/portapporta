@@ -22,9 +22,8 @@ class ModelUserTest extends TestCase
             'fiscal_code'  => 'ABCDEF123456',
             'user_code'    => 'USER123',
         ];
-        $user = User::factory()->create([
+        $user = User::factory()->withoutFormData()->create([
             ...$expectedFormData,
-            'form_data'      => null, // Initially null
         ]);
         $user->populateFormData();
         $user->refresh();
