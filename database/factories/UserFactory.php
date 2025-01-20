@@ -39,4 +39,13 @@ class UserFactory extends Factory
             ];
         });
     }
+
+    public function withoutFormData()
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'form_data' => null,
+            ];
+        });
+    }
 }
