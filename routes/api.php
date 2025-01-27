@@ -161,6 +161,7 @@ Route::prefix('v2')->group(function () {
             return new CentriRaccoltaResource(Company::findOrFail($id));
         });
         Route::get('/{id}/form_json', [CompanyController::class, 'formJson']);
+        Route::get('/{id}/calendar/z/{zone_id}', [CalendarController::class, 'v1indexByZone']);
     });
 
     // AUTH
@@ -178,7 +179,6 @@ Route::prefix('v2')->group(function () {
         Route::post('/{id}/ticket', [TicketController::class, 'v1store']);
         Route::get('/{id}/calendar', [CalendarController::class, 'v1index']);
         Route::get('/{id}/tickets', [TicketController::class, 'index']);
-        Route::get('/{id}/calendar/z/{zone_id}', [CalendarController::class, 'v1indexByZone']);
         Route::get('/{id}/pushnotification', [PushNotificationController::class, 'v1index']);
     });
     Route::patch('/ticket/{ticket}', [TicketController::class, 'v1update'])->name('ticket.v1update');

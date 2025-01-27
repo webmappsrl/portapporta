@@ -157,7 +157,6 @@ class CalendarController extends Controller
      */
     public function V1IndexByZone(Request $request)
     {
-        $user = Auth::user();
         $this->logger = Log::channel('calendars'); 
         $company_id = $request->id;
         $zone_id = $request->zone_id;

@@ -37,6 +37,7 @@ class CalendarControllerTest extends TestCase
         'zoneNotFound' => 'Zone not found.',
         'noCalendarsForZone' => 'No calendars found for the specified zone.',
         'calendarsRetrievedSuccessfully' => 'Calendars retrieved successfully.',
+        'wrongDates' => 'The dates are not valid.',
     ];
 
     public function setUp(): void
@@ -120,9 +121,8 @@ class CalendarControllerTest extends TestCase
     // --------------------------------------------
 
     /** @test */
-    public function testV1IndexByZoneCompanyDoesNotExist()
+    public function testV1IndexByZoneErrorWithCompanyDoesNotExist()
     {
-        Sanctum::actingAs($this->user);
         $nonExistentCompanyId = 999999; // Assuming this ID does not exist
         $zoneId = $this->zone->id;
 
@@ -136,9 +136,8 @@ class CalendarControllerTest extends TestCase
     }
 
     /** @test */
-    public function testV1IndexByZoneZoneDoesNotExist()
+    public function testV1IndexByZoneErrorWithZoneDoesNotExist()
     {
-        Sanctum::actingAs($this->user);
         $companyId = $this->company->id;
         $nonExistentZoneId = 999999; // Assuming this ID does not exist
 
@@ -151,34 +150,17 @@ class CalendarControllerTest extends TestCase
         );
     }
 
-    /** @test */
-    public function testV1IndexByZoneUnauthenticatedUserReturnsError()
+    //** @test */
+    public function testV1IndexByZoneErrorWithWrongDates()
     {
         $companyId = $this->company->id;
         $zoneId = $this->zone->id;
 
-        $response = $this->get(self::API_PREFIX . "{$companyId}/calendar/z/{$zoneId}");
-
-        $this->assertErrorResponse(
-            $response,
-            self::responseMessages['unauthenticatedUser'],
-            403
-        );
-    }
-
-    /** @test */
-    public function testV1IndexByZoneInvalidDatesReturnsError()
-    {
-        Sanctum::actingAs($this->user);
-        $companyId = $this->company->id;
-        $zoneId = $this->zone->id;
-
-        // start_date is after stop_date
         $response = $this->get(self::API_PREFIX . "{$companyId}/calendar/z/{$zoneId}?start_date=2025-01-31&stop_date=2025-01-01");
 
         $this->assertErrorResponse(
             $response,
-            self::responseMessages['datesAreNotValid'],
+            self::responseMessages['wrongDates'],
             400
         );
     }
@@ -186,7 +168,6 @@ class CalendarControllerTest extends TestCase
     /** @test */
     public function testV1IndexByZoneSuccessWithoutDates()
     {
-        Sanctum::actingAs($this->user);
         $companyId = $this->company->id;
         $zoneId = $this->zone->id;
 
@@ -206,7 +187,6 @@ class CalendarControllerTest extends TestCase
     /** @test */
     public function testV1IndexByZoneSuccessWithDates()
     {
-        Sanctum::actingAs($this->user);
         $companyId = $this->company->id;
         $zoneId = $this->zone->id;
         $startDate = Carbon::tomorrow()->format('Y-m-d');
