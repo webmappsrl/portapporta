@@ -143,6 +143,9 @@ Route::prefix('v2')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::patch('/fcm-token', [LoginController::class, 'updateToken']);
+    Route::get('/password/reset', function () {
+        return redirect()->to(url("password/reset"));
+    });
     // NO MIDDLEWARES
     Route::prefix('c')->name('company.')->group(function () {
         Route::get('/{id}/wastes.json', function ($id) {
