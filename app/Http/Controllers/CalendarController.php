@@ -16,6 +16,9 @@ use App\Models\UserType;
 class CalendarController extends Controller
 {
     protected $logger;
+    const DEFAULT_DATE_RANGE = 13;
+    const DATE_FORMAT_FOR_LOG = 'd/m/Y';
+    const DATE_FORMAT_FOR_RESPONSE = 'Y-m-d';
 
     /**
      * Display a listing of the resource.
@@ -44,12 +47,12 @@ class CalendarController extends Controller
         if ($request->start_date) {
             $start_date = Carbon::parse($request->start_date);
         }
-        $this->logger->info('start_date: ' . $start_date->format('d/m/Y'));
+        $this->logger->info('start_date: ' . $start_date->format(self::DATE_FORMAT_FOR_LOG));
         $stop_date = Carbon::today()->addDays(13);
         if ($request->stop_date) {
             $stop_date = Carbon::parse($request->stop_date);
         }
-        $this->logger->info('stop_date: ' . $stop_date->format('d/m/Y'));
+        $this->logger->info('stop_date: ' . $stop_date->format(self::DATE_FORMAT_FOR_LOG));
         // ritorna i calendari compresi dallo start allo stop ordinati temporalmente
         $calendars = Calendar::where('zone_id', $user->zone_id)
             ->where('user_type_id', $user->user_type_id)
@@ -62,7 +65,7 @@ class CalendarController extends Controller
         $diff_in_date_from_start_stop = CarbonPeriod::create($start_date, $stop_date)->toArray(); // tutti i giorni dallo start allo stop
         $this->logger->info('numero giorni da esaminare: ' . count($diff_in_date_from_start_stop));
         $calendarIndex = 0;
-        $this->logger->info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+        $this->logger->info('calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format(self::DATE_FORMAT_FOR_LOG) . ' stop: ' . $calendars[$calendarIndex]->stop_date->format(self::DATE_FORMAT_FOR_LOG));
         foreach ($diff_in_date_from_start_stop as $currentDay) {
             $currentCalendar = $calendars[$calendarIndex];
 
@@ -70,7 +73,7 @@ class CalendarController extends Controller
                 if (
                     in_array($currentDay->dayOfWeek, $currentCalendar->calendarItems->pluck('day_of_week')->toArray())
                 ) {
-                    $this->logger->info('costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
+                    $this->logger->info('costruisco giorno di calendario per ' . $currentDay->format(self::DATE_FORMAT_FOR_LOG));
                     foreach ($currentCalendar->calendarItems->where('day_of_week', $currentDay->dayOfWeek) as $item) {
                         $p = [];
                         $p['trash_types'] = $item->trashTypes->pluck('id')->toArray();
@@ -80,15 +83,15 @@ class CalendarController extends Controller
                         if ($item->frequency == 'biweekly') {
                             $p['base_date'] = $item->base_date;
                         }
-                        $data[$currentDay->format('Y-m-d')][] = $p;
+                        $data[$currentDay->format('self::DATE_FORMAT_FOR_LOG')][] = $p;
                     }
                 } else {
-                    $this->logger->info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
+                    $this->logger->info('giorno di calendario skippato perche non è presente nessun ritiro ' . $currentDay->format(self::DATE_FORMAT_FOR_LOG));
                 }
             }
             if ($currentDay > $currentCalendar->stop_date && count($calendars) - 1 > $calendarIndex) {
                 $calendarIndex++;
-                $this->logger->info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+                $this->logger->info('passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format(self::DATE_FORMAT_FOR_LOG) . ' stop: ' . $calendars[$calendarIndex]->stop_date->format(self::DATE_FORMAT_FOR_LOG));
             }
         }
 
@@ -108,11 +111,11 @@ class CalendarController extends Controller
         if (!$company || $company->calendars->isEmpty()) {
             return $this->sendError('Company has no calendars.');
         }
-        $start_date = $request->start_date ? Carbon::parse($request->start_date) : Carbon::today();
-        $this->logger->info('start_date: ' . $start_date->format('d/m/Y'));
+        $start_date = $this->getStartDate($request);
+        $this->logger->info('start_date: ' . $start_date->format(self::DATE_FORMAT_FOR_LOG));
 
-        $stop_date = $request->stop_date ? Carbon::parse($request->stop_date) : Carbon::today()->addDays(13);
-        $this->logger->info('stop_date: ' . $stop_date->format('d/m/Y'));
+        $stop_date = $this->getStopDate($request);
+        $this->logger->info('stop_date: ' . $stop_date->format(self::DATE_FORMAT_FOR_LOG));
 
         if($start_date >= $stop_date) {
             return $this->sendError('The dates are not valid.');
@@ -183,12 +186,12 @@ class CalendarController extends Controller
                 return $this->sendError('Zone not found.');
             }
             // Setup start_date
-            $start_date = $request->query('start_date') ? Carbon::parse($request->query('start_date')) : Carbon::today();
-            $this->logger->info('start_date: ' . $start_date->format('d/m/Y'));
+            $start_date = $this->getStartDate($request);
+            $this->logger->info('start_date: ' . $start_date->format(self::DATE_FORMAT_FOR_LOG));
 
             // Setup stop_date
-            $stop_date = $request->query('stop_date') ? Carbon::parse($request->query('stop_date')) : Carbon::today()->addDays(13);
-            $this->logger->info('stop_date: ' . $stop_date->format('d/m/Y'));
+            $stop_date = $this->getStopDate($request);
+            $this->logger->info('stop_date: ' . $stop_date->format());
 
             // Validate dates
             if ($start_date->greaterThanOrEqualTo($stop_date)) {
@@ -230,6 +233,22 @@ class CalendarController extends Controller
         }
     }
 
+    private function getStartDate(Request $request){
+        $start_date = $request->start_date;
+        if(!$start_date){
+            $start_date = Carbon::today();
+        }
+        return Carbon::parse($start_date);
+    }
+
+    private function getStopDate(Request $request){
+        $stop_date = $request->stop_date;
+        if(!$stop_date){
+            $stop_date = Carbon::today()->addDays(self::DEFAULT_DATE_RANGE);
+        }
+        return Carbon::parse($stop_date);
+    }
+
     private function createCalendar($calendar, $start_date, $stop_date)
     {
         $data = [];
@@ -240,7 +259,7 @@ class CalendarController extends Controller
         $currentDayIndex = 0;
         $calendars = [$calendar]; // Assuming we're dealing with a single calendar
 
-        $this->logger->info('Calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+        $this->logger->info('Calendario "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format(self::DATE_FORMAT_FOR_LOG) . ' stop: ' . $calendars[$calendarIndex]->stop_date->format(self::DATE_FORMAT_FOR_LOG));
 
         while ($currentDayIndex < count($diff_in_date_from_start_stop)) {
             $currentDay = $diff_in_date_from_start_stop[$currentDayIndex];
@@ -248,7 +267,7 @@ class CalendarController extends Controller
 
             if ($currentDay >= $currentCalendar->start_date && $currentDay <= $currentCalendar->stop_date) {
                 if (in_array($currentDay->dayOfWeek, $currentCalendar->calendarItems->pluck('day_of_week')->toArray())) {
-                    $this->logger->info('Costruisco giorno di calendario per ' . $currentDay->format('d/m/Y'));
+                    $this->logger->info('Costruisco giorno di calendario per ' . $currentDay->format(self::DATE_FORMAT_FOR_LOG));
                     foreach ($currentCalendar->calendarItems->where('day_of_week', $currentDay->dayOfWeek) as $item) {
                         $p = [];
                         $p['trash_types'] = collect($item->trashTypes->toArray())->map(function ($trashType) {
@@ -266,20 +285,20 @@ class CalendarController extends Controller
 
                             if ($diffInWeeks % 2 == 0) {
                                 $p['base_date'] = $item->base_date;
-                                $data[$currentDay->format('Y-m-d')][] = $p;
+                                $data[$currentDay->format(self::DATE_FORMAT_FOR_RESPONSE)][] = $p;
                             }
                         } else {
-                            $data[$currentDay->format('Y-m-d')][] = $p;
+                            $data[$currentDay->format(self::DATE_FORMAT_FOR_RESPONSE)][] = $p;
                         }
                     }
                 } else {
-                    $this->logger->info('Giorno di calendario skippato perché non è presente nessun ritiro ' . $currentDay->format('d/m/Y'));
+                    $this->logger->info('Giorno di calendario skippato perché non è presente nessun ritiro ' . $currentDay->format(self::DATE_FORMAT_FOR_LOG));
                 }
             }
 
             if ($currentDay > $currentCalendar->stop_date && count($calendars) - 1 > $calendarIndex) {
                 $calendarIndex++;
-                $this->logger->info('Passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format('d/m/Y') . ' stop: ' . $calendars[$calendarIndex]->stop_date->format('d/m/Y'));
+                $this->logger->info('Passaggio a calendario successivo "' . $calendars[$calendarIndex]->name . '" start: ' . $calendars[$calendarIndex]->start_date->format(self::DATE_FORMAT_FOR_LOG) . ' stop: ' . $calendars[$calendarIndex]->stop_date->format(self::DATE_FORMAT_FOR_LOG));
             } else {
                 $currentDayIndex++;
             }
