@@ -117,7 +117,7 @@ class CalendarController extends Controller
         $stop_date = $this->getStopDate($request);
         $this->logger->info('stop_date: ' . $stop_date->format(self::DATE_FORMAT_FOR_LOG));
 
-        if($start_date >= $stop_date) {
+        if ($start_date >= $stop_date) {
             return $this->sendError('The dates are not valid.');
         }
         $addresses = Address::where('user_id', $user->id)->get();
@@ -136,7 +136,7 @@ class CalendarController extends Controller
             }
             foreach ($calendars as $calendar) {
                 $calendarData = $this->createCalendar($calendar, $start_date, $stop_date);
-                $data= array_merge_recursive($data, $calendarData);
+                $data = array_merge_recursive($data, $calendarData);
             }
 
             $elem['address'] = $address;
@@ -160,7 +160,7 @@ class CalendarController extends Controller
      */
     public function V1IndexByZone(Request $request)
     {
-        $this->logger = Log::channel('calendars'); 
+        $this->logger = Log::channel('calendars');
         $company_id = $request->id;
         $zone_id = $request->zone_id;
         $this->logger->info('V1IndexByZone called for Company ID: ' . $company_id . ', Zone ID: ' . $zone_id);
@@ -191,7 +191,7 @@ class CalendarController extends Controller
 
             // Setup stop_date
             $stop_date = $this->getStopDate($request);
-            $this->logger->info('stop_date: ' . $stop_date->format());
+            $this->logger->info('stop_date: ' . $stop_date->format(self::DATE_FORMAT_FOR_LOG));
 
             // Validate dates
             if ($start_date->greaterThanOrEqualTo($stop_date)) {
@@ -233,17 +233,19 @@ class CalendarController extends Controller
         }
     }
 
-    private function getStartDate(Request $request){
+    private function getStartDate(Request $request)
+    {
         $start_date = $request->start_date;
-        if(!$start_date){
+        if (!$start_date) {
             $start_date = Carbon::today();
         }
         return Carbon::parse($start_date);
     }
 
-    private function getStopDate(Request $request){
+    private function getStopDate(Request $request)
+    {
         $stop_date = $request->stop_date;
-        if(!$stop_date){
+        if (!$stop_date) {
             $stop_date = Carbon::today()->addDays(self::DEFAULT_DATE_RANGE);
         }
         return Carbon::parse($stop_date);
@@ -278,7 +280,7 @@ class CalendarController extends Controller
                         $p['frequency'] = $item->frequency;
                         $p['start_time'] = str_replace('0:00', '0', $item->start_time);
                         $p['stop_time'] = str_replace('0:00', '0', $item->stop_time);
-                        
+
                         if ($item->frequency == 'biweekly') {
                             $baseDate = Carbon::parse($item->base_date);
                             $diffInWeeks = $baseDate->diffInWeeks($currentDay);
@@ -306,5 +308,4 @@ class CalendarController extends Controller
 
         return $data;
     }
-
 }
