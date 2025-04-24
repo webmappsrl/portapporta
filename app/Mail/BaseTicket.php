@@ -42,7 +42,7 @@ class BaseTicket extends Mailable
         $company_name =  $this->company->name;
         $ticket_type = $this->ticket->ticket_type;
         $ticket_id = $this->ticket->id;
-        $ticket_emails = env('MAIL_USERNAME');
+        $ticket_emails = config('mail.mailers.smtp.username', 'noreply-portapporta@webmapp.it');
         if (!empty($this->company->ticket_email) && is_array(explode(',', $this->company->ticket_email)) && count(explode(',', $this->company->ticket_email)) > 0) {
             $ticket_emails = explode(',', $this->company->ticket_email)[0];
         }
