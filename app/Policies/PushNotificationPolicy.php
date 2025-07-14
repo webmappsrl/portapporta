@@ -20,7 +20,6 @@ class PushNotificationPolicy
     {
 
         return isset($user->companyWhereAdmin);
-
     }
 
     /**
@@ -32,9 +31,7 @@ class PushNotificationPolicy
      */
     public function view(User $user, PushNotification $pushNotification)
     {
-
         return isset($user->companyWhereAdmin);
-
     }
 
     /**
@@ -45,9 +42,7 @@ class PushNotificationPolicy
      */
     public function create(User $user)
     {
-
         return isset($user->companyWhereAdmin);
-
     }
 
     /**
@@ -59,7 +54,7 @@ class PushNotificationPolicy
      */
     public function update(User $user, PushNotification $pushNotification)
     {
-        return false;
+        return $pushNotification->schedule_date && $pushNotification->schedule_date->isFuture() && isset($user->companyWhereAdmin);
     }
 
     /**
@@ -71,7 +66,7 @@ class PushNotificationPolicy
      */
     public function delete(User $user, PushNotification $pushNotification)
     {
-        return false;
+        return $pushNotification->schedule_date && $pushNotification->schedule_date->isFuture() && isset($user->companyWhereAdmin);
     }
 
     /**
