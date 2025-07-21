@@ -77,10 +77,14 @@ class PushNotification extends Resource
                 ->hideFromIndex(),
             Text::make(__('Zone'), function () {
                 $user = Auth::user();
+                $allZones = $user->companyWhereAdmin->zones;
                 $zones = $user->companyWhereAdmin->zones
                     ->whereIn('id', $this->zone_ids ?? [])
                     ->pluck('label')
                     ->toArray();
+                if (count($zones) === $allZones->count()) {
+                    return '<span style="font-weight: 600;">' . __('All zones') . '</span>';
+                }
 
                 return <<<HTML
 <div style="
