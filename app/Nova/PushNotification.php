@@ -4,6 +4,7 @@ namespace App\Nova;
 
 use App\Models\Company;
 use Exception;
+use HTML5;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\DateTime;
@@ -45,7 +46,9 @@ class PushNotification extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'title', 'message'
+        'id',
+        'title',
+        'message'
     ];
 
     /**
@@ -70,8 +73,50 @@ class PushNotification extends Resource
                     $user = Auth::user();
                     return $user->companyWhereAdmin->zones->whereIn('id', $value)->pluck('label')->toArray();
                 })
-                ->nullable(),
-            ];
+                ->nullable()
+                ->hideFromIndex(),
+            Text::make(__('Zone'), function () {
+                $user = Auth::user();
+                $zones = $user->companyWhereAdmin->zones
+                    ->whereIn('id', $this->zone_ids ?? [])
+                    ->pluck('label')
+                    ->toArray();
+
+                return <<<HTML
+<div style="
+    font-weight: bold; 
+    word-break: break-word; 
+    white-space: normal;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    overflow-y: auto;
+    gap: 8px;
+    grid-auto-flow: dense;
+">
+HTML
+                    . collect($zones)->map(function ($label) {
+                        $escaped = e($label);
+                        return <<<HTML
+<span style="
+    background-color: #0EA5E9;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+" title="{$label}">{$escaped}</span>
+HTML;
+                    })->implode('') . <<<HTML
+</div>
+HTML;
+            })
+                ->onlyOnIndex()
+                ->asHtml(),
+        ];
     }
     private function getZones($fields = ['label', 'id'])
     {
