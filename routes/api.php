@@ -164,6 +164,7 @@ Route::prefix('v2')->group(function () {
             return new CentriRaccoltaResource(Company::findOrFail($id));
         });
         Route::get('/{id}/form_json', [CompanyController::class, 'formJson']);
+        Route::get('/{id}/companies_data', [CompanyController::class, 'companiesData']);
         Route::get('/{id}/calendar/z/{zone_id}', [CalendarController::class, 'v1indexByZone']);
     });
 

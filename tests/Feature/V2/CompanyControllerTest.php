@@ -17,6 +17,7 @@ class CompanyControllerTest extends TestCase
         'formJsonRetrieved' => 'Json of the registration form fields.',
         'formJsonNotFound' => 'Company not found.',
         'formJsonEmpty' => 'Json of the registration form fields.',
+        'companiesDataRetrieved' => 'Company form JSON and properties.',
     ];
 
     public function setUp(): void
@@ -55,6 +56,62 @@ class CompanyControllerTest extends TestCase
             $this->get(self::API_PREFIX . '0/form_json'),
             self::responseMessages['formJsonNotFound'],
             404
+        );
+    }
+
+    /** @test */
+    public function testCompaniesDataIncludesFormJsonAndProperties()
+    {
+        $this->company->update([
+            'properties' => ['enableExludeInProgress' => true],
+        ]);
+
+        $response = $this->get(self::API_PREFIX . $this->company->id . '/companies_data');
+        $this->assertSuccessResponse(
+            $response,
+            self::responseMessages['companiesDataRetrieved'],
+            200
+        );
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->has('data', fn (AssertableJson $json) =>
+                $json->has('form_json', fn (AssertableJson $json) =>
+                    $json->where('name', 'John')
+                        ->where('age', 30)
+                )
+                ->where('properties.enableExludeInProgress', true)
+                ->etc()
+            )
+            ->etc()
+        );
+    }
+
+    /** @test */
+    public function testCompaniesDataWithInvalidId()
+    {
+        $this->assertErrorResponse(
+            $this->get(self::API_PREFIX . '0/companies_data'),
+            self::responseMessages['formJsonNotFound'],
+            404
+        );
+    }
+
+    /** @test */
+    public function testCompaniesDataWithEmptyFormJsonAndDefaultProperties()
+    {
+        $response = $this->get(self::API_PREFIX . $this->anotherCompany->id . '/companies_data');
+        $this->assertSuccessResponse(
+            $response,
+            self::responseMessages['companiesDataRetrieved'],
+            200
+        );
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->has('data', fn (AssertableJson $json) =>
+                $json->has('form_json')
+                    ->has('properties')
+                    ->whereType('properties', 'array')
+                    ->etc()
+            )
+            ->etc()
         );
     }
 

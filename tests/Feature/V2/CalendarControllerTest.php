@@ -116,6 +116,91 @@ class CalendarControllerTest extends TestCase
         );
     }
 
+    /** @test */
+    public function testV1IndexExcludeInProgressRemovesTodayWhenRoundStillRunning()
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $this->calendarItem->update([
+            'day_of_week' => Carbon::today()->dayOfWeek,
+            'start_time' => '08:00',
+            'stop_time' => '12:00',
+        ]);
+        Sanctum::actingAs($this->user);
+        $todayKey = Carbon::today()->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . $this->company->id . '/calendar?exclude_in_progress=1');
+        $this->assertSuccessResponse($response, self::responseMessages['calendarCreated']);
+
+        $calendar = $response->json('data.0.calendar') ?? [];
+        $this->assertArrayNotHasKey($todayKey, $calendar);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1IndexExcludeInProgressKeepsTodayWhenRoundIsOver()
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(13, 0));
+        $this->calendarItem->update([
+            'day_of_week' => Carbon::today()->dayOfWeek,
+            'start_time' => '08:00',
+            'stop_time' => '12:00',
+        ]);
+        Sanctum::actingAs($this->user);
+        $todayKey = Carbon::today()->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . $this->company->id . '/calendar?exclude_in_progress=1');
+        $this->assertSuccessResponse($response, self::responseMessages['calendarCreated']);
+
+        $calendar = $response->json('data.0.calendar') ?? [];
+        $this->assertArrayHasKey($todayKey, $calendar);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1IndexWithoutExcludeInProgressKeepsTodayEvenIfRunning()
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $this->calendarItem->update([
+            'day_of_week' => Carbon::today()->dayOfWeek,
+            'start_time' => '08:00',
+            'stop_time' => '12:00',
+        ]);
+        Sanctum::actingAs($this->user);
+        $todayKey = Carbon::today()->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . $this->company->id . '/calendar');
+        $this->assertSuccessResponse($response, self::responseMessages['calendarCreated']);
+
+        $calendar = $response->json('data.0.calendar') ?? [];
+        $this->assertArrayHasKey($todayKey, $calendar);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1IndexByZoneExcludeInProgressRemovesTodayWhenRoundStillRunning()
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $this->calendarItem->update([
+            'day_of_week' => Carbon::today()->dayOfWeek,
+            'start_time' => '08:00',
+            'stop_time' => '12:00',
+        ]);
+        $companyId = $this->company->id;
+        $zoneId = $this->zone->id;
+        $todayKey = Carbon::today()->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . "{$companyId}/calendar/z/{$zoneId}?exclude_in_progress=1");
+        $this->assertSuccessResponse($response, self::responseMessages['calendarsRetrievedSuccessfully']);
+
+        $calendar = $response->json('data.calendar') ?? [];
+        $this->assertArrayNotHasKey($todayKey, $calendar);
+
+        Carbon::setTestNow();
+    }
+
     // --------------------------------------------
     // Tests for V1IndexByZone Function
     // --------------------------------------------

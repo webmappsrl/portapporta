@@ -19,6 +19,7 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 use Ebess\AdvancedNovaMediaLibrary\Fields\Images;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Nova\Fields\Code;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\HasMany;
 
 class Company extends Resource
@@ -111,6 +112,7 @@ class Company extends Resource
             new Panel('Company Location', $this->companyLocation()),
             new Panel('Company Resources', $this->companyResources()),
             new Panel('Company Panel', $this->companyPage()),
+            new Panel(__('Options'), $this->companyOptions()),
         ];
     }
 
@@ -293,6 +295,14 @@ class Company extends Resource
                 ->language('json')
                 ->rules('required', 'json')
                 ->help('I campi \'name\', \'email\', \'password\', \'password_confirmation\' sono obbligatori.')
+                ->hideFromIndex(),
+        ];
+    }
+
+    public function companyOptions(): array
+    {
+        return [
+            Boolean::make(__('Enable Exclude In Progress'), 'properties->enableExludeInProgress')
                 ->hideFromIndex(),
         ];
     }

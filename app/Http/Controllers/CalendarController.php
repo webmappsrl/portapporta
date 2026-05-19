@@ -99,6 +99,7 @@ class CalendarController extends Controller
         // \Carbon\Carbon::parse('today +2 day')->dayOfWeek
 
         $this->logger->info('numero giorni di calendario creati: ' . count($data));
+        $data = $this->filterExcludeInProgress($data, $request->boolean('exclude_in_progress'));
         return $this->sendResponse($data, 'Calendar created.');
     }
 
@@ -121,6 +122,7 @@ class CalendarController extends Controller
             return $this->sendError('The dates are not valid.');
         }
         $addresses = Address::where('user_id', $user->id)->get();
+        $excludeInProgress = $request->boolean('exclude_in_progress');
         $res = [];
 
         foreach ($addresses as $address) {
@@ -142,7 +144,7 @@ class CalendarController extends Controller
             $elem['address'] = $address;
             $elem['address']['zone'] = Zone::find($address['zone_id']);
             $elem['address']['user_type'] = UserType::find($address['user_type_id']);
-            $elem['calendar'] = $data;
+            $elem['calendar'] = $this->filterExcludeInProgress($data, $excludeInProgress);
 
             array_push($res, $elem);
         }
@@ -219,6 +221,8 @@ class CalendarController extends Controller
                 $data = array_merge_recursive($data, $calendarData);
             }
 
+            $data = $this->filterExcludeInProgress($data, $request->boolean('exclude_in_progress'));
+
             // Prepare zone details
             $elem['zone'] = $zone;
             $elem['company'] = $company;
@@ -249,6 +253,47 @@ class CalendarController extends Controller
             $stop_date = Carbon::today()->addDays(self::DEFAULT_DATE_RANGE);
         }
         return Carbon::parse($stop_date);
+    }
+
+    /**
+     * Se $excludeInProgress è true e nei dati esiste la chiave del giorno corrente
+     * con almeno uno slot il cui stop_time è ancora nel futuro, rimuove quella chiave.
+     */
+    private function filterExcludeInProgress(array $data, bool $excludeInProgress): array
+    {
+        if (!$excludeInProgress) {
+            return $data;
+        }
+
+        $todayKey = Carbon::today()->format(self::DATE_FORMAT_FOR_RESPONSE);
+        if (!isset($data[$todayKey]) || !is_array($data[$todayKey])) {
+            return $data;
+        }
+
+        $now = Carbon::now();
+        $maxStop = null;
+        foreach ($data[$todayKey] as $item) {
+            if (!isset($item['stop_time']) || $item['stop_time'] === '') {
+                continue;
+            }
+            try {
+                $stop = Carbon::today()->copy()->setTimeFromTimeString((string) $item['stop_time']);
+            } catch (\Exception $e) {
+                continue;
+            }
+            if ($maxStop === null || $stop->greaterThan($maxStop)) {
+                $maxStop = $stop;
+            }
+        }
+
+        if ($maxStop !== null && $now->lessThan($maxStop)) {
+            if ($this->logger) {
+                $this->logger->info('exclude_in_progress: rimuovo giorno corrente ' . $todayKey . ' (now < ' . $maxStop->format('H:i:s') . ')');
+            }
+            unset($data[$todayKey]);
+        }
+
+        return $data;
     }
 
     private function createCalendar($calendar, $start_date, $stop_date)

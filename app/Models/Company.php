@@ -12,6 +12,14 @@ class Company extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
+    /**
+     * Company is managed by admin/Nova; keep mass assignment open.
+     */
+    protected $guarded = [];
+
+    protected $casts = [
+        'properties' => 'array',
+    ];
 
     /**
      * creates a sha1 from the uploaded file name with the original file extension
