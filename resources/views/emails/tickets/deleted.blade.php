@@ -23,11 +23,12 @@
 <div>
     <h2>Segnalazione Cancellata #{{ $ticket->id }}</h2>
     Data cancellazione: {{ $ticket->updated_at }}<br>
-    Email: {{ $ticket->user->email }}<br>
-    Nome: {{ $ticket->user->name }}<br>
-    Codice fiscale: {{ $ticket->user->fiscal_code ?: $ticket->user->form_data['fiscal_code'] ?? '' }}<br>
-    Codice Utente: {{ $ticket->user->user_code ?: $ticket->user->form_data['user_code'] ?? '' }}<br>
-    Telefono: {{ $ticket->phone }}<br>
+    @include('emails.tickets.partials.user-form-fields', [
+        'user' => $ticket->user,
+        'company' => $ticket->company ?? null,
+        'ticket' => $ticket,
+        'format' => 'br',
+    ])
     @if (!empty($user_addresses))
         <br>
         <strong>{{ count($user_addresses) > 1 ? 'Gli indirizzi' : "L'indirizzo" }} dell'utente:</strong><br>

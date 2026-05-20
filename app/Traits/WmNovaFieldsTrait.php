@@ -46,9 +46,7 @@ trait WmNovaFieldsTrait
             } else {
                 // Initialize the fields with data from the JSON column
                 foreach ($formSchema as $fieldSchema) {
-                    $label = $fieldSchema['label'];
-                    $value = $formData[$label] ?? $fieldSchema['value'] ?? null;
-                    $fieldSchema['value'] = $value; // Set the value from form data or default
+                    $fieldSchema['value'] = $this->resolveFormFieldValue($fieldSchema, $formData);
                     $novaField = $this->createFieldFromSchema($fieldSchema, $columnName);
                     if ($novaField) {
                         $fields[] = $novaField;
@@ -117,6 +115,101 @@ provnamee a form schema.');
         }
 
         return $field;
+    }
+
+    /**
+     * Remove from a form_json schema all fields flagged as `only_fe` (frontend only).
+     *
+     * @param array $formSchema
+     * @return array
+     */
+    public function filterOnlyFeSchema(array $formSchema): array
+    {
+        return array_values(array_filter($formSchema, function ($field) {
+            return !isset($field['only_fe']) || !$field['only_fe'];
+        }));
+    }
+
+    /**
+     * Remove from a form_json schema fields whose type is in the excluded list.
+     *
+     * @param array $formSchema
+     * @param array $excludedTypes
+     * @return array
+     */
+    public function filterFormSchemaExcludingTypes(array $formSchema, array $excludedTypes = ['password', 'group']): array
+    {
+        return array_values(array_filter($formSchema, function ($field) use ($excludedTypes) {
+            $type = $field['type'] ?? 'text';
+            return !in_array($type, $excludedTypes, true);
+        }));
+    }
+
+    /**
+     * Resolve the value of a single form field against form_data, mirroring the lookup
+     * used by jsonForm: try by label first, then fall back to name, then to the schema's default.
+     *
+     * @param array $fieldSchema
+     * @param array $formData
+     * @return mixed
+     */
+    public function resolveFormFieldValue(array $fieldSchema, array $formData)
+    {
+        $label = $fieldSchema['label'] ?? null;
+        $name = $fieldSchema['name'] ?? null;
+
+        if ($label !== null && array_key_exists($label, $formData)) {
+            return $formData[$label];
+        }
+        if ($name !== null && array_key_exists($name, $formData)) {
+            return $formData[$name];
+        }
+        return $fieldSchema['value'] ?? null;
+    }
+
+    /**
+     * Build read-only Nova fields (onlyOnDetail) from a form_json schema and an explicit
+     * form_data array. Unlike jsonForm, values are bound via a closure and not tied to a
+     * column on the current model, so this can be used from a resource whose underlying
+     * model does not own the form_data column (e.g. Ticket -> user.form_data).
+     *
+     * @param array $formSchema Already-filtered schema (see filterOnlyFeSchema).
+     * @param array $formData
+     * @return array
+     */
+    public function jsonFormReadOnlyFields(array $formSchema, array $formData): array
+    {
+        $this->ensureNovaIsInstalled();
+
+        $fields = [];
+        foreach ($formSchema as $fieldSchema) {
+            $name = $fieldSchema['name'] ?? null;
+            $label = $fieldSchema['label'] ?? ($name ? ucwords(str_replace('_', ' ', $name)) : null);
+            if ($label === null) {
+                continue;
+            }
+            $value = $this->resolveFormFieldValue($fieldSchema, $formData);
+            $fieldType = $fieldSchema['type'] ?? 'text';
+
+            // Never expose password values in a read-only detail view.
+            if ($fieldType === 'password') {
+                continue;
+            }
+
+            if ($fieldType === 'number') {
+                $field = \Laravel\Nova\Fields\Number::make(__($label), $name ?? $label, function () use ($value) {
+                    return $value;
+                });
+            } else {
+                $field = \Laravel\Nova\Fields\Text::make(__($label), $name ?? $label, function () use ($value) {
+                    return $value;
+                });
+            }
+
+            $fields[] = $field->onlyOnDetail()->readonly();
+        }
+
+        return $fields;
     }
 
     /**

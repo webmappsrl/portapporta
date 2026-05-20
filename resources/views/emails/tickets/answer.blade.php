@@ -18,10 +18,13 @@
     <div>
         <h3>Segnalazione</h3>
         <p><strong>Data risposta:</strong> {{ $ticket->updated_at ?? '/' }}</p>
-        <p><strong>Email:</strong> {{ $ticket->user->email ?? '/' }}</p>
-        <p><strong>Nome:</strong> {{ $ticket->user->name ?? '/' }}</p>
+        @include('emails.tickets.partials.user-form-fields', [
+            'user' => $ticket->user,
+            'company' => $ticket->company ?? null,
+            'ticket' => $ticket,
+            'format' => 'paragraph',
+        ])
         <p><strong>Tipo segnalazione:</strong> {{ $ticket->ticket_type }}</p>
-        <p><strong>Telefono:</strong> {{ $ticket->phone ?? '/' }}</p>
         <p><strong>Note:</strong> {{ $ticket->note ?? '/' }}</p>
         <br>
         <br>

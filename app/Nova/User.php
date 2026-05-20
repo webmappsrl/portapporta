@@ -119,9 +119,7 @@ class User extends Resource
         $company = \App\Models\Company::find($this->app_company_id);
         if ($company) {
             $form_schema = json_decode($company->form_json, true) ?? [];
-            $filtered_schema = array_filter($form_schema, function($field) {
-                return !isset($field['only_fe']) || !$field['only_fe'];
-            });
+            $filtered_schema = $this->filterOnlyFeSchema($form_schema);
         }
         $formData = $this->jsonForm('form_data', $filtered_schema);
 

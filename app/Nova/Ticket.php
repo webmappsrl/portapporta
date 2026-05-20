@@ -64,6 +64,15 @@ class Ticket extends Resource
     }
 
     /**
+     * Eager load the user (and its company via app_company_id) to avoid N+1 when
+     * rendering the dynamic form_data section in the detail view.
+     */
+    public static function detailQuery(NovaRequest $request, $query)
+    {
+        return parent::detailQuery($request, $query)->with(['user', 'company']);
+    }
+
+    /**
      * Get the fields displayed by the resource.
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
@@ -107,16 +116,7 @@ class Ticket extends Resource
             }
         })->sortable()->readonly()->asHtml();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
-        $fields[] = Text::make(__('Name'), function () {
-            return $this->checkName($this->user->name);
-        })->readonly()->onlyOnDetail();
-        $fields[] = BelongsTo::make('User')->readonly();
-        $fields[] = Text::make('Email', function () {
-            return $this->user->email;
-        })->readonly();
-        $fields[] = Text::make(__('Phone'), function () {
-            return $this->phone;
-        })->onlyOnDetail()->readonly();
+        $this->_userFormDataFields($fields);
         $fields[] =  Text::make(__('Status'), 'status', function ($res) {
             $translated = __($this->status->value);
             $statusColor = 'orange';
@@ -198,6 +198,31 @@ class Ticket extends Resource
                     'defaultZoom' => 13
                 ])->onlyOnDetail()->readonly();
             }
+        }
+    }
+
+    /**
+     * Append read-only Nova fields built from the user's form_data using the
+     * company's form_json schema (excluding password and group field types).
+     */
+    private function _userFormDataFields(&$fields)
+    {
+        $user = $this->user;
+        if (!$user) {
+            return;
+        }
+        $company = $this->company ?? \App\Models\Company::find($user->app_company_id);
+        if (!$company || empty($company->form_json)) {
+            return;
+        }
+        $schema = json_decode($company->form_json, true) ?? [];
+        if (empty($schema)) {
+            return;
+        }
+        $filtered = $user->filterFormSchemaExcludingTypes($schema, ['password', 'group']);
+        $formData = $user->form_data ?? [];
+        foreach ($user->jsonFormReadOnlyFields($filtered, $formData) as $field) {
+            $fields[] = $field;
         }
     }
 
