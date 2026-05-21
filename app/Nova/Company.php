@@ -303,7 +303,13 @@ class Company extends Resource
     {
         return [
             Boolean::make(__('Enable Exclude In Progress'), 'properties->enableExludeInProgress')
-                ->hideFromIndex(),
+                ->hideFromIndex()
+                ->help(
+                    'Se attivo, l\'app può nascondere il ritiro di oggi dal calendario finché il servizio '
+                    . 'non è terminato (fino all\'orario di fine previsto per oggi). '
+                    . 'Utile per non mostrare all\'utente un giorno ancora «in corso». '
+                    . 'Se disattivato, il calendario in app resta come prima.'
+                ),
         ];
     }
 
