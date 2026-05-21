@@ -32,6 +32,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
+        Nova::style('nova-custom', public_path('css/nova-custom.css'));
         Nova::mainMenu(function (Request $request, Menu $menu) {
             if ($request->user()->hasRole('company_admin')) {
                 return [

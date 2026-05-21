@@ -33,7 +33,7 @@
     <div>
         <h3>Risposta</h3>
         <h4>Caro {{ $ticket->user->name }},</h4>
-        <p>{{ $answer }}</p>
+        <div>{!! $answer !!}</div>
     </div>
 </body>
 

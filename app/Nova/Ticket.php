@@ -7,14 +7,17 @@ use App\Models\TrashType;
 use App\Models\Ticket as TicketModel;
 use App\Nova\Actions\TicketAnswerViaMail;
 use App\Nova\Actions\TicketStatusAction;
+use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\URL;
-use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Textarea;
+use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Query\Search\SearchableRelation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Nova\Fields\Attachments\PendingAttachment;
 use Wm\MapPoint\MapPoint;
 
 class Ticket extends Resource
@@ -81,6 +84,33 @@ class Ticket extends Resource
     public function fields(NovaRequest $request)
     {
         $fields = [];
+
+        // Campo nascosto richiesto da FieldAttachmentController per l'upload Trix nell'azione TicketAnswerViaMail
+        $fields[] = Trix::make('Answer', 'answer')
+            ->withFiles('public')
+            ->attach(function (Request $request) {
+                $file = $request->file('attachment');
+
+                $request->validate(['attachment' => ['required', 'file']]);
+
+                $disk = 'public';
+                $path = $file->store('/', $disk);
+                $url  = '/storage/' . ltrim($path, '/');
+
+                PendingAttachment::create([
+                    'draft_id'   => $request->draftId,
+                    'attachment' => $path,
+                    'disk'       => $disk,
+                ]);
+
+                return $url;
+            })
+            ->hideFromIndex()
+            ->hideFromDetail()
+            ->hideWhenCreating()
+            ->hideWhenUpdating()
+            ->fillUsing(fn () => null);
+
         $this->_headerFields($fields);
         switch ($this->ticket_type) {
             case 'report':
@@ -353,6 +383,9 @@ class Ticket extends Resource
                 ->cancelButtonText("Don't send")
                 ->showInline()
                 ->canSee(function ($request) {
+                    return $request->user()->hasRole('company_admin');
+                })
+                ->canRun(function ($request) {
                     return $request->user()->hasRole('company_admin');
                 }),
 

@@ -1,0 +1,11 @@
+/* Trix toolbar: consente il wrap su più righe */
+.trix-button-row {
+    flex-wrap: wrap !important;
+}
+
+/* Fix: crea uno stacking context isolato sul container Leaflet.
+   leaflet-container ha già position:relative — aggiungere z-index:0 fa sì che i pane figli
+   (z-index 200-700) rimangano confinati dentro quel contesto e non bucano il modal Nova. */
+.leaflet-container {
+    z-index: 0 !important;
+}

@@ -2,52 +2,42 @@
 
 namespace App\Nova\Actions;
 
+use App\Mail\TicketAnswer;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
-use Laravel\Nova\Fields\Textarea;
+use Laravel\Nova\Fields\Trix;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Illuminate\Support\Facades\Auth;
 
 class TicketAnswerViaMail extends Action
 {
     use InteractsWithQueue;
     use Queueable;
 
-    /**
-     * Get the displayable name of the action.
-     *
-     * @return string
-     */
     public function name()
     {
         return __('Answer via email');
     }
 
-    /**
-     * Perform the action on the given models.
-     *
-     * @param  \Laravel\Nova\Fields\ActionFields  $fields
-     * @param  \Illuminate\Support\Collection  $models
-     * @return mixed
-     */
     public function handle(ActionFields $fields, Collection $models)
     {
-        //get the tickets selected
         foreach ($models as $ticket) {
-
             $user = $ticket->user;
             $loggedUser = Auth::user();
 
             try {
-                \Mail::to($user->email)->cc($loggedUser->email)->send(new \App\Mail\TicketAnswer($ticket, $fields->answer));
-                $ticket->is_read = true;
-            } catch (\Exception $e) {
+                \Mail::to($user->email)
+                    ->cc($loggedUser->email)
+                    ->send(new TicketAnswer($ticket, $fields->answer));
 
-                \Log::error('Errore nell invio della mail: ' . $e->getMessage() . ' - ' . $e->getLine());
+                $ticket->is_read = true;
+                $ticket->save();
+            } catch (\Exception $e) {
+                \Log::error('Errore nell invio della mail: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
                 return Action::danger('Errore nell invio della mail');
             }
         }
@@ -55,16 +45,10 @@ class TicketAnswerViaMail extends Action
         return Action::message('Email inviata correttamente');
     }
 
-    /**
-     * Get the fields available on the action.
-     *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
-     * @return array
-     */
     public function fields(NovaRequest $request)
     {
         return [
-            Textarea::make('Answer')->rules('required'),
+            Trix::make('Answer')->withFiles('public')->rules('required')->fullWidth(),
         ];
     }
 }
