@@ -72,7 +72,7 @@ class Ticket extends Resource
      */
     public static function detailQuery(NovaRequest $request, $query)
     {
-        return parent::detailQuery($request, $query)->with(['user', 'company']);
+        return parent::detailQuery($request, $query)->with(['user', 'company', 'address.zone', 'zone']);
     }
 
     /**
@@ -174,10 +174,21 @@ class Ticket extends Resource
             HTML;
         })->readonly()->asHtml();
         // $fields[] = Boolean::make(__('Read'), 'is_read')->sortable()->filterable()->onlyOnIndex();
-        if (isset($this->address)) {
-            $fields[] = Text::make(__('Zone'), function () {
-                return $this->address->zone->label;
+        $zone = null;
+        if (isset($this->address) && isset($this->address->zone)) {
+            $zone = $this->address->zone;
+        } elseif (isset($this->zone)) {
+            $zone = $this->zone;
+        }
+        if ($zone) {
+            $fields[] = Text::make(__('Zone'), function () use ($zone) {
+                return $zone->label;
             })->onlyOnDetail()->readonly();
+            $fields[] = Text::make(__('Comune'), function () use ($zone) {
+                return $zone->comune;
+            })->onlyOnDetail()->readonly();
+        }
+        if (isset($this->address)) {
             $fields[] = Text::make(__('Address'), function () {
                 return $this->address->address;
             })->onlyOnDetail()->readonly();
@@ -203,10 +214,20 @@ class Ticket extends Resource
                 'defaultZoom' => 13
             ])->onlyOnDetail()->readonly();
         } else {
-            if (isset($this->location_address) && !empty($this->location_address)) {
-                $fields[] = Text::make(__('Address'), function () {
-                    return $this->location_address;
-                })->onlyOnDetail()->readonly();
+            if (!empty($this->location_address)) {
+                $parts = explode(', ', $this->location_address, 2);
+                $via = $parts[0] ?? '';
+                $civico = $parts[1] ?? '';
+                if (!empty($via)) {
+                    $fields[] = Text::make(__('Address'), function () use ($via) {
+                        return $via;
+                    })->onlyOnDetail()->readonly();
+                }
+                if (!empty($civico)) {
+                    $fields[] = Text::make(__('House Number'), function () use ($civico) {
+                        return $civico;
+                    })->onlyOnDetail()->readonly();
+                }
             }
             if (isset($this->geometry)) {
                 $fields[] = URL::make(__('Coordinate'),  function () {

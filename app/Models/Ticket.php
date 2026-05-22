@@ -15,8 +15,13 @@ class Ticket extends Model
     ];
 
     protected $fillable = [
-        'is_read', 'status'
+        'is_read', 'status', 'zone_id'
     ];
+
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
+    }
 
     public function user()
     {

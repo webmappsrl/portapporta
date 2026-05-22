@@ -5,6 +5,7 @@ namespace Tests\Unit\Nova;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\Zone;
 use App\Nova\Ticket as TicketResource;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use ReflectionMethod;
@@ -72,5 +73,25 @@ class TicketResourceTest extends TestCase
         $method->invokeArgs($resource, [&$fields]);
 
         $this->assertCount(0, $fields);
+    }
+
+    /** @test */
+    public function detailQueryEagerLoadsZoneRelations(): void
+    {
+        $query = Ticket::query();
+        $result = TicketResource::detailQuery(NovaRequest::create('/nova-api/tickets/1', 'GET'), $query);
+
+        $eagerLoads = $result->getEagerLoads();
+        $this->assertArrayHasKey('zone', $eagerLoads);
+        $this->assertArrayHasKey('address.zone', $eagerLoads);
+    }
+
+    /** @test */
+    public function ticketBelongsToZone(): void
+    {
+        $zone = Zone::factory()->create();
+        $ticket = Ticket::factory()->create(['zone_id' => $zone->id]);
+
+        $this->assertEquals($zone->id, $ticket->zone->id);
     }
 }

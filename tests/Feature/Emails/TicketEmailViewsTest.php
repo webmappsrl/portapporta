@@ -8,6 +8,7 @@ use App\Mail\TicketDeleted;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\Zone;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
@@ -63,9 +64,9 @@ class TicketEmailViewsTest extends TestCase
             'format' => 'br',
         ])->render();
 
-        $this->assertStringContainsString('Codice fiscale: CF123456', $html);
-        $this->assertStringContainsString('Telefono: 3331112222', $html);
-        $this->assertStringContainsString('Solo FE:', $html);
+        $this->assertStringContainsString('<strong>Codice fiscale:</strong> CF123456', $html);
+        $this->assertStringContainsString('<strong>Telefono:</strong> 3331112222', $html);
+        $this->assertStringContainsString('<strong>Solo FE:</strong>', $html);
         $this->assertStringNotContainsString('Secret:', $html);
         $this->assertStringNotContainsString('Indirizzo:', $html);
     }
@@ -85,7 +86,7 @@ class TicketEmailViewsTest extends TestCase
             'format' => 'br',
         ])->render();
 
-        $this->assertStringContainsString('Telefono: 3999999999', $html);
+        $this->assertStringContainsString('<strong>Telefono:</strong> 3999999999', $html);
     }
 
     /** @test */
@@ -114,8 +115,8 @@ class TicketEmailViewsTest extends TestCase
             'format' => 'br',
         ])->render();
 
-        $this->assertStringContainsString('Codice fiscale: CF123456', $html);
-        $this->assertStringContainsString('Telefono: 3334445555', $html);
+        $this->assertStringContainsString('<strong>Codice fiscale:</strong> CF123456', $html);
+        $this->assertStringContainsString('<strong>Telefono:</strong> 3334445555', $html);
     }
 
     /** @test */
@@ -126,8 +127,9 @@ class TicketEmailViewsTest extends TestCase
         $html = (new TicketCreated($ticket, $company))->render();
 
         $this->assertStringContainsString('Segnalazione #' . $ticket->id, $html);
-        $this->assertStringContainsString('Codice fiscale: CF123456', $html);
-        $this->assertStringContainsString('Telefono: 3331112222', $html);
+        $this->assertStringContainsString('Codice fiscale', $html);
+        $this->assertStringContainsString('CF123456', $html);
+        $this->assertStringContainsString('3331112222', $html);
     }
 
     /** @test */
@@ -138,7 +140,8 @@ class TicketEmailViewsTest extends TestCase
         $html = (new TicketDeleted($ticket, $company))->render();
 
         $this->assertStringContainsString('Segnalazione Cancellata #' . $ticket->id, $html);
-        $this->assertStringContainsString('Codice fiscale: CF123456', $html);
+        $this->assertStringContainsString('Codice fiscale', $html);
+        $this->assertStringContainsString('CF123456', $html);
     }
 
     /** @test */
@@ -151,5 +154,66 @@ class TicketEmailViewsTest extends TestCase
         $this->assertStringContainsString('<p><strong>Codice fiscale:</strong> CF123456</p>', $html);
         $this->assertStringContainsString('<p><strong>Telefono:</strong> 3331112222</p>', $html);
         $this->assertStringContainsString('Risposta di test', $html);
+    }
+
+    /** @test */
+    public function createdEmailShowsZoneDataWhenTicketHasDirectZone(): void
+    {
+        $company = Company::factory()->create([
+            'form_json' => json_encode($this->sampleFormJson()),
+        ]);
+        $zone = Zone::factory()->create(['company_id' => $company->id]);
+        $user = User::factory()->create(['app_company_id' => $company->id]);
+        $ticket = Ticket::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $user->id,
+            'zone_id' => $zone->id,
+            'geometry' => null,
+        ]);
+
+        $html = (new TicketCreated($ticket, $company))->render();
+
+        $this->assertStringContainsString($zone->label, $html);
+        $this->assertStringContainsString($zone->comune, $html);
+    }
+
+    /** @test */
+    public function deletedEmailShowsZoneDataWhenTicketHasDirectZone(): void
+    {
+        $company = Company::factory()->create([
+            'form_json' => json_encode($this->sampleFormJson()),
+        ]);
+        $zone = Zone::factory()->create(['company_id' => $company->id]);
+        $user = User::factory()->create(['app_company_id' => $company->id]);
+        $ticket = Ticket::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $user->id,
+            'zone_id' => $zone->id,
+            'geometry' => null,
+        ]);
+
+        $html = (new TicketDeleted($ticket, $company))->render();
+
+        $this->assertStringContainsString($zone->label, $html);
+        $this->assertStringContainsString($zone->comune, $html);
+    }
+
+    /** @test */
+    public function createdEmailUsesCompanyPrimaryColorInHeader(): void
+    {
+        $company = Company::factory()->create([
+            'form_json' => json_encode($this->sampleFormJson()),
+            'primary_color' => '#1a2b3c',
+        ]);
+        $user = User::factory()->create(['app_company_id' => $company->id]);
+        $ticket = Ticket::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $user->id,
+            'geometry' => null,
+        ]);
+
+        $html = (new TicketCreated($ticket, $company))->render();
+
+        $this->assertStringContainsString('#1a2b3c', $html);
     }
 }

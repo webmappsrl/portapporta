@@ -73,8 +73,13 @@
 @endphp
 @foreach ($rows as $row)
     @if ($format === 'paragraph')
-        <p><strong>{{ __($row['label']) }}:</strong> {{ $row['value'] ?? '' }}</p>
+        <p><strong>{{ __($row['label']) }}:</strong> {{ ($row['value'] ?? '') ?: '-' }}</p>
+    @elseif ($format === 'table')
+        <tr>
+            <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;vertical-align:top;">{{ __($row['label']) }}</td>
+            <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ ($row['value'] ?? '') ?: '-' }}</td>
+        </tr>
     @else
-        {{ __($row['label']) }}: {{ $row['value'] ?? '' }}<br>
+        <strong>{{ __($row['label']) }}:</strong> {{ ($row['value'] ?? '') ?: '-' }}<br>
     @endif
 @endforeach

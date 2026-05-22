@@ -181,7 +181,7 @@ class TicketControllerTest extends TestCase
             'user_id' => $this->user->id,
             'note' => $ticketFieldsToSend['note'],
             'phone' => $ticketFieldsToSend['phone'],
-            'location_address' => $ticketFieldsToSend['city'] . ', ' . $ticketFieldsToSend['address'] . ', ' . $ticketFieldsToSend['house_number']
+            'location_address' => $ticketFieldsToSend['address'] . ', ' . $ticketFieldsToSend['house_number']
         ];
 
 
@@ -278,5 +278,67 @@ class TicketControllerTest extends TestCase
     {
         $this->patch(SELF::API_PREFIX_TICKET."0", [])
             ->assertStatus(404);
+    }
+
+    /** @test */
+    public function testV1StoreWithZoneIdSavesZone(): void
+    {
+        $zone = $this->createZone($this->company);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $response = $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type' => 'reservation',
+            'zone_id' => $zone->id,
+        ]);
+
+        $this->assertSuccessResponse($response, self::responseMessages['ticketCreated']);
+
+        $this->assertDatabaseHas('tickets', [
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'zone_id' => $zone->id,
+        ]);
+    }
+
+    /** @test */
+    public function testV1StoreLocationAddressExcludesCity(): void
+    {
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type' => 'info',
+            'city' => 'Test City',
+            'address' => 'Via Roma',
+            'house_number' => '10',
+        ]);
+
+        $this->assertDatabaseHas('tickets', [
+            'location_address' => 'Via Roma, 10',
+        ]);
+    }
+
+    /** @test */
+    public function testStoreWithZoneIdSavesZone(): void
+    {
+        $zone = $this->createZone($this->company);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $response = $this->post('/api/c/' . "{$this->company->id}/ticket", [
+            'ticket_type' => 'info',
+            'zone_id' => $zone->id,
+        ]);
+
+        $this->assertSuccessResponse($response, self::responseMessages['ticketCreated']);
+
+        $this->assertDatabaseHas('tickets', [
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'zone_id' => $zone->id,
+        ]);
     }
 }

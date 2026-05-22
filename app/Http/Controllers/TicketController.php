@@ -105,6 +105,9 @@ class TicketController extends Controller
         if ($request->exists('address_id')) {
             $ticket->address_id = $request->address_id;
         }
+        if ($request->exists('zone_id')) {
+            $ticket->zone_id = $request->zone_id;
+        }
         if ($request->exists('location')) {
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[1]} {$request->location[0]})') as g;")))[0]->g;
 
@@ -170,6 +173,9 @@ class TicketController extends Controller
         if ($request->exists('address_id')) {
             $ticket->address_id = $request->address_id;
         }
+        if ($request->exists('zone_id')) {
+            $ticket->zone_id = $request->zone_id;
+        }
         if ($request->exists('missed_withdraw_date')) {
             $ticket->missed_withdraw_date = $request->missed_withdraw_date;
         }
@@ -186,13 +192,7 @@ class TicketController extends Controller
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
         }
         $location_address = '';
-        if (!is_null($request->city)) {
-            $location_address .= $request->city;
-        }
         if (!is_null($request->address)) {
-            if (!empty($location_address)) {
-                $location_address .= ', ';
-            }
             $location_address .= $request->address;
         }
         if (!is_null($request->house_number)) {
