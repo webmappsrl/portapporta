@@ -28,7 +28,8 @@ class TrashType extends Model
         'howto',
         'allowed',
         'notallowed',
-        'color'
+        'color',
+        'confirmation_message',
     ];
 
     protected $casts = [

@@ -61,7 +61,10 @@ class TrashType extends Resource
             Boolean::make(__('Show Info'), 'show_in_info')->hideFromIndex(),
             Boolean::make(__('Show in Abandonment'), 'show_in_abandonment')->hideFromIndex(),
             Boolean::make(__('Show in Report'), 'show_in_report')->hideFromIndex(),
-
+            Textarea::make(__('Messaggio di conferma'), 'confirmation_message')
+                ->nullable()
+                ->hideFromIndex()
+                ->help('Testo aggiuntivo mostrato al cittadino dopo l\'invio di una prenotazione (reservation) per questo tipo di rifiuto. Viene concatenato al messaggio base. Usarlo per istruzioni specifiche del servizio, es. per RAEE/Ingombranti indicare i requisiti di accessibilità della strada.'),
 
             NovaTabTranslatable::make([
                 Text::make(__('name'), 'name')->sortable(),

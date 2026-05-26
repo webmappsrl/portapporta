@@ -18,7 +18,8 @@ class Company extends Model implements HasMedia
     protected $guarded = [];
 
     protected $casts = [
-        'properties' => 'array',
+        'properties'          => 'array',
+        'ticket_forms_config' => 'array',
     ];
 
     /**

@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketFormsConfigController;
 use App\Http\Controllers\UpdateUserController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,7 @@ Route::prefix('c')->name('company.')->group(function () {
     Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
         return new CentriRaccoltaResource(Company::findOrFail($id));
     })->name('waste_collection_centers.geojson');
+    Route::get('/{id}/ticket-forms-config', [TicketFormsConfigController::class, 'index']);
     Route::get('/{id}/company_page', function ($id) {
         $company = Company::findOrFail($id);
         return response($company->company_page, 200)
@@ -110,6 +112,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}/waste_collection_centers.geojson', function ($id) {
             return new CentriRaccoltaResource(Company::findOrFail($id));
         });
+        Route::get('/{id}/ticket-forms-config', [TicketFormsConfigController::class, 'index']);
     });
 
     // AUTH
@@ -166,6 +169,7 @@ Route::prefix('v2')->group(function () {
         Route::get('/{id}/form_json', [CompanyController::class, 'formJson']);
         Route::get('/{id}/companies_data', [CompanyController::class, 'companiesData']);
         Route::get('/{id}/calendar/z/{zone_id}', [CalendarController::class, 'v1indexByZone']);
+        Route::get('/{id}/ticket-forms-config', [TicketFormsConfigController::class, 'index']);
     });
 
     // AUTH
