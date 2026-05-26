@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use App\Enums\Fonts;
+use App\Nova\Concerns\HasTicketFormsConfigFields;
 use Laravel\Nova\Panel;
 use Manogi\Tiptap\Tiptap;
 use Wm\MapPoint\MapPoint;
@@ -24,6 +25,8 @@ use Laravel\Nova\Fields\HasMany;
 
 class Company extends Resource
 {
+    use HasTicketFormsConfigFields;
+
     /**
      * The model the resource corresponds to.
      *
@@ -113,6 +116,7 @@ class Company extends Resource
             new Panel('Company Resources', $this->companyResources()),
             new Panel('Company Panel', $this->companyPage()),
             new Panel(__('Options'), $this->companyOptions()),
+            ...$this->ticketFormsConfigPanels(),
         ];
     }
 

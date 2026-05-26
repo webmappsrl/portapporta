@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TicketStatus;
+use App\Enums\TicketType;
 use App\Mail\TicketCreated;
 use App\Mail\TicketDeleted;
 use App\Models\Company;
@@ -19,12 +20,6 @@ use Illuminate\Validation\Rule;
 class TicketController extends Controller
 {
     use GeojsonableTrait;
-    /**
-     * The allowed ticket types.
-     *
-     * @var array
-     */
-    protected $ticketTypes = ['reservation', 'info', 'abandonment', 'report'];
 
     /**
      * Display a listing of the resource.
@@ -78,7 +73,7 @@ class TicketController extends Controller
             $request->validate([
                 'ticket_type' => [
                     'required',
-                    Rule::in($this->ticketTypes),
+                    Rule::in(TicketType::values()),
                 ],
             ]);
         } catch (Exception $e) {
@@ -155,7 +150,7 @@ class TicketController extends Controller
             $request->validate([
                 'ticket_type' => [
                     'required',
-                    Rule::in($this->ticketTypes),
+                    Rule::in(TicketType::values()),
                 ],
             ]);
         } catch (Exception $e) {

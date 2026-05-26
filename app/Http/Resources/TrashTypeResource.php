@@ -37,6 +37,7 @@ class TrashTypeResource extends JsonResource
                         'abandonment' => $tt->show_in_abandonment,
                         'report' => $tt->show_in_report,
                     ],
+                    'confirmation_message' => $tt->confirmation_message,
                     'translations' => [ 'en' => [
                         'name' => $tt->getTranslation('name','en'),
                         'description' => $tt->getTranslation('description','en'),

@@ -11,7 +11,7 @@ class Ticket extends Model
     use HasFactory;
 
     protected $casts = [
-        'status' => TicketStatus::class
+        'status' => TicketStatus::class,
     ];
 
     protected $fillable = [

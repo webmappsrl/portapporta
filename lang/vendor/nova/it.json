@@ -599,5 +599,14 @@
     "Are you sure you want to mark this ticket as execute?": "Sei sicuro di voler segnare questo ticket come eseguito?",
     "Mark as execute": "Segna come eseguito",
     "Don't mark as execute": "Non segnare come eseguito",
-    "All zones": "Tutte le zone"
+    "All zones": "Tutte le zone",
+    "Ticket forms config": "Configurazione Form Segnalazioni",
+    "Form — Missed Collection": "Form — Mancato Ritiro",
+    "Form — Abandoned Waste": "Form — Abbandono Rifiuti",
+    "Form — Service Booking": "Form — Prenotazione Ritiro",
+    "Form — Information Request": "Form — Richiesta Informazioni",
+    "Introductory text": "Testo introduttivo",
+    "Confirmation message": "Messaggio di conferma",
+    "Ticket form introductory text help": "Prima schermata del form: descrive al cittadino il servizio e cosa verrà richiesto. Lasciare vuoto per ripristinare il testo di default.",
+    "Ticket form confirmation message help": "Testo mostrato al cittadino al termine dell'invio della segnalazione. Lasciare vuoto per ripristinare il testo di default."
 }

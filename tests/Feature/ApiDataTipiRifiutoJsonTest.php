@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\TrashType;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\User;
@@ -14,7 +14,7 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
 {
     // REF https://apiersu.netseven.it/data/tipi_rifiuto.json
 
-    use RefreshDatabase;
+    use DatabaseTransactions;
     use WithoutMiddleware;
 
     /** @test     */
@@ -188,6 +188,51 @@ class ApiDataTipiRifiutoJsonTest extends TestCase
         foreach ($tt1->getTranslation('allowed', 'it') as $item) {
             $this->assertContains($item, $json1['allowed']);
         }
+    }
+
+    /** @test     */
+    public function tipi_rifiuto_item_has_confirmation_message_key()
+    {
+        $company = Company::factory()->create();
+        TrashType::factory()->create(['company_id' => $company->id]);
+
+        $response = $this->get('/api/c/' . $company->id . '/trash_types.json');
+        $response->assertStatus(200);
+
+        $json = $response->json();
+        $this->assertArrayHasKey('confirmation_message', $json[0]);
+    }
+
+    /** @test     */
+    public function tipi_rifiuto_item_confirmation_message_reflects_model_value()
+    {
+        $company = Company::factory()->create();
+        $tt = TrashType::factory()->create([
+            'company_id'           => $company->id,
+            'confirmation_message' => 'Messaggio specifico di test.',
+        ]);
+
+        $response = $this->get('/api/c/' . $company->id . '/trash_types.json');
+        $response->assertStatus(200);
+
+        $json = $response->json();
+        $this->assertEquals('Messaggio specifico di test.', $json[0]['confirmation_message']);
+    }
+
+    /** @test     */
+    public function tipi_rifiuto_item_confirmation_message_is_null_when_not_set()
+    {
+        $company = Company::factory()->create();
+        TrashType::factory()->create([
+            'company_id'           => $company->id,
+            'confirmation_message' => null,
+        ]);
+
+        $response = $this->get('/api/c/' . $company->id . '/trash_types.json');
+        $response->assertStatus(200);
+
+        $json = $response->json();
+        $this->assertNull($json[0]['confirmation_message']);
     }
 
     /** @test     */

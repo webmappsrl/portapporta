@@ -9,7 +9,6 @@ use App\Nova\PushNotification;
 use App\Nova\TrashType;
 use App\Nova\UserType;
 use App\Nova\User;
-use App\Nova\Address;
 use App\Nova\Waste;
 use App\Nova\WasteCollectionCenter;
 use App\Nova\Zone;
@@ -34,11 +33,15 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         parent::boot();
         Nova::style('nova-custom', public_path('css/nova-custom.css'));
         Nova::mainMenu(function (Request $request, Menu $menu) {
-            if ($request->user()->hasRole('company_admin')) {
+            if ($request->user()?->hasRole('company_admin')) {
                 return [
                     MenuSection::make(__('Communication'), [
                         MenuItem::resource(Ticket::class),
                         MenuItem::resource(PushNotification::class),
+                        MenuItem::make(
+                            'Configurazione Form Segnalazioni',
+                            '/resources/ticket-forms-configs/' . $request->user()?->companyWhereAdmin?->id
+                        ),
                     ])->icon('user')->collapsable(),
                     MenuSection::make(__('Calendar'),  [
                         MenuItem::resource(Calendar::class),
@@ -60,7 +63,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
                         MenuItem::externalLink('Horizon', url('horizon'))->openInNewTab(),
                         MenuItem::externalLink('Logs', url('logs'))->openInNewTab(),
                     ])->canSee(function ($request) {
-                        return $request->user()->hasRole('super_admin');
+                        return $request->user()?->hasRole('super_admin');
                     })
                 );
                 return $menu;
@@ -68,7 +71,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
         });
         Nova::userMenu(function (Request $request, Menu $menu) {
 
-            if (!empty($request->user()->companyWhereAdmin)) {
+            if (!empty($request->user()?->companyWhereAdmin)) {
                 $menu->append(
                     MenuItem::make(
                         'Profile (company: ' . $request->user()->companyWhereAdmin->name . ')',
@@ -129,7 +132,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     {
         return [
             \Vyuldashev\NovaPermission\NovaPermissionTool::make()->canSee(function ($request) {
-                return $request->user()->hasRole('super_admin') || $request->user()->hasRole('company_admin');
+                return $request->user()?->hasRole('super_admin') || $request->user()?->hasRole('company_admin');
             }),
         ];
     }
