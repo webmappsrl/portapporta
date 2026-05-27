@@ -13,6 +13,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
@@ -131,6 +132,8 @@ class TicketController extends Controller
                     Mail::to($recipient)->send(new TicketCreated($ticket, $company));
                 }
             }
+            // LUNIGIANA_FORWARD
+            $this->forwardToLunigiana($ticket, $company, new TicketCreated($ticket, $company));
         }
 
         // Response
@@ -207,6 +210,8 @@ class TicketController extends Controller
                     Mail::to($recipient)->send(new TicketCreated($ticket, $company));
                 }
             }
+            // LUNIGIANA_FORWARD
+            $this->forwardToLunigiana($ticket, $company, new TicketCreated($ticket, $company));
         }
 
         // Response
@@ -291,6 +296,8 @@ class TicketController extends Controller
                         Mail::to($recipient)->send(new TicketDeleted($ticket, $company));
                     }
                 }
+                // LUNIGIANA_FORWARD
+                $this->forwardToLunigiana($ticket, $company, new TicketDeleted($ticket, $company));
             }
             return $this->sendResponse($ticket, 'Ticket updated.');
         } else {
@@ -308,6 +315,31 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         //
+    }
+
+    private function forwardToLunigiana(Ticket $ticket, Company $company, \Illuminate\Mail\Mailable $mailable): void
+    {
+        if (!config('lunigiana.enabled')) {
+            Log::warning('Lunigiana forwarding is disabled', ['ticket_id' => $ticket->id]);
+            return;
+        }
+        if (!$ticket->zone_id && $company->id === config('lunigiana.company_id')) {
+            Log::warning('ERSU ticket has no zone_id, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
+            return;
+        }
+        if ($ticket->isLunigianaZone()) {
+            foreach (explode(',', config('lunigiana.email')) as $recipient) {
+                try {
+                    Log::info('Sending Lunigiana email to ' . $recipient, ['ticket_id' => $ticket->id]);
+                    Mail::to($recipient)->send($mailable);
+                } catch (\Exception $e) {
+                    Log::warning('Lunigiana forward failed', ['ticket_id' => $ticket->id, 'recipient' => $recipient, 'error' => $e->getMessage()]);
+                }
+            }
+        }
+        else {
+            Log::info('Ticket is not in a Lunigiana zone, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
+        }
     }
 
     private function _geometryToLatLon($geometry)
