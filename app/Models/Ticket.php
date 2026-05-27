@@ -40,6 +40,11 @@ class Ticket extends Model
     {
         return $this->belongsTo(Company::class);
     }
+    public function isLunigianaZone(): bool
+    {
+        return $this->zone_id !== null && in_array($this->zone_id, config('lunigiana.zones', []));
+    }
+
     /**
      * Determine if the current user can update the resource.
      *
