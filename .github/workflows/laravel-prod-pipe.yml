@@ -6,24 +6,41 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:14-3.3
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: pap_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - uses: huaxk/postgis-action@v1
-        with:
-          postgresql version: '11'
-          postgresql user: 'root'
-          postgresql db: 'pap'
-      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
-        with:
-          php-version: '8.2'
       - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
       - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+        run: cp .env.example .env
+      - name: Configure test DB in .env
+        run: |
+          sed -i 's/DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_DATABASE=pap/DB_DATABASE=pap_test/' .env
+          sed -i 's/DB_PASSWORD=/DB_PASSWORD=password/' .env
+          sed -i 's/CACHE_DRIVER=file/CACHE_DRIVER=array/' .env
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Generate key
         run: php artisan key:generate
-      - name: Migrate
-        run: php artisan migrate
+      - name: Enable PostGIS extension
+        run: PGPASSWORD=password psql -h 127.0.0.1 -U root -d pap_test -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+      - name: Migrate test DB
+        run: php artisan migrate --force
       - name: Laravel Tests
         run: php artisan test
   deploy:
