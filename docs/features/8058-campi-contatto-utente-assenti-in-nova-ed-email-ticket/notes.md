@@ -16,4 +16,13 @@
 
 ## Follow-up
 
-- I 3 cleanup non-bloccanti del code review oc:7599 rimangono aperti: telefono da `ticket.phone` vs `form_data` in Nova, fallback telefono in email, `filterOnlyFeSchema` non chiamato in Nova.
+- `filterOnlyFeSchema` non è ancora chiamato in Nova — rimane un cleanup non-bloccante del code review oc:7599.
+
+## Dedup + resolvePhone (aggiunto post-commit iniziale)
+
+Dopo il primo commit è emerso (screenshot) che nome, email e telefono erano mostrati due volte in Nova: una dai 4 campi statici, una dai campi dinamici `form_data` che includevano gli stessi field name. Stesso problema nel partial email.
+
+**Fix applicato in secondo commit:**
+- `Ticket::resolvePhone()` — metodo sul model, sorgente unica per la logica telefono (ticket->phone prima, user->phone_number come fallback). Condiviso da Nova e dal partial email.
+- `_userFormDataFields` in Nova — filtro `$staticNames = ['name', 'email', 'phone_number', 'phone']` applicato prima di creare i field dinamici.
+- `user-form-fields.blade.php` — stesso filtro `$staticNames` applicato dentro il foreach dei `$filtered`, più `$resolveTicketPhone` semplificato a chiamare `$ticket->resolvePhone()`.

@@ -17,17 +17,7 @@
             $formData = json_decode($formData, true) ?? [];
         }
     }
-    $resolveTicketPhone = function () use ($user, $formData, $ticket) {
-        if (!$user || !isset($ticket)) {
-            return $ticket->phone ?? null;
-        }
-        $userPhone = $user->phone_number ?? ($formData['phone_number'] ?? null);
-        $ticketPhone = $ticket->phone ?? null;
-        if ($userPhone !== null && $userPhone !== '' && (string) $userPhone === (string) $ticketPhone) {
-            return $userPhone;
-        }
-        return $ticketPhone;
-    };
+    $resolveTicketPhone = fn() => isset($ticket) ? $ticket->resolvePhone() : null;
     $isPhoneField = function ($name, $label) {
         if ($name === 'phone_number' || $name === 'phone') {
             return true;
@@ -42,8 +32,12 @@
             $filtered = method_exists($user, 'filterFormSchemaExcludingTypes')
                 ? $user->filterFormSchemaExcludingTypes($schema)
                 : array_values(array_filter($schema, fn($f) => !isset($f['only_fe']) || !$f['only_fe']));
+            $staticNames = ['name', 'email', 'phone_number', 'phone'];
             foreach ($filtered as $field) {
                 $name = $field['name'] ?? null;
+                if (in_array($name, $staticNames)) {
+                    continue;
+                }
                 $label = $field['label'] ?? ($name ? ucwords(str_replace('_', ' ', $name)) : null);
                 if ($label === null) {
                     continue;

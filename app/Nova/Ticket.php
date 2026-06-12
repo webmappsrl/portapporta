@@ -157,7 +157,7 @@ class Ticket extends Resource
                 return $this->user->email;
             })->readonly();
             $fields[] = Text::make(__('Phone'), function () {
-                return $this->phone;
+                return $this->resolvePhone();
             })->onlyOnDetail()->readonly();
         }
         $this->_userFormDataFields($fields);
@@ -294,7 +294,9 @@ class Ticket extends Resource
         if (empty($schema)) {
             return;
         }
+        $staticNames = ['name', 'email', 'phone_number', 'phone'];
         $filtered = $user->filterFormSchemaExcludingTypes($schema, ['password', 'group']);
+        $filtered = array_values(array_filter($filtered, fn($f) => !in_array($f['name'] ?? '', $staticNames)));
         $formData = $user->form_data ?? [];
         foreach ($user->jsonFormReadOnlyFields($filtered, $formData) as $field) {
             $fields[] = $field;
