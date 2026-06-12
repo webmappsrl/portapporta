@@ -48,12 +48,19 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 
 | Feature | Ticket | Moduli toccati | Note |
 |---|---|---|---|
+| Fix campi contatto utente assenti in Nova ed email ticket | oc:8058 | `app/Nova/Ticket.php`, `resources/views/emails/tickets/partials/user-form-fields.blade.php` | Ripristina Name/Email/BelongsTo/Phone in Nova; aggiunge email+nome account prima dei dati TARI nel partial email |
 | Fix scheduler model:prune PendingAttachment Nova/Trix | oc:8057 | `app/Console/Kernel.php` | Aggiunto `--model PendingAttachment` al prune notturno per eliminare file temporanei Trix accumulati |
 | Revisione test suite: db di test dedicato | oc:7991 | `tests/TestCase.php`, `phpunit.xml`, `app/Providers/RouteServiceProvider.php`, `.github/workflows/*.yml` | DB `pap_test` dedicato, guard anti-dev-db, throttle disabilitato in testing, CI su PostgreSQL 14+PostGIS |
 | Smistamento automatico segnalazioni Lunigiana | oc:7616 | `config/lunigiana.php`, `app/Models/Ticket.php`, `app/Http/Controllers/TicketController.php` | Duplica le email ticket verso urp@lunigianaambiente.it per le zone Lunigiana di ERSU |
 | Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
 
 ## Decisioni architetturali
+
+### Fix campi contatto utente in Nova ed email (oc:8058)
+- I 4 campi statici (`Name`, `Email`, `BelongsTo User`, `Phone`) sono wrappati in `if ($this->user)` in `_headerFields` — così gli altri campi dell'header restano visibili anche per ticket orfani
+- `->with(['user'])` aggiunto in `indexQuery` per prevenire N+1 con `BelongsTo::make('User')` visibile in index
+- Email e nome account nel partial `user-form-fields.blade.php` precedono i dati TARI dinamici (inline, senza header separatore) per tutti i formati (`br`, `table`, `paragraph`)
+- Test Nova: asserzioni su campi tradotti usano `__('Name')` / `__('Phone')` perché il locale del progetto è `it` (`__('Name')` → `'Nome'`)
 
 ### Fix scheduler prune PendingAttachment (oc:8057)
 - `model:prune` richiede `--model` esplicito su `PendingAttachment` — senza il flag, i file temporanei caricati nell'editor Trix di Nova non vengono eliminati

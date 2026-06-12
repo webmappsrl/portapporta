@@ -199,6 +199,38 @@ class TicketEmailViewsTest extends TestCase
     }
 
     /** @test */
+    public function partialRendersAccountEmailAndNameBeforeTariData(): void
+    {
+        ['company' => $company, 'user' => $user, 'ticket' => $ticket] = $this->createTicketContext();
+
+        $html = view('emails.tickets.partials.user-form-fields', [
+            'user' => $user,
+            'company' => $company,
+            'ticket' => $ticket,
+            'format' => 'table',
+        ])->render();
+
+        $this->assertStringContainsString($user->email, $html);
+        $this->assertStringContainsString($user->name, $html);
+        $emailPos = strpos($html, $user->email);
+        $tariPos  = strpos($html, 'CF123456');
+        $this->assertLessThan($tariPos, $emailPos, 'Email account deve precedere i dati TARI');
+    }
+
+    /** @test */
+    public function partialSkipsAccountFieldsWhenUserIsNull(): void
+    {
+        $html = view('emails.tickets.partials.user-form-fields', [
+            'user' => null,
+            'company' => null,
+            'ticket' => null,
+            'format' => 'br',
+        ])->render();
+
+        $this->assertSame('', trim($html));
+    }
+
+    /** @test */
     public function createdEmailUsesCompanyPrimaryColorInHeader(): void
     {
         $company = Company::factory()->create([

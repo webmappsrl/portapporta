@@ -17,17 +17,7 @@
             $formData = json_decode($formData, true) ?? [];
         }
     }
-    $resolveTicketPhone = function () use ($user, $formData, $ticket) {
-        if (!$user || !isset($ticket)) {
-            return $ticket->phone ?? null;
-        }
-        $userPhone = $user->phone_number ?? ($formData['phone_number'] ?? null);
-        $ticketPhone = $ticket->phone ?? null;
-        if ($userPhone !== null && $userPhone !== '' && (string) $userPhone === (string) $ticketPhone) {
-            return $userPhone;
-        }
-        return $ticketPhone;
-    };
+    $resolveTicketPhone = fn() => isset($ticket) ? $ticket->resolvePhone() : null;
     $isPhoneField = function ($name, $label) {
         if ($name === 'phone_number' || $name === 'phone') {
             return true;
@@ -42,8 +32,12 @@
             $filtered = method_exists($user, 'filterFormSchemaExcludingTypes')
                 ? $user->filterFormSchemaExcludingTypes($schema)
                 : array_values(array_filter($schema, fn($f) => !isset($f['only_fe']) || !$f['only_fe']));
+            $staticNames = ['name', 'email', 'phone_number', 'phone'];
             foreach ($filtered as $field) {
                 $name = $field['name'] ?? null;
+                if (in_array($name, $staticNames)) {
+                    continue;
+                }
                 $label = $field['label'] ?? ($name ? ucwords(str_replace('_', ' ', $name)) : null);
                 if ($label === null) {
                     continue;
@@ -71,6 +65,24 @@
         }
     }
 @endphp
+@if ($user)
+    @if ($format === 'paragraph')
+        <p><strong>{{ __('Email') }}:</strong> {{ $user->email ?: '-' }}</p>
+        <p><strong>{{ __('Name') }}:</strong> {{ $user->name ?: '-' }}</p>
+    @elseif ($format === 'table')
+        <tr>
+            <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;vertical-align:top;">{{ __('Email') }}</td>
+            <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ $user->email ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;vertical-align:top;">{{ __('Name') }}</td>
+            <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ $user->name ?: '-' }}</td>
+        </tr>
+    @else
+        <strong>{{ __('Email') }}:</strong> {{ $user->email ?: '-' }}<br>
+        <strong>{{ __('Name') }}:</strong> {{ $user->name ?: '-' }}<br>
+    @endif
+@endif
 @foreach ($rows as $row)
     @if ($format === 'paragraph')
         <p><strong>{{ __($row['label']) }}:</strong> {{ ($row['value'] ?? '') ?: '-' }}</p>

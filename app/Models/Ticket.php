@@ -40,6 +40,14 @@ class Ticket extends Model
     {
         return $this->belongsTo(Company::class);
     }
+    public function resolvePhone(): ?string
+    {
+        if (filled($this->phone)) {
+            return $this->phone;
+        }
+        return $this->user?->phone_number ?? null;
+    }
+
     public function isLunigianaZone(): bool
     {
         return $this->zone_id !== null && in_array($this->zone_id, config('lunigiana.zones', []));

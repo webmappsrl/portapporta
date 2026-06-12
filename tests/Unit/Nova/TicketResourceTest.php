@@ -94,4 +94,63 @@ class TicketResourceTest extends TestCase
 
         $this->assertEquals($zone->id, $ticket->zone->id);
     }
+
+    /** @test */
+    public function headerFieldsIncludesStaticUserFields(): void
+    {
+        $company = Company::factory()->create(['form_json' => null]);
+        $user = User::factory()->create(['app_company_id' => $company->id]);
+        $ticket = Ticket::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $user->id,
+        ]);
+        $ticket->load('user');
+
+        $resource = new TicketResource($ticket);
+        $fields = [];
+
+        $method = new ReflectionMethod(TicketResource::class, '_headerFields');
+        $method->setAccessible(true);
+        $method->invokeArgs($resource, [&$fields]);
+
+        $fieldNames = array_map(fn($f) => $f->name, $fields);
+        $this->assertContains(__('Name'), $fieldNames);
+        $this->assertContains('Email', $fieldNames);
+        $this->assertContains('User', $fieldNames);
+        $this->assertContains(__('Phone'), $fieldNames);
+    }
+
+    /** @test */
+    public function headerFieldsSkipsStaticUserFieldsWhenUserIsNull(): void
+    {
+        $company = Company::factory()->create(['form_json' => null]);
+        $ticket = Ticket::factory()->create(['company_id' => $company->id]);
+        $ticket->setRelation('user', null);
+
+        $resource = new TicketResource($ticket);
+        $fields = [];
+
+        $method = new ReflectionMethod(TicketResource::class, '_headerFields');
+        $method->setAccessible(true);
+        $method->invokeArgs($resource, [&$fields]);
+
+        $fieldNames = array_map(fn($f) => $f->name, $fields);
+        $this->assertNotContains('User', $fieldNames);
+        $this->assertNotContains('Email', $fieldNames);
+    }
+
+    /** @test */
+    public function indexQueryEagerLoadsUser(): void
+    {
+        $company = Company::factory()->create();
+        $admin = User::factory()->create(['admin_company_id' => $company->id]);
+
+        $request = NovaRequest::create('/nova-api/tickets', 'GET');
+        $request->setUserResolver(fn() => $admin);
+
+        $query = Ticket::query();
+        $result = TicketResource::indexQuery($request, $query);
+
+        $this->assertArrayHasKey('user', $result->getEagerLoads());
+    }
 }
