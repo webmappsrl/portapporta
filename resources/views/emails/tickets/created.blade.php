@@ -26,6 +26,7 @@
     $zone = null;
     $ticket_via = '';
     $ticket_civico = '';
+    $ticket_city = '';
     if ($ticket->address) {
         $zone = $ticket->address->zone ?? null;
         $ticket_via = $ticket->address->address ?? '';
@@ -34,6 +35,13 @@
         $zone = $ticket->zone;
         $parts = explode(', ', $ticket->location_address ?? '', 2);
         $ticket_via = $parts[0] ?? '';
+        $ticket_civico = $parts[1] ?? '';
+    } else {
+        $locationParts = explode(' — ', $ticket->location_address ?? '', 2);
+        $addressPart   = $locationParts[0];
+        $ticket_city   = $locationParts[1] ?? '';
+        $parts         = explode(', ', $addressPart, 2);
+        $ticket_via    = $parts[0] ?? '';
         $ticket_civico = $parts[1] ?? '';
     }
     $type_labels = [
@@ -102,6 +110,13 @@
     <tr>
         <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">Comune</td>
         <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ $zone->comune }}</td>
+    </tr>
+    @endif
+
+    @if($ticket_city)
+    <tr>
+        <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">Comune</td>
+        <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ $ticket_city }}</td>
     </tr>
     @endif
 

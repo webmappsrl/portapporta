@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Enums\TicketStatus;
+use Carbon\Carbon;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Support\Facades\Mail;
@@ -24,11 +25,12 @@ class TicketControllerTest extends TestCase
     const API_PREFIX_COMPANY = '/api/v2/c/';
     const API_PREFIX_TICKET = '/api/v2/ticket/';
     const responseMessages = [
-        'ticketsFetched' => 'User tickets',
-        'ticketCreated' => 'Ticket created.',
-        'invalidTicketType' => 'The selected ticket type is invalid.',
-        'ticketUpdated' => 'Ticket updated.',
-        'ticketNotFound' => 'Ticket not found.',
+        'ticketsFetched'       => 'User tickets',
+        'ticketCreated'        => 'Ticket created.',
+        'invalidTicketType'    => 'The selected ticket type is invalid.',
+        'ticketUpdated'        => 'Ticket updated.',
+        'ticketNotFound'       => 'Ticket not found.',
+        'collectionInProgress' => 'Il giro di raccolta è ancora in corso, riprova più tardi.',
     ];
 
     public function setUp(): void
@@ -181,7 +183,7 @@ class TicketControllerTest extends TestCase
             'user_id' => $this->user->id,
             'note' => $ticketFieldsToSend['note'],
             'phone' => $ticketFieldsToSend['phone'],
-            'location_address' => $ticketFieldsToSend['address'] . ', ' . $ticketFieldsToSend['house_number']
+            'location_address' => $ticketFieldsToSend['address'] . ', ' . $ticketFieldsToSend['house_number'] . ' — ' . $ticketFieldsToSend['city']
         ];
 
 
@@ -303,7 +305,7 @@ class TicketControllerTest extends TestCase
     }
 
     /** @test */
-    public function testV1StoreLocationAddressExcludesCity(): void
+    public function testV1StoreLocationAddressIncludesCity(): void
     {
         Sanctum::actingAs($this->user);
         Mail::fake();
@@ -316,7 +318,7 @@ class TicketControllerTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('tickets', [
-            'location_address' => 'Via Roma, 10',
+            'location_address' => 'Via Roma, 10 — Test City',
         ]);
     }
 
@@ -339,6 +341,128 @@ class TicketControllerTest extends TestCase
             'company_id' => $this->company->id,
             'user_id' => $this->user->id,
             'zone_id' => $zone->id,
+        ]);
+    }
+
+    /** @test */
+    public function testV1StoreRejectsMissedWithdrawWhileRoundInProgress(): void
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $zone = $this->createZone($this->company);
+        $this->createCalendarWithStopTime($zone, '12:00');
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $response = $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type'          => 'report',
+            'zone_id'              => $zone->id,
+            'missed_withdraw_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $this->assertErrorResponse($response, self::responseMessages['collectionInProgress'], 400);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1StoreAllowsMissedWithdrawAfterRoundEnds(): void
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(13, 0));
+        $zone = $this->createZone($this->company);
+        $this->createCalendarWithStopTime($zone, '12:00');
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $response = $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type'          => 'report',
+            'zone_id'              => $zone->id,
+            'missed_withdraw_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $this->assertSuccessResponse($response, self::responseMessages['ticketCreated']);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1StoreAllowsMissedWithdrawWithoutZoneId(): void
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $response = $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type'          => 'report',
+            'missed_withdraw_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $this->assertSuccessResponse($response, self::responseMessages['ticketCreated']);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1UpdateRejectsMissedWithdrawWhileRoundInProgress(): void
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $zone = $this->createZone($this->company);
+        $this->createCalendarWithStopTime($zone, '12:00');
+
+        $ticket = Ticket::factory()->create([
+            'company_id' => $this->company->id,
+            'zone_id'    => $zone->id,
+        ]);
+
+        $response = $this->patch(self::API_PREFIX_TICKET . "{$ticket->id}", [
+            'missed_withdraw_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $this->assertErrorResponse($response, self::responseMessages['collectionInProgress'], 400);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function testV1UpdateSkipsCheckWhenMissedWithdrawDateNotInPayload(): void
+    {
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $zone = $this->createZone($this->company);
+        $this->createCalendarWithStopTime($zone, '12:00');
+
+        $ticket = Ticket::factory()->create([
+            'company_id'           => $this->company->id,
+            'zone_id'              => $zone->id,
+            'missed_withdraw_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $response = $this->patch(self::API_PREFIX_TICKET . "{$ticket->id}", [
+            'note' => 'solo aggiornamento note',
+        ]);
+
+        $this->assertSuccessResponse($response, self::responseMessages['ticketUpdated']);
+
+        Carbon::setTestNow();
+    }
+
+    private function createCalendarWithStopTime(\App\Models\Zone $zone, string $stopTime): void
+    {
+        $userType = $this->createUserType();
+        $calendar = \App\Models\Calendar::factory()->create([
+            'zone_id'      => $zone->id,
+            'company_id'   => $this->company->id,
+            'user_type_id' => $userType->id,
+            'start_date'   => Carbon::today()->subDays(5),
+            'stop_date'    => Carbon::today()->addDays(30),
+        ]);
+        \App\Models\CalendarItem::factory()->create([
+            'calendar_id' => $calendar->id,
+            'day_of_week' => Carbon::today()->dayOfWeek,
+            'start_time'  => '08:00',
+            'stop_time'   => $stopTime,
+            'frequency'   => 'weekly',
         ]);
     }
 }

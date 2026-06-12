@@ -175,6 +175,14 @@ class TicketController extends Controller
             $ticket->zone_id = $request->zone_id;
         }
         if ($request->exists('missed_withdraw_date')) {
+            if (
+                $ticket->ticket_type === TicketType::Report->value
+                && \Carbon\Carbon::parse($request->missed_withdraw_date)->isToday()
+                && $request->exists('zone_id')
+                && app(CalendarController::class)->isCollectionInProgress((int) $request->zone_id)
+            ) {
+                return $this->sendError('Il giro di raccolta è ancora in corso, riprova più tardi.');
+            }
             $ticket->missed_withdraw_date = $request->missed_withdraw_date;
         }
         if ($request->exists('note')) {
@@ -198,6 +206,12 @@ class TicketController extends Controller
                 $location_address .= ', ';
             }
             $location_address .= $request->house_number;
+        }
+        if (!is_null($request->city)) {
+            if (!empty($location_address)) {
+                $location_address .= ' — ';
+            }
+            $location_address .= $request->city;
         }
         $ticket->location_address = $location_address;
         $res = $ticket->save();
@@ -250,6 +264,14 @@ class TicketController extends Controller
             $ticket->address_id = $request->address_id;
         }
         if ($request->exists('missed_withdraw_date')) {
+            $zoneId = $request->zone_id ?? $ticket->zone_id;
+            if (
+                $zoneId
+                && \Carbon\Carbon::parse($request->missed_withdraw_date)->isToday()
+                && app(CalendarController::class)->isCollectionInProgress((int) $zoneId)
+            ) {
+                return $this->sendError('Il giro di raccolta è ancora in corso, riprova più tardi.');
+            }
             $ticket->missed_withdraw_date = $request->missed_withdraw_date;
         }
         if ($request->exists('note')) {
@@ -265,15 +287,8 @@ class TicketController extends Controller
             $ticket->geometry = (DB::select(DB::raw("SELECT ST_GeomFromText('POINT({$request->location[0]} {$request->location[1]})') as g;")))[0]->g;
         }
 
-        // Handle location_address the same way as in store
         $location_address = '';
-        if (!is_null($request->city)) {
-            $location_address .= $request->city;
-        }
         if (!is_null($request->address)) {
-            if (!empty($location_address)) {
-                $location_address .= ', ';
-            }
             $location_address .= $request->address;
         }
         if (!is_null($request->house_number)) {
@@ -281,6 +296,12 @@ class TicketController extends Controller
                 $location_address .= ', ';
             }
             $location_address .= $request->house_number;
+        }
+        if (!is_null($request->city)) {
+            if (!empty($location_address)) {
+                $location_address .= ' — ';
+            }
+            $location_address .= $request->city;
         }
         $ticket->location_address = $location_address;
 
