@@ -8,6 +8,7 @@ use App\Models\Ticket as TicketModel;
 use App\Nova\Actions\TicketAnswerViaMail;
 use App\Nova\Actions\TicketStatusAction;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\URL;
 use Laravel\Nova\Fields\DateTime;
@@ -63,7 +64,8 @@ class Ticket extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->where('company_id', $request->user()->companyWhereAdmin->id);
+        return $query->where('company_id', $request->user()->companyWhereAdmin->id)
+                     ->with(['user']);
     }
 
     /**
@@ -146,6 +148,18 @@ class Ticket extends Resource
             }
         })->sortable()->readonly()->asHtml();
         $fields[] = DateTime::make(__('Created At'), 'created_at')->sortable()->readonly();
+        if ($this->user) {
+            $fields[] = Text::make(__('Name'), function () {
+                return $this->checkName($this->user->name);
+            })->readonly()->onlyOnDetail();
+            $fields[] = BelongsTo::make('User')->readonly();
+            $fields[] = Text::make('Email', function () {
+                return $this->user->email;
+            })->readonly();
+            $fields[] = Text::make(__('Phone'), function () {
+                return $this->phone;
+            })->onlyOnDetail()->readonly();
+        }
         $this->_userFormDataFields($fields);
         $fields[] =  Text::make(__('Status'), 'status', function ($res) {
             $translated = __($this->status->value);

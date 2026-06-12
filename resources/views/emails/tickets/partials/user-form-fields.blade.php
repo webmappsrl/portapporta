@@ -71,6 +71,24 @@
         }
     }
 @endphp
+@if ($user)
+    @if ($format === 'paragraph')
+        <p><strong>{{ __('Email') }}:</strong> {{ $user->email ?: '-' }}</p>
+        <p><strong>{{ __('Name') }}:</strong> {{ $user->name ?: '-' }}</p>
+    @elseif ($format === 'table')
+        <tr>
+            <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;vertical-align:top;">{{ __('Email') }}</td>
+            <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ $user->email ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td width="130" style="padding:9px 14px;color:#777777;font-size:14px;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;vertical-align:top;">{{ __('Name') }}</td>
+            <td style="padding:9px 14px;font-size:14px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #eeeeee;">{{ $user->name ?: '-' }}</td>
+        </tr>
+    @else
+        <strong>{{ __('Email') }}:</strong> {{ $user->email ?: '-' }}<br>
+        <strong>{{ __('Name') }}:</strong> {{ $user->name ?: '-' }}<br>
+    @endif
+@endif
 @foreach ($rows as $row)
     @if ($format === 'paragraph')
         <p><strong>{{ __($row['label']) }}:</strong> {{ ($row['value'] ?? '') ?: '-' }}</p>
