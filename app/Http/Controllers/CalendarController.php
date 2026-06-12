@@ -279,6 +279,12 @@ class CalendarController extends Controller
             try {
                 $stop = Carbon::today()->copy()->setTimeFromTimeString((string) $item['stop_time']);
             } catch (\Exception $e) {
+                if ($this->logger) {
+                    $this->logger->warning('filterExcludeInProgress: stop_time non parsabile', [
+                        'stop_time' => $item['stop_time'],
+                        'day'       => $todayKey,
+                    ]);
+                }
                 continue;
             }
             if ($maxStop === null || $stop->greaterThan($maxStop)) {
@@ -294,6 +300,40 @@ class CalendarController extends Controller
         }
 
         return $data;
+    }
+
+    public function isCollectionInProgress(int $zoneId): bool
+    {
+        $this->logger = $this->logger ?? Log::channel('calendars');
+        $today = Carbon::today();
+
+        $calendars = Calendar::where('zone_id', $zoneId)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('stop_date', '>=', $today)
+            ->with('calendarItems')
+            ->get();
+
+        $now = Carbon::now();
+        foreach ($calendars as $calendar) {
+            foreach ($calendar->calendarItems->where('day_of_week', $today->dayOfWeek) as $item) {
+                if (!isset($item->stop_time) || $item->stop_time === '') {
+                    continue;
+                }
+                try {
+                    $stop = Carbon::today()->copy()->setTimeFromTimeString((string) $item->stop_time);
+                    if ($now->lessThan($stop)) {
+                        $this->logger->warning('isCollectionInProgress: giro ancora in corso', [
+                            'zone_id'   => $zoneId,
+                            'stop_time' => $stop->format('H:i:s'),
+                        ]);
+                        return true;
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        }
+        return false;
     }
 
     private function createCalendar($calendar, $start_date, $stop_date)

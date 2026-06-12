@@ -201,6 +201,29 @@ class CalendarControllerTest extends TestCase
         Carbon::setTestNow();
     }
 
+    /** @test */
+    public function testV1IndexExcludeInProgressWithMidnightStopTimeKeepsToday(): void
+    {
+        // stop_time = '0:00' → stored as '00:00:00' → str_replace('0:00','0') → '00:00' (midnight, past at 10am)
+        // maxStop rimane null (o viene settato a mezzanotte che è nel passato) → giorno non escluso
+        Carbon::setTestNow(Carbon::today()->setTime(10, 0));
+        $this->calendarItem->update([
+            'day_of_week' => Carbon::today()->dayOfWeek,
+            'start_time'  => '08:00',
+            'stop_time'   => '0:00',
+        ]);
+        Sanctum::actingAs($this->user);
+        $todayKey = Carbon::today()->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . $this->company->id . '/calendar?exclude_in_progress=1');
+        $this->assertSuccessResponse($response, self::responseMessages['calendarCreated']);
+
+        $calendar = $response->json('data.0.calendar') ?? [];
+        $this->assertArrayHasKey($todayKey, $calendar);
+
+        Carbon::setTestNow();
+    }
+
     // --------------------------------------------
     // Tests for V1IndexByZone Function
     // --------------------------------------------

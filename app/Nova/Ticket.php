@@ -215,9 +215,19 @@ class Ticket extends Resource
             ])->onlyOnDetail()->readonly();
         } else {
             if (!empty($this->location_address)) {
-                $parts = explode(', ', $this->location_address, 2);
-                $via = $parts[0] ?? '';
+                $locationParts = explode(' — ', $this->location_address, 2);
+                $addressPart   = $locationParts[0];
+                $cityFallback  = $locationParts[1] ?? '';
+
+                $parts  = explode(', ', $addressPart, 2);
+                $via    = $parts[0] ?? '';
                 $civico = $parts[1] ?? '';
+
+                if (!empty($cityFallback)) {
+                    $fields[] = Text::make(__('Comune'), function () use ($cityFallback) {
+                        return $cityFallback;
+                    })->onlyOnDetail()->readonly();
+                }
                 if (!empty($via)) {
                     $fields[] = Text::make(__('Address'), function () use ($via) {
                         return $via;
