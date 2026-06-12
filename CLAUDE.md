@@ -48,11 +48,18 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 
 | Feature | Ticket | Moduli toccati | Note |
 |---|---|---|---|
+| Fix scheduler model:prune PendingAttachment Nova/Trix | oc:8057 | `app/Console/Kernel.php` | Aggiunto `--model PendingAttachment` al prune notturno per eliminare file temporanei Trix accumulati |
 | Revisione test suite: db di test dedicato | oc:7991 | `tests/TestCase.php`, `phpunit.xml`, `app/Providers/RouteServiceProvider.php`, `.github/workflows/*.yml` | DB `pap_test` dedicato, guard anti-dev-db, throttle disabilitato in testing, CI su PostgreSQL 14+PostGIS |
 | Smistamento automatico segnalazioni Lunigiana | oc:7616 | `config/lunigiana.php`, `app/Models/Ticket.php`, `app/Http/Controllers/TicketController.php` | Duplica le email ticket verso urp@lunigianaambiente.it per le zone Lunigiana di ERSU |
 | Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
 
 ## Decisioni architetturali
+
+### Fix scheduler prune PendingAttachment (oc:8057)
+- `model:prune` richiede `--model` esplicito su `PendingAttachment` — senza il flag, i file temporanei caricati nell'editor Trix di Nova non vengono eliminati
+- `PendingAttachment` usa il trait `Prunable` (non `MassPrunable`): trigghera `pruning()` per-record che chiama `Storage::disk()->delete()` — i file fisici sono eliminati correttamente
+- Finestra di pruning: `created_at <= now()->subDays(1)` — hard-coded nel modello Nova vendor
+- Il primo run in produzione dopo il deploy eliminerà i file accumulati: fare un backup spot del filesystem prima
 
 ### Test suite (oc:7991)
 - DB di test `pap_test` separato da `pap` (sviluppo) — `TestCase::setUp()` abortisce con messaggio actionable se il DB è sbagliato
