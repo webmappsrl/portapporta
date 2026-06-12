@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Laravel\Nova\Fields\Attachments\PendingAttachment;
 
 class Kernel extends ConsoleKernel
 {
@@ -18,7 +19,9 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('horizon:snapshot')->everyFiveMinutes();
         $schedule->command('tickets:update-execute')->dailyAt('22:00');
-        $schedule->command('model:prune')->daily();
+        $schedule->command('model:prune', [
+            '--model' => [PendingAttachment::class],
+        ])->daily();
     }
 
     /**
