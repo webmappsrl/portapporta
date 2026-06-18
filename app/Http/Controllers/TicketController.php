@@ -6,8 +6,10 @@ use App\Enums\TicketStatus;
 use App\Enums\TicketType;
 use App\Mail\TicketCreated;
 use App\Mail\TicketDeleted;
+use App\Models\Address;
 use App\Models\Company;
 use App\Models\Ticket;
+use App\Models\Zone;
 use App\Traits\GeojsonableTrait;
 use Exception;
 use Illuminate\Http\Request;
@@ -122,6 +124,9 @@ class TicketController extends Controller
                 }
             }
         }
+        if (is_null($ticket->zone_id)) {
+            $ticket->zone_id = $this->_deriveZoneId($ticket);
+        }
         $res = $ticket->save();
 
         // Send a notification email to company for the newly created ticket
@@ -214,6 +219,9 @@ class TicketController extends Controller
             $location_address .= $request->city;
         }
         $ticket->location_address = $location_address;
+        if (is_null($ticket->zone_id)) {
+            $ticket->zone_id = $this->_deriveZoneId($ticket);
+        }
         $res = $ticket->save();
 
         // Send a notification email to company for the newly created ticket
@@ -304,6 +312,9 @@ class TicketController extends Controller
             $location_address .= $request->city;
         }
         $ticket->location_address = $location_address;
+        if (is_null($ticket->zone_id)) {
+            $ticket->zone_id = $this->_deriveZoneId($ticket);
+        }
 
         // Attempt to save changes
         $res = $ticket->save();
@@ -345,7 +356,7 @@ class TicketController extends Controller
             return;
         }
         if (!$ticket->zone_id && $company->id === config('lunigiana.company_id')) {
-            Log::warning('ERSU ticket has no zone_id, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
+            Log::warning('ERSU ticket zone_id derivation failed, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
             return;
         }
         if ($ticket->isLunigianaZone()) {
@@ -361,6 +372,22 @@ class TicketController extends Controller
         else {
             Log::info('Ticket is not in a Lunigiana zone, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
         }
+    }
+
+    private function _deriveZoneId(Ticket $ticket): ?int
+    {
+        if ($ticket->address_id) {
+            $zoneId = Address::find($ticket->address_id)?->zone_id;
+            if ($zoneId) {
+                return $zoneId;
+            }
+        }
+
+        if ($ticket->geometry) {
+            return Zone::findByPoint($ticket->geometry, $ticket->company_id)?->id;
+        }
+
+        return null;
     }
 
     private function _geometryToLatLon($geometry)

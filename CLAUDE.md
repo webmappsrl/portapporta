@@ -48,6 +48,7 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 
 | Feature | Ticket | Moduli toccati | Note |
 |---|---|---|---|
+| Fallback zone_id da geometry/address per app non aggiornate | oc:8099 | `app/Models/Zone.php`, `app/Http/Controllers/TicketController.php` | Deriva automaticamente zone_id pre-save via address.zone_id o PostGIS ST_Contains; garantisce forward Lunigiana anche da app vecchie |
 | Fix campi contatto utente assenti in Nova ed email ticket | oc:8058 | `app/Nova/Ticket.php`, `resources/views/emails/tickets/partials/user-form-fields.blade.php` | Ripristina Name/Email/BelongsTo/Phone in Nova; aggiunge email+nome account prima dei dati TARI nel partial email |
 | Fix scheduler model:prune PendingAttachment Nova/Trix | oc:8057 | `app/Console/Kernel.php` | Aggiunto `--model PendingAttachment` al prune notturno per eliminare file temporanei Trix accumulati |
 | Revisione test suite: db di test dedicato | oc:7991 | `tests/TestCase.php`, `phpunit.xml`, `app/Providers/RouteServiceProvider.php`, `.github/workflows/*.yml` | DB `pap_test` dedicato, guard anti-dev-db, throttle disabilitato in testing, CI su PostgreSQL 14+PostGIS |
@@ -55,6 +56,13 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 | Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
 
 ## Decisioni architetturali
+
+### Fallback zone_id da geometry/address (oc:8099)
+- `Zone::findByPoint(string $geometry, int $companyId): ?self` — primo metodo statico con raw SQL nel layer model (tutti gli altri sono nei controller). Primo utilizzo di `DB::selectOne` fuori dai controller — convenzione da seguire per query spaziali domain-specific.
+- `ST_SetSRID(?::geometry, 4326)` obbligatorio: geometry pre-save ha SRID=0 (`ST_GeomFromText` senza argomento), geometry post-save ha SRID=4326. Senza il force, `ST_Contains` ritorna `false` silenziosamente.
+- `ORDER BY ST_Area(geometry::geometry) ASC`: 27 coppie di zone ERSU si sovrappongono — l'ordinamento garantisce determinismo prendendo la zona più specifica.
+- Derivazione pre-save (non post-save): geometry e address_id sono già sull'oggetto Eloquent prima di `save()` — un solo write al DB.
+- `isCollectionInProgress` rimane fail-open per zone_id derivato: il blocco si attiva solo se `$request->exists('zone_id')` — comportamento intenzionale, non cambiato.
 
 ### Fix campi contatto utente in Nova ed email (oc:8058)
 - I 4 campi statici (`Name`, `Email`, `BelongsTo User`, `Phone`) sono wrappati in `if ($this->user)` in `_headerFields` — così gli altri campi dell'header restano visibili anche per ticket orfani
