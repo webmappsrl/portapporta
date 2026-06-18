@@ -2,8 +2,10 @@
 
 namespace App\Nova;
 
+use App\Models\UserType;
 use Laravel\Nova\Fields\BelongsTo;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
@@ -61,12 +63,19 @@ class Address extends Resource
             Text::make('city'),
             Text::make('address'),
             Text::make('house_number'),
-            Text::make('User Type', function () {
-                if (!is_null($this->user_type_id)) {
-                    return $this->userType->label;
-                }
-                return 'ND';
-            })->onlyOnDetail(),
+            Select::make('User Type', 'user_type_id')
+                ->options(function () {
+                    return $this->userTypeOptionsForCompany()->get()->pluck('label', 'id');
+                })
+                ->displayUsing(function () {
+                    return $this->userType?->label ?? 'ND';
+                })
+                ->rules(function () {
+                    $ids = $this->userTypeOptionsForCompany()->pluck('id')->toArray();
+                    return ['nullable', Rule::in($ids)];
+                })
+                ->nullable()
+                ->hideFromIndex(),
             BelongsTo::make('User')->nullable()->searchable(),
             MapPoint::make('location')->withMeta([
                 'minZoom' => 5,
@@ -144,5 +153,18 @@ class Address extends Resource
     public static function availableForNavigation(Request $request)
     {
         return $request->user()->hasRole('super_admin');
+    }
+
+    private function userTypeOptionsForCompany(): \Illuminate\Database\Eloquent\Builder
+    {
+        $addressUser = $this->user;
+        if ($addressUser) {
+            return UserType::where('company_id', $addressUser->app_company_id);
+        }
+        $authUser = Auth()->user();
+        if ($authUser->hasRole('company_admin')) {
+            return UserType::where('company_id', $authUser->admin_company_id);
+        }
+        return UserType::query();
     }
 }

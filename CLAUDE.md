@@ -48,6 +48,7 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 
 | Feature | Ticket | Moduli toccati | Note |
 |---|---|---|---|
+| Field user_type selezionabile in Nova Address | oc:8101 | `app/Nova/Address.php` | Select editabile filtrato per company, con validazione server-side Rule::in per bloccare assegnazioni cross-company |
 | Fallback zone_id da geometry/address per app non aggiornate | oc:8099 | `app/Models/Zone.php`, `app/Http/Controllers/TicketController.php` | Deriva automaticamente zone_id pre-save via address.zone_id o PostGIS ST_Contains; garantisce forward Lunigiana anche da app vecchie |
 | Fix campi contatto utente assenti in Nova ed email ticket | oc:8058 | `app/Nova/Ticket.php`, `resources/views/emails/tickets/partials/user-form-fields.blade.php` | Ripristina Name/Email/BelongsTo/Phone in Nova; aggiunge email+nome account prima dei dati TARI nel partial email |
 | Fix scheduler model:prune PendingAttachment Nova/Trix | oc:8057 | `app/Console/Kernel.php` | Aggiunto `--model PendingAttachment` al prune notturno per eliminare file temporanei Trix accumulati |
@@ -56,6 +57,12 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 | Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
 
 ## Decisioni architetturali
+
+### Field user_type selezionabile in Nova Address (oc:8101)
+- `userTypeOptionsForCompany(): Builder` è un metodo privato non-static che centralizza la logica di filtro usata sia da `->options()` che da `->rules()` — evita divergenza silente tra opzioni mostrate e valori accettati dalla validazione.
+- `->options()` usa `->get()->pluck('label','id')` (idrata i model per `HasTranslations`); `->rules()` usa `->pluck('id')` (query leggera senza idratazione) — stesso Builder, chiamate diverse.
+- Fallback per company_admin senza utente sull'address: `admin_company_id` (non `app_company_id` come fa il campo `zone_id`). Per un company_admin, `app_company_id` è null — la divergenza è intenzionale e documentata.
+- `displayUsing` usa `$this->userType?->label` (relazione Eloquent) invece di `UserType::find($value)?->label` (query extra).
 
 ### Fallback zone_id da geometry/address (oc:8099)
 - `Zone::findByPoint(string $geometry, int $companyId): ?self` — primo metodo statico con raw SQL nel layer model (tutti gli altri sono nei controller). Primo utilizzo di `DB::selectOne` fuori dai controller — convenzione da seguire per query spaziali domain-specific.
