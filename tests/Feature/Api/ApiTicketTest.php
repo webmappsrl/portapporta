@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\Address;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\TrashType;
 use App\Models\User;
+use App\Models\Zone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -174,5 +176,101 @@ class ApiTicketTest extends TestCase
         $this->assertEquals($image, $data_out['image']);
         $ticket = Ticket::find($data_out['id']);
         $this->assertEquals($image, $ticket->image);
+    }
+
+    // -----------------------------------------------------------------------
+    // zone_id fallback derivation (oc:8099)
+    // -----------------------------------------------------------------------
+
+    private function makeZoneContainingPoint(int $companyId): Zone
+    {
+        // Polygon covering lon 10-11, lat 45-46 (contains POINT(10.5 45.5))
+        $geometry = DB::selectOne(
+            "SELECT ST_GeomFromText('MULTIPOLYGON(((10 45, 11 45, 11 46, 10 46, 10 45)))', 4326) AS g"
+        )->g;
+
+        return Zone::create([
+            'company_id' => $companyId,
+            'comune'     => 'TestComune',
+            'label'      => 'Test Zone',
+            'url'        => 'http://test.example',
+            'geometry'   => $geometry,
+        ]);
+    }
+
+    /** @test */
+    public function store_derives_zone_id_from_location_when_not_provided(): void
+    {
+        $company = Company::factory()->create();
+        $zone = $this->makeZoneContainingPoint($company->id);
+        Sanctum::actingAs(User::factory()->create(), ['*']);
+
+        // store() expects location as [lat, lon]
+        $response = $this->post("api/c/{$company->id}/ticket", [
+            'ticket_type' => 'info',
+            'location'    => [45.5, 10.5],
+        ]);
+
+        $this->assertSame(200, $response->status());
+        $ticket = Ticket::find($response->json('data.id'));
+        $this->assertEquals($zone->id, $ticket->zone_id);
+    }
+
+    /** @test */
+    public function v1store_derives_zone_id_from_location_when_not_provided(): void
+    {
+        $company = Company::factory()->create();
+        $zone = $this->makeZoneContainingPoint($company->id);
+        Sanctum::actingAs(User::factory()->create(), ['*']);
+
+        // v1store() uses POINT(location[0] location[1]) — pass [lon, lat]
+        $response = $this->post("api/v1/c/{$company->id}/ticket", [
+            'ticket_type' => 'info',
+            'location'    => [10.5, 45.5],
+        ]);
+
+        $this->assertSame(200, $response->status());
+        $ticket = Ticket::find($response->json('data.id'));
+        $this->assertEquals($zone->id, $ticket->zone_id);
+    }
+
+    /** @test */
+    public function store_zone_id_remains_null_when_location_outside_all_zones(): void
+    {
+        $company = Company::factory()->create();
+        $this->makeZoneContainingPoint($company->id);
+        Sanctum::actingAs(User::factory()->create(), ['*']);
+
+        $response = $this->post("api/c/{$company->id}/ticket", [
+            'ticket_type' => 'info',
+            'location'    => [0.0, 0.0],
+        ]);
+
+        $this->assertSame(200, $response->status());
+        $ticket = Ticket::find($response->json('data.id'));
+        $this->assertNull($ticket->zone_id);
+    }
+
+    /** @test */
+    public function store_derives_zone_id_from_address_when_address_id_provided(): void
+    {
+        $company = Company::factory()->create();
+        $zone = $this->makeZoneContainingPoint($company->id);
+        $user = User::factory()->create();
+        $address = Address::create([
+            'user_id' => $user->id,
+            'zone_id' => $zone->id,
+            'address' => 'Via Test 1',
+        ]);
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->post("api/c/{$company->id}/ticket", [
+            'ticket_type' => 'info',
+            'address_id'  => $address->id,
+        ]);
+
+        $this->assertSame(200, $response->status());
+        $ticket = Ticket::find($response->json('data.id'));
+        $this->assertEquals($zone->id, $ticket->zone_id);
     }
 }

@@ -55,4 +55,16 @@ class Zone extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    private const SRID_WGS84 = 4326;
+
+    public static function findByPoint(string $geometry, int $companyId): ?self
+    {
+        $result = DB::selectOne(
+            'SELECT id FROM zones WHERE company_id = ? AND geometry IS NOT NULL AND ST_Contains(geometry::geometry, ST_SetSRID(?::geometry, ' . self::SRID_WGS84 . ')) ORDER BY ST_Area(geometry::geometry) ASC LIMIT 1',
+            [$companyId, $geometry]
+        );
+
+        return $result ? self::find($result->id) : null;
+    }
 }
