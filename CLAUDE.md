@@ -53,7 +53,8 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 | Fix campi contatto utente assenti in Nova ed email ticket | oc:8058 | `app/Nova/Ticket.php`, `resources/views/emails/tickets/partials/user-form-fields.blade.php` | Ripristina Name/Email/BelongsTo/Phone in Nova; aggiunge email+nome account prima dei dati TARI nel partial email |
 | Fix scheduler model:prune PendingAttachment Nova/Trix | oc:8057 | `app/Console/Kernel.php` | Aggiunto `--model PendingAttachment` al prune notturno per eliminare file temporanei Trix accumulati |
 | Revisione test suite: db di test dedicato | oc:7991 | `tests/TestCase.php`, `phpunit.xml`, `app/Providers/RouteServiceProvider.php`, `.github/workflows/*.yml` | DB `pap_test` dedicato, guard anti-dev-db, throttle disabilitato in testing, CI su PostgreSQL 14+PostGIS |
-| Smistamento automatico segnalazioni Lunigiana | oc:7616 | `config/lunigiana.php`, `app/Models/Ticket.php`, `app/Http/Controllers/TicketController.php` | Duplica le email ticket verso urp@lunigianaambiente.it per le zone Lunigiana di ERSU |
+| Invio mail Lunigiana esclusivo con fallback su company | oc:8111 | `app/Http/Controllers/TicketController.php` | Routing esclusivo: zone Lunigiana → solo urp@lunigianaambiente.it; fallback su company in caso di errore SMTP; `LUNIGIANA_FORWARD_ENABLED=false` → company (graceful degradation) |
+| Smistamento automatico segnalazioni Lunigiana | oc:7616 | `config/lunigiana.php`, `app/Models/Ticket.php`, `app/Http/Controllers/TicketController.php` | Routing email ticket verso urp@lunigianaambiente.it per le zone Lunigiana di ERSU (aggiornato da oc:8111) |
 | Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
 
 ## Decisioni architetturali
@@ -90,10 +91,17 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 - CI aggiornata da `huaxk/postgis-action@v1` (deprecata, immagine Docker rimossa) a service container nativo `postgis/postgis:14-3.3`
 - `config:clear` obbligatorio prima dei test se è stato eseguito `php artisan optimize`
 
+### Invio mail Lunigiana esclusivo con fallback (oc:8111)
+- `TicketController::sendTicketNotification(Ticket, Company, Mailable)` è l'unico punto di routing email — sostituisce il vecchio doppio blocco (company + `forwardToLunigiana`). I 3 call site (`store`, `v1store`, `v1update`) chiamano solo questo metodo.
+- Routing: zona Lunigiana → `sendLunigianaEmails()` (protected, mockabile nei test); eccezione SMTP → `Log::error` + fallback su `sendToCompany()`; forwarding disabilitato o zone_id non derivabile → `sendToCompany()` direttamente.
+- `sendLunigianaEmails` è `protected` (non `private`) esclusivamente per permettere il mock via Mockery in `testV1StoreLunigianaFailureFallsBackToCompany` — non è una scelta architetturale.
+- Con lista Lunigiana comma-separated e più destinatari: al primo SMTP failure gli altri vengono saltati e scatta il fallback (semantica abort-on-first-failure). In produzione c'è un solo destinatario.
+- Follow-up aperto: `Mail::send()` è sincrono — sotto spike di ticket con SMTP Lunigiana lento può esaurire i worker PHP-FPM. Richiede refactor verso queue.
+
 ### Smistamento Lunigiana (oc:7616)
 - Logica hard-coded per ERSU (company_id=1), non generalizzata ad altre company
 - `Ticket::isLunigianaZone()` risponde solo "è zona Lunigiana?" — il controllo `enabled` e il logging restano nel controller
-- `TicketController::forwardToLunigiana()` centralizza il blocco forwarding usato in `store()`, `v1store()`, `v1update()`
+- `forwardToLunigiana()` rimosso in oc:8111, sostituito da `sendTicketNotification()`
 - Lista `zone_id` Lunigiana configurabile in `config/lunigiana.php`, disabilitabile via `LUNIGIANA_FORWARD_ENABLED=false`
 - Dipende dalla migrazione `oc_7612` (`add_zone_id_to_tickets_table`) in produzione
 
