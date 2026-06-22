@@ -212,4 +212,6 @@ return [
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
     ])->toArray(),
 
+    'address_discrepancy_check_enabled' => env('ADDRESS_DISCREPANCY_CHECK_ENABLED', true),
+
 ];

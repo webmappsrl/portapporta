@@ -56,6 +56,7 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 | Invio mail Lunigiana esclusivo con fallback su company | oc:8111 | `app/Http/Controllers/TicketController.php` | Routing esclusivo: zone Lunigiana → solo urp@lunigianaambiente.it; fallback su company in caso di errore SMTP; `LUNIGIANA_FORWARD_ENABLED=false` → company (graceful degradation) |
 | Smistamento automatico segnalazioni Lunigiana | oc:7616 | `config/lunigiana.php`, `app/Models/Ticket.php`, `app/Http/Controllers/TicketController.php` | Routing email ticket verso urp@lunigianaambiente.it per le zone Lunigiana di ERSU (aggiornato da oc:8111) |
 | Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
+| Ricalcolo coordinate/zona se discrepanza con indirizzo | oc:8113 | `app/Http/Controllers/TicketController.php`, `config/app.php` | Forward geocoding Nominatim in `v1store`/`v1update`; se zona testo ≠ zona coordinate → sovrascrive geometry e zone_id; fail-open; kill switch `ADDRESS_DISCREPANCY_CHECK_ENABLED` |
 
 ## Decisioni architetturali
 
@@ -104,6 +105,18 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 - `forwardToLunigiana()` rimosso in oc:8111, sostituito da `sendTicketNotification()`
 - Lista `zone_id` Lunigiana configurabile in `config/lunigiana.php`, disabilitabile via `LUNIGIANA_FORWARD_ENABLED=false`
 - Dipende dalla migrazione `oc_7612` (`add_zone_id_to_tickets_table`) in produzione
+
+### Ricalcolo coordinate/zona se discrepanza con indirizzo (oc:8113)
+- `_correctLocationFromAddress(Ticket, Request): void` — metodo privato chiamato pre-save in `v1store` e `v1update`, dopo l'assegnazione di `geometry` e prima di `_deriveZoneId()`. Non tocca `store()` (non-v1) perché lì l'indirizzo è costruito da reverse geocoding, non editabile.
+- Guard conditions: kill switch disabilitato → return; `address_id` non null → return; `city` assente → return; `geometry` null → return. Fail-open su qualsiasi condizione non soddisfatta.
+- Forward geocoding con campi strutturati Nominatim (`street`, `city`) — mai concatenazione con em-dash che invaliderebbe la query.
+- Confronto via `Zone::findByPoint` (riutilizza oc:8099): zone stessa → nessuna correzione; zone diverse → sovrascrive `$ticket->geometry` e `$ticket->zone_id` pre-save (un solo write al DB).
+- `ticket_id` è null nei `Log::` di `v1store` (il save non è ancora avvenuto) — comportamento atteso, non un bug.
+- Nominatim rate limiting (1 req/sec, no API key): un 429 o risposta vuota viene trattato come fail-open silenzioso — `curlRequest` non controlla il codice HTTP.
+- Kill switch: `ADDRESS_DISCREPANCY_CHECK_ENABLED=true` in `.env`; `config('app.address_discrepancy_check_enabled', true)` in `config/app.php`.
+- `Http` facade (Guzzle) invece di `curlRequest()` — `CurlServiceProvider` usa `User-Agent: PostmanRuntime/7.29.2` che Nominatim blocca esplicitamente. `Http::withHeaders(['User-Agent' => 'portapporta (+https://portapporta.webmapp.it)'])` non è bloccato e rispetta la usage policy.
+- `ConnectionException` catchata esplicitamente nel try-catch attorno a `Http::get()` — Guzzle lancia su network failure (a differenza di `curlRequest()` che catturava internamente), senza il catch il fail-open sarebbe diventato un 500.
+- TODO nel codice: rimuovere quando il fix frontend sarà live e tutti gli utenti avranno aggiornato.
 
 ### Bug oc:7609 bloccanti 3-4 (oc:8054)
 - `CalendarController::isCollectionInProgress(int $zoneId): bool` — metodo **public** chiamato da `TicketController` via `app(CalendarController::class)`. Non static per evitare refactor invasivo. Logger inizializzato con `??` per coprire l'invocazione fuori dal ciclo normale.
