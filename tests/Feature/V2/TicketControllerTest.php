@@ -447,6 +447,120 @@ class TicketControllerTest extends TestCase
         Carbon::setTestNow();
     }
 
+    // --- Lunigiana email routing tests ---
+
+    private function setupLunigianaConfig(int $companyId, int $zoneId, string $lunigianaEmail = 'lunigiana@test.it'): void
+    {
+        config([
+            'lunigiana.enabled'    => true,
+            'lunigiana.company_id' => $companyId,
+            'lunigiana.zones'      => [$zoneId],
+            'lunigiana.email'      => $lunigianaEmail,
+        ]);
+    }
+
+    /** @test */
+    public function testV1StoreLunigianaZoneSendsOnlyToLunigiana(): void
+    {
+        $zone = $this->createZone($this->company);
+        $this->setupLunigianaConfig($this->company->id, $zone->id);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type' => 'reservation',
+            'zone_id'     => $zone->id,
+        ]);
+
+        Mail::assertSent(TicketCreated::class, fn ($m) => $m->hasTo('lunigiana@test.it'));
+        Mail::assertNotSent(TicketCreated::class, fn ($m) => $m->hasTo('test@example.com'));
+    }
+
+    /** @test */
+    public function testV1StoreLunigianaFailureFallsBackToCompany(): void
+    {
+        $zone = $this->createZone($this->company);
+        $this->setupLunigianaConfig($this->company->id, $zone->id);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $this->instance(
+            \App\Http\Controllers\TicketController::class,
+            \Mockery::mock(\App\Http\Controllers\TicketController::class)
+                ->makePartial()
+                ->shouldAllowMockingProtectedMethods()
+                ->shouldReceive('sendLunigianaEmails')
+                ->andThrow(new \Exception('SMTP error'))
+                ->getMock()
+        );
+
+        $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type' => 'reservation',
+            'zone_id'     => $zone->id,
+        ]);
+
+        Mail::assertSent(TicketCreated::class, fn ($m) => $m->hasTo('test@example.com'));
+        Mail::assertNotSent(TicketCreated::class, fn ($m) => $m->hasTo('lunigiana@test.it'));
+    }
+
+    /** @test */
+    public function testV1StoreLunigianaDisabledSendsToCompany(): void
+    {
+        $zone = $this->createZone($this->company);
+        $this->setupLunigianaConfig($this->company->id, $zone->id);
+        config(['lunigiana.enabled' => false]);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $this->post(self::API_PREFIX_COMPANY . "{$this->company->id}/ticket", [
+            'ticket_type' => 'reservation',
+            'zone_id'     => $zone->id,
+        ]);
+
+        Mail::assertSent(TicketCreated::class, fn ($m) => $m->hasTo('test@example.com'));
+        Mail::assertNotSent(TicketCreated::class, fn ($m) => $m->hasTo('lunigiana@test.it'));
+    }
+
+    /** @test */
+    public function testStoreLunigianaZoneSendsOnlyToLunigiana(): void
+    {
+        $zone = $this->createZone($this->company);
+        $this->setupLunigianaConfig($this->company->id, $zone->id);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $this->post('/api/c/' . "{$this->company->id}/ticket", [
+            'ticket_type' => 'info',
+            'zone_id'     => $zone->id,
+        ]);
+
+        Mail::assertSent(TicketCreated::class, fn ($m) => $m->hasTo('lunigiana@test.it'));
+        Mail::assertNotSent(TicketCreated::class, fn ($m) => $m->hasTo('test@example.com'));
+    }
+
+    /** @test */
+    public function testStoreLunigianaDisabledSendsToCompany(): void
+    {
+        $zone = $this->createZone($this->company);
+        $this->setupLunigianaConfig($this->company->id, $zone->id);
+        config(['lunigiana.enabled' => false]);
+
+        Sanctum::actingAs($this->user);
+        Mail::fake();
+
+        $this->post('/api/c/' . "{$this->company->id}/ticket", [
+            'ticket_type' => 'info',
+            'zone_id'     => $zone->id,
+        ]);
+
+        Mail::assertSent(TicketCreated::class, fn ($m) => $m->hasTo('test@example.com'));
+        Mail::assertNotSent(TicketCreated::class, fn ($m) => $m->hasTo('lunigiana@test.it'));
+    }
+
     private function createCalendarWithStopTime(\App\Models\Zone $zone, string $stopTime): void
     {
         $userType = $this->createUserType();
