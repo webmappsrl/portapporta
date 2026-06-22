@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
@@ -212,6 +213,7 @@ class TicketController extends Controller
             $location_address .= $request->city;
         }
         $ticket->location_address = $location_address;
+        $this->_correctLocationFromAddress($ticket, $request);
         if (is_null($ticket->zone_id)) {
             $ticket->zone_id = $this->_deriveZoneId($ticket);
         }
@@ -298,6 +300,7 @@ class TicketController extends Controller
             $location_address .= $request->city;
         }
         $ticket->location_address = $location_address;
+        $this->_correctLocationFromAddress($ticket, $request);
         if (is_null($ticket->zone_id)) {
             $ticket->zone_id = $this->_deriveZoneId($ticket);
         }
@@ -376,6 +379,93 @@ class TicketController extends Controller
                 Mail::to(trim($recipient))->send($mailable);
             }
         }
+    }
+
+    // TODO: rimuovere questo metodo una volta che l'app avrà il fix lato frontend
+    // e tutti gli utenti avranno aggiornato. Disabilitabile via ADDRESS_DISCREPANCY_CHECK_ENABLED=false.
+    private function _correctLocationFromAddress(Ticket $ticket, Request $request): void
+    {
+        if (!config('app.address_discrepancy_check_enabled', true)) {
+            return;
+        }
+
+        if ($ticket->address_id) {
+            return;
+        }
+
+        if (empty($request->city)) {
+            return;
+        }
+
+        if (!$ticket->geometry) {
+            return;
+        }
+
+        $street = trim(($request->address ?? '') . ' ' . ($request->house_number ?? ''));
+        try {
+            $httpResponse = Http::withHeaders(['User-Agent' => 'portapporta (+https://portapporta.webmapp.it)'])
+                ->get('https://nominatim.openstreetmap.org/search', [
+                    'street'       => $street,
+                    'city'         => $request->city,
+                    'format'       => 'json',
+                    'limit'        => 1,
+                    'countrycodes' => 'it',
+                ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::info('Address discrepancy check: Nominatim unreachable, keeping original coordinates', [
+                'ticket_id' => $ticket->id,
+                'address'   => $street . ' — ' . $request->city,
+            ]);
+            return;
+        }
+
+        if (!$httpResponse->successful()) {
+            Log::info('Address discrepancy check: Nominatim request failed, keeping original coordinates', [
+                'ticket_id' => $ticket->id,
+                'status'    => $httpResponse->status(),
+                'address'   => $street . ' — ' . $request->city,
+            ]);
+            return;
+        }
+
+        $response = $httpResponse->json();
+
+        if (empty($response) || !isset($response[0]['lat'], $response[0]['lon'])) {
+            Log::info('Address discrepancy check: Nominatim returned no results, keeping original coordinates', [
+                'ticket_id' => $ticket->id,
+                'address'   => $street . ' — ' . $request->city,
+            ]);
+            return;
+        }
+
+        $textLat = (float) $response[0]['lat'];
+        $textLon = (float) $response[0]['lon'];
+
+        $textGeometry = (DB::select(
+            DB::raw("SELECT ST_GeomFromText('POINT($textLon $textLat)') as g;")
+        ))[0]->g;
+
+        $zoneFromText   = Zone::findByPoint($textGeometry, $ticket->company_id);
+        $zoneFromCoords = Zone::findByPoint($ticket->geometry, $ticket->company_id);
+
+        if (!$zoneFromText || ($zoneFromCoords && $zoneFromCoords->id === $zoneFromText->id)) {
+            return;
+        }
+
+        $originalCoords = $this->_geometryToLatLon($ticket->geometry);
+        Log::warning('Address discrepancy detected: overriding coordinates and zone from text address', [
+            'ticket_id'         => $ticket->id,
+            'original_zone_id'  => $zoneFromCoords?->id,
+            'original_lat'      => $originalCoords[0] ?? null,
+            'original_lon'      => $originalCoords[1] ?? null,
+            'corrected_zone_id' => $zoneFromText->id,
+            'corrected_lat'     => $textLat,
+            'corrected_lon'     => $textLon,
+            'address'           => $street . ' — ' . $request->city,
+        ]);
+
+        $ticket->geometry = $textGeometry;
+        $ticket->zone_id  = $zoneFromText->id;
     }
 
     private function _deriveZoneId(Ticket $ticket): ?int
