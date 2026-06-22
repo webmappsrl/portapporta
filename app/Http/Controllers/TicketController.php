@@ -129,16 +129,9 @@ class TicketController extends Controller
         }
         $res = $ticket->save();
 
-        // Send a notification email to company for the newly created ticket
         if ($res) {
             $company = Company::find($request->id);
-            if ($company->ticket_email) {
-                foreach (explode(',', $company->ticket_email) as $recipient) {
-                    Mail::to($recipient)->send(new TicketCreated($ticket, $company));
-                }
-            }
-            // LUNIGIANA_FORWARD
-            $this->forwardToLunigiana($ticket, $company, new TicketCreated($ticket, $company));
+            $this->sendTicketNotification($ticket, $company, new TicketCreated($ticket, $company));
         }
 
         // Response
@@ -224,16 +217,9 @@ class TicketController extends Controller
         }
         $res = $ticket->save();
 
-        // Send a notification email to company for the newly created ticket
         if ($res) {
             $company = Company::find($request->id);
-            if ($company->ticket_email) {
-                foreach (explode(',', $company->ticket_email) as $recipient) {
-                    Mail::to($recipient)->send(new TicketCreated($ticket, $company));
-                }
-            }
-            // LUNIGIANA_FORWARD
-            $this->forwardToLunigiana($ticket, $company, new TicketCreated($ticket, $company));
+            $this->sendTicketNotification($ticket, $company, new TicketCreated($ticket, $company));
         }
 
         // Response
@@ -321,15 +307,9 @@ class TicketController extends Controller
 
         // Response
         if ($res) {
-            if($ticket->status == TicketStatus::Deleted){
+            if ($ticket->status == TicketStatus::Deleted) {
                 $company = Company::find($ticket->company_id);
-                if ($company->ticket_email) {
-                    foreach (explode(',', $company->ticket_email) as $recipient) {
-                        Mail::to($recipient)->send(new TicketDeleted($ticket, $company));
-                    }
-                }
-                // LUNIGIANA_FORWARD
-                $this->forwardToLunigiana($ticket, $company, new TicketDeleted($ticket, $company));
+                $this->sendTicketNotification($ticket, $company, new TicketDeleted($ticket, $company));
             }
             return $this->sendResponse($ticket, 'Ticket updated.');
         } else {
@@ -349,28 +329,52 @@ class TicketController extends Controller
         //
     }
 
-    private function forwardToLunigiana(Ticket $ticket, Company $company, \Illuminate\Mail\Mailable $mailable): void
+    // NOTE: non riusare la stessa istanza $mailable tra invii multipli —
+    // SymfonyMessage è mutabile e può portare stato residuo dal send precedente.
+    private function sendTicketNotification(Ticket $ticket, Company $company, \Illuminate\Mail\Mailable $mailable): void
     {
         if (!config('lunigiana.enabled')) {
-            Log::warning('Lunigiana forwarding is disabled', ['ticket_id' => $ticket->id]);
+            Log::info('Lunigiana forwarding disabled, sending to company', ['ticket_id' => $ticket->id]);
+            $this->sendToCompany($company, $mailable);
             return;
         }
+
         if (!$ticket->zone_id && $company->id === config('lunigiana.company_id')) {
-            Log::warning('ERSU ticket zone_id derivation failed, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
+            Log::warning('ERSU ticket zone_id derivation failed, falling back to company email', ['ticket_id' => $ticket->id]);
+            $this->sendToCompany($company, $mailable);
             return;
         }
-        if ($ticket->isLunigianaZone()) {
-            foreach (explode(',', config('lunigiana.email')) as $recipient) {
-                try {
-                    Log::info('Sending Lunigiana email to ' . $recipient, ['ticket_id' => $ticket->id]);
-                    Mail::to($recipient)->send($mailable);
-                } catch (\Exception $e) {
-                    Log::warning('Lunigiana forward failed', ['ticket_id' => $ticket->id, 'recipient' => $recipient, 'error' => $e->getMessage()]);
-                }
-            }
+
+        if (!$ticket->isLunigianaZone()) {
+            $this->sendToCompany($company, $mailable);
+            return;
         }
-        else {
-            Log::info('Ticket is not in a Lunigiana zone, Lunigiana forward skipped', ['ticket_id' => $ticket->id]);
+
+        try {
+            $this->sendLunigianaEmails($ticket, $mailable);
+        } catch (\Exception $e) {
+            Log::error('Lunigiana forward failed, falling back to company email', [
+                'ticket_id' => $ticket->id,
+                'error'     => $e->getMessage(),
+            ]);
+            $this->sendToCompany($company, $mailable);
+        }
+    }
+
+    protected function sendLunigianaEmails(Ticket $ticket, \Illuminate\Mail\Mailable $mailable): void
+    {
+        foreach (explode(',', config('lunigiana.email')) as $recipient) {
+            Log::info('Sending Lunigiana email to ' . trim($recipient), ['ticket_id' => $ticket->id]);
+            Mail::to(trim($recipient))->send($mailable);
+        }
+    }
+
+    private function sendToCompany(Company $company, \Illuminate\Mail\Mailable $mailable): void
+    {
+        if ($company->ticket_email) {
+            foreach (explode(',', $company->ticket_email) as $recipient) {
+                Mail::to(trim($recipient))->send($mailable);
+            }
         }
     }
 
