@@ -66,3 +66,4 @@ Tutto nel repo principale `portapporta` (nessun submodule):
 - `app/Http/Controllers/CalendarController.php` — 2 righe (`createCalendar()` dopo `:367`, `V1IndexByZone` dopo `:207`)
 - `tests/Feature/V2/CalendarControllerTest.php` — 3 test nuovi + una riga in `verifyCalendarItemSchedule` (vedi domanda aperta 1)
 - `CLAUDE.md` — riga nella tabella "Feature disponibili"
+- `docs/knowledge/8655-pap-api-calendar-by-zone-tipo-di-utenza-nei-ritiri-e-filtro-user-type-id.md` — pagina di conoscenza nuova, a cui rimanda la riga del `CLAUDE.md` (aggiunta dopo l'approvazione: vedi `notes.md`, Task 5)

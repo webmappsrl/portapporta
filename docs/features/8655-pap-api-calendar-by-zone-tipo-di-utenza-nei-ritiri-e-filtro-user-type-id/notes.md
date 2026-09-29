@@ -4,13 +4,20 @@
 
 ## Deviazioni dal piano
 
-Una sola deviazione dai task di `plan.md`, dettagliata sotto. Le deviazioni rispetto alla **descrizione del ticket** sono in "Decisioni".
+Due task di `plan.md` sono stati eseguiti diversamente (Task 5 e Task 6), dettagliati sotto. Le deviazioni rispetto alla **descrizione del ticket** sono in "Decisioni".
 
 ## Divergenze dal piano, task per task
 
 ### Task 5 documentazione
 
 La riga in `CLAUDE.md` punta alla pagina di conoscenza `docs/knowledge/8655-….md` invece che alla cartella `docs/features/8655-…/`, come chiede la versione attuale del workflow (`update-context`): la pagina descrive il comportamento attuale dell'endpoint, la cartella è la cronaca del lavoro.
+
+Il Task 5 ha prodotto anche un file non previsto dal piano né dai "Moduli toccati" dell'overview: la pagina `docs/knowledge/8655-pap-api-calendar-by-zone-tipo-di-utenza-nei-ritiri-e-filtro-user-type-id.md`, primo file della cartella `docs/knowledge/` nel repo. È la pagina a cui rimanda la riga del `CLAUDE.md`.
+
+### Task 6 review-gate commit e PR
+
+- **Un commit invece di tre.** Il piano prevedeva `test(oc:8655)`, `feat(oc:8655)` e `docs(oc:8655)` separati; è stato fatto un solo `feat(oc:8655)` (`feda8dd`) con codice, test, `plan.md`, `notes.md`, pagina di conoscenza e riga del `CLAUDE.md`. Il Task 6 non è stato riletto prima del commit. Conseguenza: un revert del solo codice si porta dietro anche la documentazione.
+- **Review formale dopo il commit.** Su richiesta della dev, `wm-review-ticket oc:8655` è stata fatta dopo il commit invece che prima (vedi anche "Decisioni"). Le correzioni di documentazione emerse dalla review sono in un commit `docs(oc:8655)` successivo.
 
 ## Bug trovati
 

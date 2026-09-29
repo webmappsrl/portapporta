@@ -170,6 +170,8 @@ File: `tests/Feature/V2/CalendarControllerTest.php`, `verifyCalendarItemSchedule
 
 ## Task 6 — Review-gate, commit e PR (solo dopo approvazione della dev)
 
+> ⚠️ L'implementazione ha deviato da questo task: [notes.md](notes.md#task-6-review-gate-commit-e-pr)
+
 - [ ] Riepilogo del diff da subagente isolato, poi approvazione esplicita della dev.
 - [ ] Commit suggeriti (da eseguire solo dopo approvazione):
   ```
