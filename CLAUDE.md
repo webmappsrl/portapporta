@@ -48,6 +48,7 @@ Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test veng
 
 | Feature | Ticket | Moduli toccati | Note |
 |---|---|---|---|
+| Tipo di utenza nei ritiri e filtro user_type_id nel calendario per zona | oc:8655 | `app/Http/Controllers/CalendarController.php`, `tests/Feature/V2/CalendarControllerTest.php` | Vedi [docs/knowledge/8655-….md](docs/knowledge/8655-pap-api-calendar-by-zone-tipo-di-utenza-nei-ritiri-e-filtro-user-type-id.md) |
 | Field user_type selezionabile in Nova Address | oc:8101 | `app/Nova/Address.php` | Select editabile filtrato per company, con validazione server-side Rule::in per bloccare assegnazioni cross-company |
 | Fallback zone_id da geometry/address per app non aggiornate | oc:8099 | `app/Models/Zone.php`, `app/Http/Controllers/TicketController.php` | Deriva automaticamente zone_id pre-save via address.zone_id o PostGIS ST_Contains; garantisce forward Lunigiana anche da app vecchie |
 | Fix campi contatto utente assenti in Nova ed email ticket | oc:8058 | `app/Nova/Ticket.php`, `resources/views/emails/tickets/partials/user-form-fields.blade.php` | Ripristina Name/Email/BelongsTo/Phone in Nova; aggiunge email+nome account prima dei dati TARI nel partial email |
