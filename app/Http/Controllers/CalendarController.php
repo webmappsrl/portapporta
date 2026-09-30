@@ -205,6 +205,7 @@ class CalendarController extends Controller
             $calendars = Calendar::with(['calendarItems.trashTypes'])
                 ->where('company_id', $company_id)
                 ->where('zone_id', $zone_id)
+                ->when($request->filled('user_type_id'), fn ($q) => $q->where('user_type_id', (int) $request->user_type_id))
                 ->whereDate('start_date', '<=', $start_date)
                 ->orderBy('start_date', 'asc')
                 ->get();
@@ -365,6 +366,7 @@ class CalendarController extends Controller
                         $p['frequency'] = $item->frequency;
                         $p['start_time'] = str_replace('0:00', '0', $item->start_time);
                         $p['stop_time'] = str_replace('0:00', '0', $item->stop_time);
+                        $p['user_type_id'] = $calendar->user_type_id;
 
                         if ($item->frequency == 'biweekly') {
                             $baseDate = Carbon::parse($item->base_date);

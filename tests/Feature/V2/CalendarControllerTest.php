@@ -313,9 +313,82 @@ class CalendarControllerTest extends TestCase
         );
     }
 
+    /** @test */
+    public function testV1IndexByZoneItemsHaveUserTypeId()
+    {
+        $secondUserType = $this->createSecondUserTypeCalendar();
+        $startDate = Carbon::tomorrow()->format('Y-m-d');
+        $stopDate = Carbon::tomorrow()->addDays(6)->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . "{$this->company->id}/calendar/z/{$this->zone->id}?start_date={$startDate}&stop_date={$stopDate}");
+
+        $response->assertStatus(200);
+        $items = $response->json("data.calendar.{$startDate}");
+        $this->assertCount(2, $items);
+        $this->assertEqualsCanonicalizing(
+            [$this->userType->id, $secondUserType->id],
+            array_column($items, 'user_type_id')
+        );
+    }
+
+    /** @test */
+    public function testV1IndexByZoneFilterByUserType()
+    {
+        $secondUserType = $this->createSecondUserTypeCalendar();
+        $startDate = Carbon::tomorrow()->format('Y-m-d');
+        $stopDate = Carbon::tomorrow()->addDays(6)->format('Y-m-d');
+
+        $response = $this->get(self::API_PREFIX . "{$this->company->id}/calendar/z/{$this->zone->id}?start_date={$startDate}&stop_date={$stopDate}&user_type_id={$secondUserType->id}");
+
+        $response->assertStatus(200);
+        $items = $response->json("data.calendar.{$startDate}");
+        $this->assertCount(1, $items);
+        $this->assertSame($secondUserType->id, $items[0]['user_type_id']);
+    }
+
+    /** @test */
+    public function testV1IndexByZoneFilterByUnknownUserTypeReturnsError()
+    {
+        $response = $this->get(self::API_PREFIX . "{$this->company->id}/calendar/z/{$this->zone->id}?user_type_id=999999");
+
+        $this->assertErrorResponse(
+            $response,
+            self::responseMessages['noCalendarsForZone'],
+            400
+        );
+    }
+
     // --------------------------------------------
     // Helper Methods for V1IndexByZone Tests
     // --------------------------------------------
+
+    /**
+     * Create a second user type with a calendar in the same zone, company and dates as setUp(),
+     * with a weekly item tomorrow.
+     *
+     * @return UserType
+     */
+    private function createSecondUserTypeCalendar(): UserType
+    {
+        $secondUserType = UserType::factory()->create();
+        $calendar = Calendar::factory()->create([
+            'zone_id' => $this->zone->id,
+            'company_id' => $this->company->id,
+            'user_type_id' => $secondUserType->id,
+            'start_date' => Carbon::today()->subDays(5),
+            'stop_date' => Carbon::today()->addDays(30),
+        ]);
+        $calendarItem = CalendarItem::factory()->create([
+            'calendar_id' => $calendar->id,
+            'day_of_week' => Carbon::tomorrow()->dayOfWeek,
+            'start_time' => '14:00',
+            'stop_time' => '18:00',
+            'frequency' => 'weekly',
+        ]);
+        $calendarItem->trashTypes()->attach($this->trashType->id);
+
+        return $secondUserType;
+    }
 
     /**
      * Verify the response data structure and content for V1IndexByZone.
@@ -456,6 +529,7 @@ class CalendarControllerTest extends TestCase
     {
         return $json->where('start_time', $this->calendarItem->start_time)
                     ->where('stop_time', $this->calendarItem->stop_time)
-                    ->where('frequency', $this->calendarItem->frequency);
+                    ->where('frequency', $this->calendarItem->frequency)
+                    ->where('user_type_id', $this->userType->id);
     }
 }
