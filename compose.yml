@@ -6,10 +6,10 @@ services:
     build: ./docker/configs/phpfpm
     restart: always
     container_name: "php_${APP_NAME}"
-    image: wm-phpfpm:8.2.15-fpm
+    image: wm-phpfpm:8.2.35-fpm
     ports:
-      - ${DOCKER_PHP_PORT}:9000
-      - ${DOCKER_SERVE_PORT}:8000
+      - "127.0.0.1:${DOCKER_PHP_PORT}:9000"
+      - "127.0.0.1:${DOCKER_SERVE_PORT}:8000"
     volumes:
       - ".:/var/www/html/${DOCKER_PROJECT_DIR_NAME}"
     working_dir: "/var/www/html/${DOCKER_PROJECT_DIR_NAME}"
@@ -30,7 +30,7 @@ services:
     volumes:
       - "./docker/volumes/postgresql/data:/var/lib/postgresql/data"
     ports:
-      - ${DOCKER_PSQL_PORT}:5432
+      - "127.0.0.1:${DOCKER_PSQL_PORT}:5432"
     networks:
       - pap
   redis:
@@ -45,15 +45,15 @@ services:
     container_name: "mailpit_${APP_NAME}"
     image: "axllent/mailpit:latest"
     ports:
-      - "${FORWARD_MAILPIT_PORT:-1025}:1025"
-      - "${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025"
+      - "127.0.0.1:${FORWARD_MAILPIT_PORT:-1025}:1025"
+      - "127.0.0.1:${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025"
     networks:
       - pap
   firebase:
     container_name: "firebase_${APP_NAME}"
     image: "andreysenov/firebase-tools:latest"
     ports:
-      - "${FIREBASE_EMULATOR_PORT:-4000}:4000"
+      - "127.0.0.1:${FIREBASE_EMULATOR_PORT:-4000}:4000"
     entrypoint:
       ["firebase", "emulators:start", "--only", "pubsub", "--project", "pap"]
     expose:
