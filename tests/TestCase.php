@@ -17,11 +17,11 @@ abstract class TestCase extends BaseTestCase
         if ($db !== 'pap_test') {
             throw new \RuntimeException(
                 "Test aborted: connected to database '{$db}', expected 'pap_test'.\n" .
-                "Run these commands to set up the test database:\n" .
-                "  docker exec postgres_portapporta createdb -U root pap_test\n" .
-                "  docker exec postgres_portapporta psql -U root -d pap_test -c \"CREATE EXTENSION IF NOT EXISTS postgis;\"\n" .
-                "  docker exec php_portapporta php artisan config:clear\n" .
-                "  docker exec php_portapporta php artisan migrate --env=testing"
+                "See docs/howto/test-locale.md. Container names come from APP_NAME, DB user from .env:\n" .
+                "  docker exec postgres_PortAPPorta createdb -U <DB_USERNAME> pap_test\n" .
+                "  docker exec postgres_PortAPPorta psql -U <DB_USERNAME> -d pap_test -c \"CREATE EXTENSION IF NOT EXISTS postgis;\"\n" .
+                "  docker exec php_PortAPPorta php artisan optimize:clear\n" .
+                "  docker exec php_PortAPPorta php artisan migrate --env=testing"
             );
         }
     }

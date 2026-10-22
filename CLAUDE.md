@@ -1,127 +1,51 @@
-# CLAUDE.md
+# portapporta
 
-## Stack
-- Laravel 12, PHP 8.4, PostgreSQL (PostGIS), Redis
-- Docker: container PHP `php_portapporta`, DB `postgres_portapporta`
-- Comandi artisan vanno lanciati dentro il container: `docker exec php_portapporta php artisan ...`
+## Cos'è questo repo
 
-## Setup ambiente di test
+API Laravel 9 (PHP 8.2) di PortAPPorta: calendari di raccolta rifiuti, segnalazioni (ticket) e push per le app mobile (`webmappsrl/pap`) e pannello Nova (4.29.4) per i gestori. Usa PostgreSQL con PostGIS e Redis. Nessun submodule. **Prod e dev girano con il motore PHP in container Docker** (vedi Conoscenza → runtime). Attenzione alle versioni PHP: in locale e in produzione gira la 8.2 (immagine `wm-phpfpm:8.2.35-fpm`), la CI usa 8.4.
 
-I test girano su un database PostgreSQL dedicato `pap_test` (mai sul DB di sviluppo `pap`).
+## Regole
 
-**Setup una-tantum per ogni sviluppatore:**
-```bash
-docker exec postgres_portapporta createdb -U root pap_test
-docker exec postgres_portapporta psql -U root -d pap_test -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-docker exec php_portapporta php artisan config:clear
-docker exec php_portapporta php artisan migrate --env=testing
-```
+- **I test girano solo sul database `pap_test`, mai su `pap`** (un guard in `TestCase::setUp()` abortisce altrimenti).
+- **Non lanciare `scripts/deploy_prod.sh` né `scripts/launch_horizon.sh`**: fanno composer/artisan/screen sull'host, non sui container (oc:8843, follow-up aperto). Prima di un deploy leggi [docs/knowledge/8843-runtime-php-docker-prod-dev.md](docs/knowledge/8843-runtime-php-docker-prod-dev.md).
+- **Non riabilitare mod_php su Apache del server** e non pubblicare porte dei container fuori da `127.0.0.1` (oc:8843).
+- La documentazione del repo è in italiano.
 
-Creare il file `.env.testing` nella root (non committato) con almeno:
-```
-APP_ENV=testing
-APP_KEY=<stessa chiave di .env>
-DB_CONNECTION=pgsql
-DB_HOST=db
-DB_PORT=5432
-DB_DATABASE=pap_test
-DB_USERNAME=root
-DB_PASSWORD=password
-CACHE_DRIVER=array
-```
+## Comandi
 
-**Prerequisito prima di ogni run di test:** se hai eseguito `php artisan optimize`, pulisci la cache:
-```bash
-docker exec php_portapporta php artisan config:clear
-```
+| Cosa | Comando |
+|---|---|
+| artisan in locale | `docker exec php_PortAPPorta php artisan …` (nomi container da `APP_NAME` in `.env`) |
+| artisan in produzione | `docker exec php-prod-pap php artisan …` (dev sul server: `php-dev-pap`) |
+| test | `docker exec php_PortAPPorta php artisan test` — setup e prerequisiti in [docs/howto/test-locale.md](docs/howto/test-locale.md) |
+| cache sporca (anche route) | `docker exec php_PortAPPorta php artisan optimize:clear` |
+| CI | `.github/workflows/laravel-develop-pipe.yml` / `laravel-prod-pipe.yml` (migrate + test su PHP 8.4) |
+| build/lint | non configurati nel repo (niente Pint/PHPStan) |
 
-**Esecuzione test:**
-```bash
-docker exec php_portapporta php artisan test
-```
+## Convenzioni
 
-Un guard in `TestCase::setUp()` abortisce con messaggio esplicito se i test vengono lanciati puntando a `pap`.
+- Ticket Orchestrator referenziati come `oc:<ID>`; commit `tipo(oc:<ID>): descrizione`.
+- Documentazione: cantieri in `docs/features/<ID>-<slug>/` (`overview.md`, `plan.md`, `notes.md`), conoscenza per argomento in `docs/knowledge/`, procedure in `docs/howto/`.
+- Le trappole (comportamenti che fanno sbagliare chi non li conosce) vivono in regole path-scoped sotto `.claude/rules/`, non qui.
 
-**Note:** il middleware `throttle:api` è disabilitato in ambiente `testing` — i test che verifichino il rate limiting vanno scritti con asserzioni esplicite e disabilitando il guard.
+## Conoscenza
 
-## Feature disponibili
+| Argomento | Cosa copre | Pagina |
+|---|---|---|
+| Runtime PHP di prod e dev (Docker) | Container, proxy_fcgi, Horizon, scheduler, limiti richieste — oc:8843 | [docs/knowledge/8843-runtime-php-docker-prod-dev.md](docs/knowledge/8843-runtime-php-docker-prod-dev.md) |
+| Zona e posizione dei ticket | Derivazione zone_id, geocoding Nominatim, missed_withdraw_date, city in location_address — oc:8099, oc:8113, oc:8054 | [docs/knowledge/ticket-zona-e-posizione.md](docs/knowledge/ticket-zona-e-posizione.md) |
+| Instradamento email Lunigiana | Routing esclusivo con fallback, config, follow-up queue — oc:7616, oc:8111 | [docs/knowledge/lunigiana-routing.md](docs/knowledge/lunigiana-routing.md) |
+| Calendario per zona: tipo di utenza | `user_type_id` nei ritiri e filtro — oc:8655 | [docs/knowledge/8655-pap-api-calendar-by-zone-tipo-di-utenza-nei-ritiri-e-filtro-user-type-id.md](docs/knowledge/8655-pap-api-calendar-by-zone-tipo-di-utenza-nei-ritiri-e-filtro-user-type-id.md) |
+| Campi Nova di Address e Ticket | Select user_type, campi contatto, email ticket — oc:8101, oc:8058 | [docs/knowledge/nova-campi-address-ticket.md](docs/knowledge/nova-campi-address-ticket.md) |
+| Pulizia PendingAttachment | Prune dei file Trix e sua attivazione reale — oc:8057 | [docs/knowledge/prune-pending-attachment.md](docs/knowledge/prune-pending-attachment.md) |
+| DB di test dedicato | Guard, APP_KEY, throttle, CI — oc:7991 | [docs/knowledge/test-db-dedicato.md](docs/knowledge/test-db-dedicato.md) |
+| Risposta ai ticket via mail | Azione Nova `TicketAnswerViaMail`: rich text, immagini inline, allegati | [docs/knowledge/ticket-answer-via-mail.md](docs/knowledge/ticket-answer-via-mail.md) |
 
-| Feature | Ticket | Moduli toccati | Note |
-|---|---|---|---|
-| Tipo di utenza nei ritiri e filtro user_type_id nel calendario per zona | oc:8655 | `app/Http/Controllers/CalendarController.php`, `tests/Feature/V2/CalendarControllerTest.php` | Vedi [docs/knowledge/8655-….md](docs/knowledge/8655-pap-api-calendar-by-zone-tipo-di-utenza-nei-ritiri-e-filtro-user-type-id.md) |
-| Field user_type selezionabile in Nova Address | oc:8101 | `app/Nova/Address.php` | Select editabile filtrato per company, con validazione server-side Rule::in per bloccare assegnazioni cross-company |
-| Fallback zone_id da geometry/address per app non aggiornate | oc:8099 | `app/Models/Zone.php`, `app/Http/Controllers/TicketController.php` | Deriva automaticamente zone_id pre-save via address.zone_id o PostGIS ST_Contains; garantisce forward Lunigiana anche da app vecchie |
-| Fix campi contatto utente assenti in Nova ed email ticket | oc:8058 | `app/Nova/Ticket.php`, `resources/views/emails/tickets/partials/user-form-fields.blade.php` | Ripristina Name/Email/BelongsTo/Phone in Nova; aggiunge email+nome account prima dei dati TARI nel partial email |
-| Fix scheduler model:prune PendingAttachment Nova/Trix | oc:8057 | `app/Console/Kernel.php` | Aggiunto `--model PendingAttachment` al prune notturno per eliminare file temporanei Trix accumulati |
-| Revisione test suite: db di test dedicato | oc:7991 | `tests/TestCase.php`, `phpunit.xml`, `app/Providers/RouteServiceProvider.php`, `.github/workflows/*.yml` | DB `pap_test` dedicato, guard anti-dev-db, throttle disabilitato in testing, CI su PostgreSQL 14+PostGIS |
-| Invio mail Lunigiana esclusivo con fallback su company | oc:8111 | `app/Http/Controllers/TicketController.php` | Routing esclusivo: zone Lunigiana → solo urp@lunigianaambiente.it; fallback su company in caso di errore SMTP; `LUNIGIANA_FORWARD_ENABLED=false` → company (graceful degradation) |
-| Smistamento automatico segnalazioni Lunigiana | oc:7616 | `config/lunigiana.php`, `app/Models/Ticket.php`, `app/Http/Controllers/TicketController.php` | Routing email ticket verso urp@lunigianaambiente.it per le zone Lunigiana di ERSU (aggiornato da oc:8111) |
-| Bug oc:7609 — bloccanti 3 e 4 backend | oc:8054 | `app/Http/Controllers/CalendarController.php`, `app/Http/Controllers/TicketController.php`, `app/Nova/Ticket.php`, `resources/views/emails/tickets/created.blade.php` | Validazione server-side `missed_withdraw_date`, log warning per `stop_time` malformato, `city` in `location_address` per ticket senza FK zona |
-| Ricalcolo coordinate/zona se discrepanza con indirizzo | oc:8113 | `app/Http/Controllers/TicketController.php`, `config/app.php` | Forward geocoding Nominatim in `v1store`/`v1update`; se zona testo ≠ zona coordinate → sovrascrive geometry e zone_id; fail-open; kill switch `ADDRESS_DISCREPANCY_CHECK_ENABLED` |
+## Trappole
 
-## Decisioni architetturali
+Regole path-scoped in `.claude/rules/`, caricate quando si tocca il codice che le riguarda:
 
-### Field user_type selezionabile in Nova Address (oc:8101)
-- `userTypeOptionsForCompany(): Builder` è un metodo privato non-static che centralizza la logica di filtro usata sia da `->options()` che da `->rules()` — evita divergenza silente tra opzioni mostrate e valori accettati dalla validazione.
-- `->options()` usa `->get()->pluck('label','id')` (idrata i model per `HasTranslations`); `->rules()` usa `->pluck('id')` (query leggera senza idratazione) — stesso Builder, chiamate diverse.
-- Fallback per company_admin senza utente sull'address: `admin_company_id` (non `app_company_id` come fa il campo `zone_id`). Per un company_admin, `app_company_id` è null — la divergenza è intenzionale e documentata.
-- `displayUsing` usa `$this->userType?->label` (relazione Eloquent) invece di `UserType::find($value)?->label` (query extra).
-
-### Fallback zone_id da geometry/address (oc:8099)
-- `Zone::findByPoint(string $geometry, int $companyId): ?self` — primo metodo statico con raw SQL nel layer model (tutti gli altri sono nei controller). Primo utilizzo di `DB::selectOne` fuori dai controller — convenzione da seguire per query spaziali domain-specific.
-- `ST_SetSRID(?::geometry, 4326)` obbligatorio: geometry pre-save ha SRID=0 (`ST_GeomFromText` senza argomento), geometry post-save ha SRID=4326. Senza il force, `ST_Contains` ritorna `false` silenziosamente.
-- `ORDER BY ST_Area(geometry::geometry) ASC`: 27 coppie di zone ERSU si sovrappongono — l'ordinamento garantisce determinismo prendendo la zona più specifica.
-- Derivazione pre-save (non post-save): geometry e address_id sono già sull'oggetto Eloquent prima di `save()` — un solo write al DB.
-- `isCollectionInProgress` rimane fail-open per zone_id derivato: il blocco si attiva solo se `$request->exists('zone_id')` — comportamento intenzionale, non cambiato.
-
-### Fix campi contatto utente in Nova ed email (oc:8058)
-- I 4 campi statici (`Name`, `Email`, `BelongsTo User`, `Phone`) sono wrappati in `if ($this->user)` in `_headerFields` — così gli altri campi dell'header restano visibili anche per ticket orfani
-- `->with(['user'])` aggiunto in `indexQuery` per prevenire N+1 con `BelongsTo::make('User')` visibile in index
-- Email e nome account nel partial `user-form-fields.blade.php` precedono i dati TARI dinamici (inline, senza header separatore) per tutti i formati (`br`, `table`, `paragraph`)
-- Test Nova: asserzioni su campi tradotti usano `__('Name')` / `__('Phone')` perché il locale del progetto è `it` (`__('Name')` → `'Nome'`)
-
-### Fix scheduler prune PendingAttachment (oc:8057)
-- `model:prune` richiede `--model` esplicito su `PendingAttachment` — senza il flag, i file temporanei caricati nell'editor Trix di Nova non vengono eliminati
-- `PendingAttachment` usa il trait `Prunable` (non `MassPrunable`): trigghera `pruning()` per-record che chiama `Storage::disk()->delete()` — i file fisici sono eliminati correttamente
-- Finestra di pruning: `created_at <= now()->subDays(1)` — hard-coded nel modello Nova vendor
-- Il primo run in produzione dopo il deploy eliminerà i file accumulati: fare un backup spot del filesystem prima
-
-### Test suite (oc:7991)
-- DB di test `pap_test` separato da `pap` (sviluppo) — `TestCase::setUp()` abortisce con messaggio actionable se il DB è sbagliato
-- `APP_KEY` identica in `.env` e `.env.testing` — `laravel/serializable-closure` firma le closure con la chiave; chiavi diverse causano `InvalidSignatureException` durante `RefreshDatabase`
-- Throttle `api` disabilitato in `testing` via `RouteServiceProvider` — i test che verificano rate limiting non sono possibili senza `withMiddleware` esplicito
-- CI aggiornata da `huaxk/postgis-action@v1` (deprecata, immagine Docker rimossa) a service container nativo `postgis/postgis:14-3.3`
-- `config:clear` obbligatorio prima dei test se è stato eseguito `php artisan optimize`
-
-### Invio mail Lunigiana esclusivo con fallback (oc:8111)
-- `TicketController::sendTicketNotification(Ticket, Company, Mailable)` è l'unico punto di routing email — sostituisce il vecchio doppio blocco (company + `forwardToLunigiana`). I 3 call site (`store`, `v1store`, `v1update`) chiamano solo questo metodo.
-- Routing: zona Lunigiana → `sendLunigianaEmails()` (protected, mockabile nei test); eccezione SMTP → `Log::error` + fallback su `sendToCompany()`; forwarding disabilitato o zone_id non derivabile → `sendToCompany()` direttamente.
-- `sendLunigianaEmails` è `protected` (non `private`) esclusivamente per permettere il mock via Mockery in `testV1StoreLunigianaFailureFallsBackToCompany` — non è una scelta architetturale.
-- Con lista Lunigiana comma-separated e più destinatari: al primo SMTP failure gli altri vengono saltati e scatta il fallback (semantica abort-on-first-failure). In produzione c'è un solo destinatario.
-- Follow-up aperto: `Mail::send()` è sincrono — sotto spike di ticket con SMTP Lunigiana lento può esaurire i worker PHP-FPM. Richiede refactor verso queue.
-
-### Smistamento Lunigiana (oc:7616)
-- Logica hard-coded per ERSU (company_id=1), non generalizzata ad altre company
-- `Ticket::isLunigianaZone()` risponde solo "è zona Lunigiana?" — il controllo `enabled` e il logging restano nel controller
-- `forwardToLunigiana()` rimosso in oc:8111, sostituito da `sendTicketNotification()`
-- Lista `zone_id` Lunigiana configurabile in `config/lunigiana.php`, disabilitabile via `LUNIGIANA_FORWARD_ENABLED=false`
-- Dipende dalla migrazione `oc_7612` (`add_zone_id_to_tickets_table`) in produzione
-
-### Ricalcolo coordinate/zona se discrepanza con indirizzo (oc:8113)
-- `_correctLocationFromAddress(Ticket, Request): void` — metodo privato chiamato pre-save in `v1store` e `v1update`, dopo l'assegnazione di `geometry` e prima di `_deriveZoneId()`. Non tocca `store()` (non-v1) perché lì l'indirizzo è costruito da reverse geocoding, non editabile.
-- Guard conditions: kill switch disabilitato → return; `address_id` non null → return; `city` assente → return; `geometry` null → return. Fail-open su qualsiasi condizione non soddisfatta.
-- Forward geocoding con campi strutturati Nominatim (`street`, `city`) — mai concatenazione con em-dash che invaliderebbe la query.
-- Confronto via `Zone::findByPoint` (riutilizza oc:8099): zone stessa → nessuna correzione; zone diverse → sovrascrive `$ticket->geometry` e `$ticket->zone_id` pre-save (un solo write al DB).
-- `ticket_id` è null nei `Log::` di `v1store` (il save non è ancora avvenuto) — comportamento atteso, non un bug.
-- Nominatim rate limiting (1 req/sec, no API key): un 429 o risposta vuota viene trattato come fail-open silenzioso — `curlRequest` non controlla il codice HTTP.
-- Kill switch: `ADDRESS_DISCREPANCY_CHECK_ENABLED=true` in `.env`; `config('app.address_discrepancy_check_enabled', true)` in `config/app.php`.
-- `Http` facade (Guzzle) invece di `curlRequest()` — `CurlServiceProvider` usa `User-Agent: PostmanRuntime/7.29.2` che Nominatim blocca esplicitamente. `Http::withHeaders(['User-Agent' => 'portapporta (+https://portapporta.webmapp.it)'])` non è bloccato e rispetta la usage policy.
-- `ConnectionException` catchata esplicitamente nel try-catch attorno a `Http::get()` — Guzzle lancia su network failure (a differenza di `curlRequest()` che catturava internamente), senza il catch il fail-open sarebbe diventato un 500.
-- TODO nel codice: rimuovere quando il fix frontend sarà live e tutti gli utenti avranno aggiornato.
-
-### Bug oc:7609 bloccanti 3-4 (oc:8054)
-- `CalendarController::isCollectionInProgress(int $zoneId): bool` — metodo **public** chiamato da `TicketController` via `app(CalendarController::class)`. Non static per evitare refactor invasivo. Logger inizializzato con `??` per coprire l'invocazione fuori dal ciclo normale.
-- Validazione `missed_withdraw_date` applicata in **v1store** e **v1update**; in update si attiva solo se `missed_withdraw_date` è presente nel payload (`$request->exists()`), non sul valore già persistito.
-- Fail-open esplicito: se `zone_id` non è disponibile (app vecchia), il ticket viene accettato senza validazione della finestra temporale.
-- `city` viene appesa a `location_address` con separatore ` — ` (spazio + em dash + spazio) solo quando mancano sia `address_id` che `zone_id`. Nessuna migrazione: il campo è già testo libero. Nova e template email parsano la city via `explode(' — ', ..., 2)` nell'`else` branch.
-- `filterExcludeInProgress` aggiunge log `warning` in caso di `stop_time` non parsabile; nessun cambio comportamentale.
+- `ticket-zona.md` — SRID nelle query spaziali, ordinamento zone, Nominatim, separatore ` — ` (`app/Models`, `app/Http/Controllers`)
+- `nova.md` — company fallback e options/rules in Address (`app/Nova`)
+- `test.md` — APP_KEY, throttle, `verifyCalendarItemSchedule`, etichette tradotte (`tests`)
+- `scheduler.md` — `model:prune --model` e cron di produzione (`app/Console`)
