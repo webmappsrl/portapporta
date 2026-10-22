@@ -1,0 +1,50 @@
+# oc:8843 — compose di PRODUZIONE per il server pap (116.203.127.252)
+# Motore PHP in container, tutto il resto (Apache, PostgreSQL, Redis) sull'host.
+# REGOLA: nessuna chiave `ports:` — network_mode: host + FPM in ascolto solo su
+# 127.0.0.1 (vedi fpm-prod.conf / fpm-dev.conf). Lezione maphub oc:8842.
+services:
+  php-prod:
+    image: wm-phpfpm:8.2.35-fpm
+    container_name: php-prod-pap
+    network_mode: host
+    restart: always
+    working_dir: /var/www/html/portapporta
+    volumes:
+      - /var/www/html/portapporta:/var/www/html/portapporta
+      - ./fpm-prod.conf:/usr/local/etc/php-fpm.d/zz-docker.conf:ro
+
+  horizon-prod:
+    image: wm-phpfpm:8.2.35-fpm
+    container_name: horizon-prod-pap
+    network_mode: host
+    restart: always
+    working_dir: /var/www/html/portapporta
+    command: php artisan horizon
+    stop_grace_period: 60s
+    volumes:
+      - /var/www/html/portapporta:/var/www/html/portapporta
+    depends_on:
+      - php-prod
+
+  php-dev:
+    image: wm-phpfpm:8.2.35-fpm
+    container_name: php-dev-pap
+    network_mode: host
+    restart: always
+    working_dir: /var/www/html/dev.portapporta
+    volumes:
+      - /var/www/html/dev.portapporta:/var/www/html/dev.portapporta
+      - ./fpm-dev.conf:/usr/local/etc/php-fpm.d/zz-docker.conf:ro
+
+  horizon-dev:
+    image: wm-phpfpm:8.2.35-fpm
+    container_name: horizon-dev-pap
+    network_mode: host
+    restart: always
+    working_dir: /var/www/html/dev.portapporta
+    command: php artisan horizon
+    stop_grace_period: 60s
+    volumes:
+      - /var/www/html/dev.portapporta:/var/www/html/dev.portapporta
+    depends_on:
+      - php-dev
